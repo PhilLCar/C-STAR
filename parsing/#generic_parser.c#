@@ -1,0 +1,17 @@
+#include <stdlib.h>
+#include <stdio.h>
+
+typedef struct parser {
+  char   *whitespaces;
+  char  **breaksymbols;
+  char ***delimiters;
+} Parser;
+
+newParser *fromFile(char *filename) {
+  FILE *fptr = fopen(filename, "r");
+  
+}
+
+int parse(char *filename, Parser parser) {
+  return 0;
+}
