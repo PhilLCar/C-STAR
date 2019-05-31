@@ -130,7 +130,6 @@ char ***pairs(FILE *fptr) {
 	      } while ((c = fgetc(fptr)) != '\n');
 	      pi[pi_size] = 0;
 	      c = fgetc(fptr);
-	      printf("yo : <%c>\n", c);
 	    }
 	  }
 	} else {
@@ -143,6 +142,7 @@ char ***pairs(FILE *fptr) {
 	    } else break;
 	  }
 	  free(pa);
+	  pa = NULL;
 	  break;
 	}
       }
