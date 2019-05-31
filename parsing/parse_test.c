@@ -2,6 +2,6 @@
 
 int main(void) {
   Parser *parser = newParser("bnf.prs");
-  printf("%p\n", parser->parentheses);
+  printf("%s\n", parser->delimiters[3][0]);
   return 0;
 }

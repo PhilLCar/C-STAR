@@ -25,6 +25,7 @@ char *whitespaces(FILE *fptr) {
 	  if (t == NULL) {
 	  ws_fail:
 	    free(ws);
+	    fprintf(stderr, "Memory allocation error! (Code: 0)\n");
 	    return NULL;
 	  }
 	  ws = t;
@@ -81,6 +82,7 @@ char **breaksymbols(FILE *fptr) {
 	  }
 	  free(bsa);
 	  bsa = NULL;
+	  fprintf(stderr, "Memory allocation error! (Code: 1)\n");
 	  break;
 	}
       }
@@ -143,6 +145,7 @@ char ***pairs(FILE *fptr) {
 	  }
 	  free(pa);
 	  pa = NULL;
+	  fprintf(stderr, "Memory allocation error! (Code: 2)\n");
 	  break;
 	}
       }
