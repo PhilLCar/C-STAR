@@ -4,12 +4,25 @@
 
 typedef struct parser {
   char   *whitespaces;
+  char   *escape;
   char  **breaksymbols;
+  char  **comments;
   char ***delimiters;
   char ***parentheses;
 } Parser;
 
-char *whitespaces(FILE *fptr) {
+typedef struct symbol {
+  char *text;
+  int   length;
+  int   line;
+  int   position;
+} Symbol;
+
+void emptyline(FILE *fptr) {
+  while (fgetc(fptr) != '\n');
+}
+
+char *chars(FILE *fptr) {
   char c;
   char ws_size = 0, ws_cap = 2;
   char *ws = NULL;
@@ -37,7 +50,7 @@ char *whitespaces(FILE *fptr) {
   return ws;
 }
 
-char **breaksymbols(FILE *fptr) {
+char **singles(FILE *fptr) {
   char c;
   char bsa_size = 0, bsa_cap = 16;
   char **bsa = NULL;
@@ -160,10 +173,31 @@ Parser *newParser(char *filename) {
   Parser *parser = malloc(sizeof(Parser));
   
   if (fptr != NULL && parser != NULL) {
-    parser->whitespaces  = whitespaces(fptr);
-    parser->breaksymbols = breaksymbols(fptr);
+    emptyline(fptr); // Whitespaces
+    parser->whitespaces  = chars(fptr);
+    emptyline(fptr); // Escape chars
+    parser->escape       = chars(fptr);
+    emptyline(fptr); // Breaksymbols
+    parser->breaksymbols = singles(fptr);
+    emptyline(fptr); // Comment markers (to end of line)
+    parser->comments     = singles(fptr);
+    emptyline(fptr); // Delimiters (no stack)
     parser->delimiters   = pairs(fptr);
+    emptyline(fptr); // Parentheses (with stack)
     parser->parentheses  = pairs(fptr);
+    
+    if (parser->whitespaces  == NULL ||
+	parser->breaksymbols == NULL ||
+	parser->delimiters   == NULL ||
+	parser->parentheses  == NULL)
+      {
+	if (parser->whitespaces  == NULL) free(parser->whitespaces);
+	if (parser->breaksymbols == NULL) free(parser->breaksymbols);
+	if (parser->delimiters   == NULL) free(parser->delimiters);
+	if (parser->parentheses  == NULL) free(parser->parentheses);
+	parser = NULL;
+      }
+    
     fclose(fptr);
     return parser;
   }
@@ -171,6 +205,21 @@ Parser *newParser(char *filename) {
   return NULL;
 }
 
-int parse(char *filename, Parser parser) {
-  return 0;
+int nextsymbol(FILE *fptr, Symbol *symbol) {
+  char c;
+  while ((c = fgetc(fptr)) != '\n');
+}
+
+Symbol *parse(char *filename, Parser parser) {
+  FILE *fptr = fopen(filename, "r");
+  int symbols_size = 0, symbols_cap = 1024;
+  Symbol *symbols = NULL;
+  if (fptr != NULL) {
+    symbols = malloc(symbols_cap * sizeof(Symbol));
+    if (symbols != NULL) {
+      
+    }
+    fclose(fptr);
+  }
+  return symbols;
 }
