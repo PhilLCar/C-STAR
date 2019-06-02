@@ -8,7 +8,11 @@ typedef struct parser {
   char  **breaksymbols;
   char  **comments;
   char ***delimiters;
-  char ***parentheses;
+  char ***brackets;
+  int     max_depth;
+  int    *stack;
+  int     stack_cap;
+  int     stack_size;
 } Parser;
 
 typedef struct symbol {
@@ -17,6 +21,14 @@ typedef struct symbol {
   int   line;
   int   position;
 } Symbol;
+
+typedef struct trackedFile {
+  FILE *fptr;
+  char *buffer;
+  int   size;
+  int   line;
+  int   position;
+} TrackedFile;
 
 void emptyline(FILE *fptr) {
   while (fgetc(fptr) != '\n');
@@ -173,6 +185,8 @@ Parser *newParser(char *filename) {
   Parser *parser = malloc(sizeof(Parser));
   
   if (fptr != NULL && parser != NULL) {
+    parser->stack_size = 0;
+    parser->stack_cap  = 16;
     emptyline(fptr); // Whitespaces
     parser->whitespaces  = chars(fptr);
     emptyline(fptr); // Escape chars
@@ -183,20 +197,56 @@ Parser *newParser(char *filename) {
     parser->comments     = singles(fptr);
     emptyline(fptr); // Delimiters (no stack)
     parser->delimiters   = pairs(fptr);
-    emptyline(fptr); // Parentheses (with stack)
-    parser->parentheses  = pairs(fptr);
+    emptyline(fptr); // Brackets (with stack)
+    parser->brackets     = pairs(fptr);
+    // Initialize stack
+    parser->stack        = malloc(parser->stack_cap * sizeof(int));
     
     if (parser->whitespaces  == NULL ||
 	parser->breaksymbols == NULL ||
 	parser->delimiters   == NULL ||
-	parser->parentheses  == NULL)
+	parser->brackets     == NULL ||
+	parser->stack        == NULL)
       {
 	if (parser->whitespaces  == NULL) free(parser->whitespaces);
 	if (parser->breaksymbols == NULL) free(parser->breaksymbols);
 	if (parser->delimiters   == NULL) free(parser->delimiters);
-	if (parser->parentheses  == NULL) free(parser->parentheses);
+	if (parser->brackets     == NULL) free(parser->brackets);
+	if (parser->stack        == NULL) free(parser->stack);
 	parser = NULL;
       }
+    else {
+      int max_depth = 0;
+      for (int i = 0; parser->breaksymbols[i]; i++) {
+	int l = strlen(parser->breaksymbols[i]);
+	if (l > max_depth) {
+	  max_depth = l;
+	}
+      }
+      for (int i = 0; parser->comments[i]; i++) {
+	int l = strlen(parser->comments[i]);
+	if (l > max_depth) {
+	  max_depth = l;
+	}
+      }
+      for (int i = 0; parser->delimiters[i]; i++) {
+	for (int j = 0; j < 2; j++) {
+	  int l = strlen(parser->delimiters[i][j]);
+	  if (l > max_depth) {
+	    max_depth = l;
+	  }
+	}
+      }
+      for (int i = 0; parser->brackets[i]; i++) {
+	for (int j = 0; j < 2; j++) {
+	  int l = strlen(parser->brackets[i][j]);
+	  if (l > max_depth) {
+	    max_depth = l;
+	  }
+	}
+      }
+      parser->max_depth = max_depth;
+    }
     
     fclose(fptr);
     return parser;
@@ -205,16 +255,180 @@ Parser *newParser(char *filename) {
   return NULL;
 }
 
-int nextsymbol(FILE *fptr, Symbol *symbol) {
-  char c;
-  while ((c = fgetc(fptr)) != '\n');
+int strcmps(char *s1, char *s2) {
+  int i;
+  for (i = 0;; i++) {
+    if (s1[i] != s2[i]) {
+      if (s1[i] && s2[i]) return 0;
+      else break;
+    }
+    if (!s1[i] || !s2[i]) break;
+  }
+  return i;
 }
 
-Symbol *parse(char *filename, Parser parser) {
+void push(Parser *parser, int bracket_number) {
+  parser->stack[parser->stack_size++] = bracket_number;
+  if (parser->stack_size >= parser->stack_cap) {
+    int *t = realloc(parser->stack, (parser->stack_cap *= 2));
+    if (t != NULL) parser->stack = t;
+  }
+}
+
+int pop(Parser *parser) {
+  if (parser->stack_size > 0)
+    return parser->stack[--parser->stack_size];
+  else return -1;
+}
+
+int nextsymbol(TrackedFile *tf, Parser *parser, Symbol *symbol) {
+  char  c;
+  char  buf_size = 0, buf_cap = 32;
+  char *buf = malloc(buf_cap * sizeof(char));
+  int   tag = 0;
+
+  if (buf != NULL && tag != NULL) {
+    while(c = tfgetc(tf)) {
+      if (c == EOF) break;
+      int ws = 0;
+      //////////////////////////////////////// WHITESPACE ////////////////////////////////////////
+      for (int i = 0; parser->whitespaces[i]; i++) {
+	if (c == parser->whitespaces[i]) ws = 1;
+      }
+      if (ws && !buf_size) continue;
+      else if (ws && buf_size) break;
+      //////////////////////////////////////// DELIMITERS ////////////////////////////////////////
+      int cmp;
+      for (int i = 0; parser->delimiters[i]; i++) {
+	if (cmp = strcmps(tf->buffer, parser->delimiters[i][0])) {
+	  if (cmp > ws) {
+	    tag = i;
+	    ws = cmp;
+	  }
+	}
+      }
+      if (ws && !buf_size) {
+	// Check for delimiters
+	// --> Check for escape chars
+	// Return
+      }
+      else if (ws && buf_size) break;
+      //////////////////////////////////////// COMMENTS ////////////////////////////////////////
+      for (int i = 0; parser->comments[i]; i++) {
+	if (cmp = strcmps(tf->buffer, parser->comments[i])) {
+	  if (cmp > ws) {
+	    tag = i;
+	    ws = cmp;
+	  }
+	}
+      }
+      if (ws && !buf_size) {
+	// Check for newline
+	// Return
+      }
+      else if (ws && buf_size) break;
+      //////////////////////////////////////// BREAKSYMBOLS ////////////////////////////////////////
+      for (int i = 0; parser->breaksymbols[i]; i++) {
+	if (cmp = strcmps(tf->buffer, parser->breaksymbols[i])) {
+	  if (cmp > ws) {
+	    tag = i;
+	    ws = cmp;
+	  }
+	}
+      }
+      if (ws && !buf_size) {
+	// Complete symbol parsing
+	// Return
+      }
+      else if (ws && buf_size) break;
+      //////////////////////////////////////// BRACKETS-O ////////////////////////////////////////
+      for (int i = 0; parser->brackets[i]; i++) {
+	if (cmp = strcmps(tf->buffer, parser->brackets[i][0])) {
+	  if (cmp > ws) {
+	    tag = i;
+	    ws = cmp;
+	  }
+	}
+      }
+      if (ws && !buf_size) {
+	// Complete bracket parsing
+	// Return
+      }
+      //////////////////////////////////////// BRACKETS-C ////////////////////////////////////////
+      for (int i = 0; parser->brackets[i]; i++) {
+	if (cmp = strcmps(tf->buffer, parser->brackets[i][1])) {
+	  if (cmp > ws) {
+	    tag = i;
+	    ws = cmp;
+	  }
+	}
+      }
+      if (ws && !buf_size) {
+	// Complete bracket parsing
+	// Return
+      }
+      else if (ws && buf_size) break;
+      //////////////////////////////////////// SYMBOL ////////////////////////////////////////
+      // Add char to buffer
+    }
+  }
+  else return 0;
+}
+
+TrackedFile *tfopen(char *filename, int size) {
   FILE *fptr = fopen(filename, "r");
+  char *buffer = malloc((size + 1) * sizeof(char));
+  TrackedFile *tf = malloc(sizeof(TrackedFile));
+  
+  if (fptr != NULL && buffer != NULL && tf != NULL) {
+    memset(buffer, 0, size + 1);
+    tf->fptr     = fptr;
+    tf->buffer   = buffer;
+    tf->size     = size;
+    tf->line     = 0;
+    tf->position = 0;
+  }
+  if (buffer != NULL) free(buffer);
+  if (tf != NULL) free(tf);
+  return NULL;
+}
+
+void tfclose(TrackedFile *tf) {
+  fclose(tf->fptr);
+  free(tf->buffer);
+}
+
+char tfgetc(TrackedFile *tf) {
+  if (tf->position || tf->line) {
+    if (tf->buffer[0] == '\n') {
+      tf->line++;
+      tf->position = 0;
+    } else tf->position++;
+    for (int i = 0; i < tf->size; i++) {
+      tf->buffer[i] = tf->buffer[i + 1];
+    }
+    tf->buffer[size] = fgetc(tf->fptr);
+  } else {
+    for (int i = 0; i <= tf->size; i++) {
+      tf->buffer[i] = fgetc(tf->fptr);
+    }
+  }
+  return tf->buffer[0];
+}
+
+void tfungetc(TrackedFile *tf, char c) {
+  fungetc(tf->fptr, tf->buffer[tf->size]);
+  for (int i = tf->size; i > 0; i--) {
+    tf->buffer[i] = tf->buffer[i - 1];
+  }
+  tf->buffer[0] = c;
+}
+
+Symbol *parse(char *filename, Parser *parser) {
+  TrackedFile *tf = tfopen(filename);
   int symbols_size = 0, symbols_cap = 1024;
   Symbol *symbols = NULL;
-  if (fptr != NULL) {
+  if (tf != NULL) {
     symbols = malloc(symbols_cap * sizeof(Symbol));
     if (symbols != NULL) {
       

@@ -2,6 +2,7 @@
 
 int main(void) {
   Parser *parser = newParser("bnf.prs");
-  printf("%s\n", parser->delimiters[3][0]);
+  printf("%s\n", parser->parentheses[2][1]);
+  printf("%d\n", parser->max_depth);
   return 0;
 }
