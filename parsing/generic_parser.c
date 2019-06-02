@@ -281,6 +281,18 @@ int pop(Parser *parser) {
   else return -1;
 }
 
+int extend(char **buffer, int *size, int *cap, char c) {
+  *buffer[*size++] = c;
+  if (*size >= *cap) {
+    char *t = realloc(*buffer, (*cap *= 2));
+    if (t != NULL) {
+      *buffer = t;
+    }
+    else return 0;
+  }
+  return 1;
+}
+
 int nextsymbol(TrackedFile *tf, Parser *parser, Symbol *symbol) {
   char  c;
   char  buf_size = 0, buf_cap = 32;
@@ -290,7 +302,7 @@ int nextsymbol(TrackedFile *tf, Parser *parser, Symbol *symbol) {
   if (buf != NULL && tag != NULL) {
     while(c = tfgetc(tf)) {
       if (c == EOF) break;
-      int ws = 0;
+      int cmp, ws = 0;
       //////////////////////////////////////// WHITESPACE ////////////////////////////////////////
       for (int i = 0; parser->whitespaces[i]; i++) {
 	if (c == parser->whitespaces[i]) ws = 1;
@@ -298,8 +310,7 @@ int nextsymbol(TrackedFile *tf, Parser *parser, Symbol *symbol) {
       if (ws && !buf_size) continue;
       else if (ws && buf_size) break;
       //////////////////////////////////////// DELIMITERS ////////////////////////////////////////
-      int cmp;
-      for (int i = 0; parser->delimiters[i]; i++) {
+      for (int i = 0; parser->delimiters[i][0]; i++) {
 	if (cmp = strcmps(tf->buffer, parser->delimiters[i][0])) {
 	  if (cmp > ws) {
 	    tag = i;
@@ -308,6 +319,22 @@ int nextsymbol(TrackedFile *tf, Parser *parser, Symbol *symbol) {
 	}
       }
       if (ws && !buf_size) {
+	extend(&buf, &buf_size, &buf_cap, c);
+	ws = 0;
+	while (c = tfgetc(tf)) {
+	  for (int i = 0; parser->escape[i]; i++) {
+	    if (c == parser->escape[i]) ws = 1;
+	  }
+	  if (ws) {
+	    for (int i = 0; i < 2; i++) {
+	      extend(&buf, &buf_size, &buf_cap, c);
+	      c = tfgetc(tf);
+	    }
+	  }
+	  if (cmp = strcmps(tf->buffer, parser->delimiters[tag][1])) {
+	    for (int i = ; i < 
+	  }
+	}
 	// Check for delimiters
 	// --> Check for escape chars
 	// Return
