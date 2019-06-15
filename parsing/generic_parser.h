@@ -1,3 +1,6 @@
+#ifndef GENERIC_PARSING
+#define GENERIC_PARSING
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -21,3 +24,5 @@ int     extend(char**, int*, int*, char);
 Parser *newParser(char*);
 int     nextsymbol(TrackedFile*, Parser*, Symbol*);
 Symbol *parse(char*, Parser*);
+
+#endif
