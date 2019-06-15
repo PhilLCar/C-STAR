@@ -1,38 +1,16 @@
 == Whitespaces ==
-
+ 	
 == Escape chars ==
 \
 == Breaksymbols ==
 |
 :=
-
-== Comment symbols ==
-#
-//
-
-== Delimiters ==
-<
->
-
-"
-"
-
-'
-'
-
-/*
-*/
-
-
-== Parentheses ==
-{
-}
-
 (
 )
-
-[
-]
+{
+}
+<
+>
 
 
 == EOF ==
