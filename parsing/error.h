@@ -5,7 +5,7 @@
 #include <string.h>
 #include <stdlib.h>
 
-#include "terminal.h"
+#include <terminal.h>
 #include "symbol.h"
 
 #define CONTEXT_LENGTH 35

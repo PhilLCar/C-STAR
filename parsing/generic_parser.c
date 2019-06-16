@@ -3,7 +3,7 @@
 // Gets characters one by one from a line in the input file
 char *readchar(FILE *fptr) {
   char c;
-  char ws_size = 0, ws_cap = 2;
+  unsigned char ws_size = 0, ws_cap = 2;
   char *ws = NULL;
   
   if (fptr != NULL) {
@@ -32,16 +32,16 @@ char *readchar(FILE *fptr) {
 // Gets words one by one, each separated by a new-line in the input file
 char **readline(FILE *fptr) {
   char c;
-  char bsa_size = 0, bsa_cap = 16;
+  unsigned char bsa_size = 0, bsa_cap = 16;
   char **bsa = NULL;
 
   if (fptr != NULL) {
     bsa = malloc(bsa_cap * sizeof(char*));
     if (bsa != NULL) {
-      memset(bsa, 0, sizeof(bsa));
+      memset(bsa, 0, bsa_cap * sizeof(char));
       while ((c = fgetc(fptr)) != '\n') {
 	if (c == EOF) goto bs_fail;
-	char bs_size = 0, bs_cap = 2;
+	unsigned char bs_size = 0, bs_cap = 2;
 	char *bs = malloc(bs_cap * sizeof(char));
 	if (bs != NULL) {
 	  bsa[bsa_size++] = bs;
@@ -165,7 +165,7 @@ int nextsymbol(TrackedFile *tf, Parser *parser, Symbol *symbol) {
 
   if (buf != NULL) {
     memset(buf, 0, buf_cap * sizeof(char));
-    while(c = tfgetc(tf)) {
+    while ((c = tfgetc(tf))) {
       if (c == EOF) break;
       int cmp, ws = 0;
       //////////////////////////////////////// NEW-LINE ////////////////////////////////////////
@@ -190,7 +190,7 @@ int nextsymbol(TrackedFile *tf, Parser *parser, Symbol *symbol) {
       }
       //////////////////////////////////////// BREAKSYMBOLS ////////////////////////////////////////
       for (int i = 0; parser->breaksymbols[i]; i++) {
-	if (cmp = strcmps(tf->buffer, parser->breaksymbols[i])) {
+	if ((cmp = strcmps(tf->buffer, parser->breaksymbols[i]))) {
 	  if (cmp > ws) {
 	    ws = cmp;
 	  }
