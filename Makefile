@@ -1,5 +1,5 @@
-parse-test: bin/parse_test
-	./bin/parse_test
+parse-test: clean bin/parse_test
+	@./bin/parse_test
 
 bin/parse_test: obj/parse_test.o obj/generic_parser.o obj/tracked_file.o obj/error.o
 	@gcc -Wall obj/parse_test.o obj/generic_parser.o obj/tracked_file.o obj/error.o -o bin/parse_test

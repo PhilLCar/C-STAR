@@ -238,7 +238,6 @@ Symbol *parse(char *filename, Parser *parser) {
 	  // END OF FILE
 	  break;
 	}
-	printf("%s\n", symbols[symbols_size].text);
 	if (++symbols_size == symbols_cap) {
 	  Symbol *t = realloc(symbols, (symbols_cap *= 2));
 	  if (t != NULL) {

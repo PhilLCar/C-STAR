@@ -27,8 +27,8 @@ char **getcontext(char *filename, Symbol *symbol) {
     return NULL;
   }
   
-  memset(before, 0, CONTEXT_LENGTH * sizeof(char));
-  memset(after,  0, CONTEXT_LENGTH * sizeof(char));
+  memset(before, 0, (CONTEXT_LENGTH + 1) * sizeof(char));
+  memset(after,  0, (CONTEXT_LENGTH + 1) * sizeof(char));
   for (int i = 0; i < symbol->line; ) {
     char c = fgetc(fptr);
     if (c == '\n') i++;
@@ -87,7 +87,7 @@ void printwarning(char *filename, char *error, Symbol *symbol) {
   }
 			      
   fprintf(stderr, TEXT_YELLOW""FONT_BOLD"WARNING:"FONT_RESET
-	  " In file "FONT_BOLD"%s"FONT_RESET": %s\n", filename, error);
+	  " In file "FONT_BOLD"%s"FONT_RESET" (line: %d, col: %d): %s\n", filename, symbol->line, symbol->position, error);
   fprintf(stderr, "%s"FONT_BOLD""TEXT_MAGENTA"%s"FONT_RESET"%s\n", context[0], symbol->text, context[1]);
 
   for (int i = 0; context[0][i]; i++) fprintf(stderr, " ");

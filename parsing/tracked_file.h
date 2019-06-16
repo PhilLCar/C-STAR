@@ -11,6 +11,9 @@ typedef struct trackedFile {
   int   size;
   int   line;
   int   position;
+  int  *linestack;
+  int   stack_pos;
+  int   stack_cap;
 } TrackedFile;
 
 TrackedFile *tfopen(char*, int);
