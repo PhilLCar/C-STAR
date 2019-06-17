@@ -13,7 +13,7 @@ char *readchar(FILE *fptr) {
 	if (c == EOF) goto ws_fail;
 	ws[ws_size++] = c;
 	if (ws_size >= ws_cap) {	  
-	  char *t = realloc(ws, (ws_cap *= 2));
+	  char *t = realloc(ws, (ws_cap *= 2) * sizeof(char));
 	  if (t == NULL) {
 	  ws_fail:
 	    free(ws);
@@ -46,7 +46,7 @@ char **readline(FILE *fptr) {
 	if (bs != NULL) {
 	  bsa[bsa_size++] = bs;
 	  if (bsa_size >= bsa_cap) {
-	    char **t = realloc(bsa, (bsa_cap *= 2));
+	    char **t = realloc(bsa, (bsa_cap *= 2) * sizeof(char*));
 	    if (t == NULL) {
 	      goto bs_fail;
 	    }
@@ -57,7 +57,7 @@ char **readline(FILE *fptr) {
 	    if (c == EOF) goto bs_fail;
 	    bs[bs_size++] = c;
 	    if (bs_size >= bs_cap) {
-	      char *t = realloc(bs, (bs_cap *= 2));
+	      char *t = realloc(bs, (bs_cap *= 2) * sizeof(char));
 	      if (t == NULL) {
 	        goto bs_fail;
 	      }
@@ -106,7 +106,7 @@ int strcmps(char *s1, char *s2) {
 int extend(char **buffer, int *size, int *cap, char c) {
   (*buffer)[(*size)++] = c;
   if (*size >= *cap) {
-    char *t = realloc(*buffer, (*cap *= 2));
+    char *t = realloc(*buffer, (*cap *= 2) * sizeof(char));
     if (t != NULL) {
       *buffer = t;
       memset(*buffer + *size, 0, (*cap - *size) * sizeof(char));
@@ -162,6 +162,7 @@ int nextsymbol(TrackedFile *tf, Parser *parser, Symbol *symbol) {
   int   buf_size = 0, buf_cap = 2;
   char *buf = malloc(buf_cap * sizeof(char));
   int   new = 0;
+  int   pos = 0;
 
   if (buf != NULL) {
     memset(buf, 0, buf_cap * sizeof(char));
@@ -170,10 +171,12 @@ int nextsymbol(TrackedFile *tf, Parser *parser, Symbol *symbol) {
       int cmp, ws = 0;
       //////////////////////////////////////// NEW-LINE ////////////////////////////////////////
       if (c == '\n') {
+	printf("~~%s, %d, %d\n",buf, tf->line, tf->position);
 	if (buf_size) {
 	  tfungetc(tf, c);
 	}
 	else {
+	  pos = tf->position;
 	  if(!extend(&buf, &buf_size, &buf_cap, c)) goto next_fail;
 	}
 	break;
@@ -201,6 +204,7 @@ int nextsymbol(TrackedFile *tf, Parser *parser, Symbol *symbol) {
 	  tfungetc(tf, c);
 	}
 	else {
+	  pos = tf->position;
 	  for (int i = 1;; i++) {
 	    if(!extend(&buf, &buf_size, &buf_cap, c)) goto next_fail;
 	    if (i == ws) break;
@@ -210,6 +214,7 @@ int nextsymbol(TrackedFile *tf, Parser *parser, Symbol *symbol) {
 	break;
       }
       //////////////////////////////////////// SYMBOL ////////////////////////////////////////
+      if (!buf_size) pos = tf->position;
       if(!extend(&buf, &buf_size, &buf_cap, c)) {
       next_fail:
 	free(buf);
@@ -218,7 +223,7 @@ int nextsymbol(TrackedFile *tf, Parser *parser, Symbol *symbol) {
     }
     symbol->text = buf;
     symbol->line = tf->line;
-    symbol->position = tf->position - buf_size;
+    symbol->position = pos;
     new = 1;
   }
   return new;
@@ -239,7 +244,7 @@ Symbol *parse(char *filename, Parser *parser) {
 	  break;
 	}
 	if (++symbols_size == symbols_cap) {
-	  Symbol *t = realloc(symbols, (symbols_cap *= 2));
+	  Symbol *t = realloc(symbols, (symbols_cap *= 2) * sizeof(Symbol));
 	  if (t != NULL) {
 	    symbols = t;
 	    memset(symbols + symbols_size, 0, (symbols_cap - symbols_size) * sizeof(Symbol));

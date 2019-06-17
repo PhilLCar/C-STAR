@@ -17,10 +17,10 @@ obj/error.o:
 	@gcc -Wall -c -Iutils parsing/error.c -o obj/error.o
 
 clean-objects:
-	@rm obj/*
+	@rm -f obj/*
 
 clean-binaries:
-	@rm bin/*
+	@rm -f bin/*
 
 clean: clean-objects clean-binaries
 	@find . -name "*~" -delete

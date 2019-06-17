@@ -1,11 +1,22 @@
 #include "tracked_file.h"
 
-void push(TrackedFile tf, int pos) {
-  tf->linestack[tf->stack_size
+void push(TrackedFile *tf) {
+  if (tf->linestack) {
+    tf->linestack[tf->stack_pos++] = tf->position;
+    if (tf->stack_pos == tf->stack_cap) {
+      int *t = realloc(tf->linestack, (tf->stack_cap *= 2) * sizeof(int));
+      if (t == NULL) free(tf->linestack);
+      tf->linestack = t;
+    }
+  }
 }
 
-int pop(TrackedFile tf) {
-  
+int pop(TrackedFile *tf) {
+  int r = 0;
+  if (tf->linestack) {
+    r = tf->linestack[--tf->stack_pos];
+  }
+  return r;
 }
 
 TrackedFile *tfopen(char *filename, int size) {
@@ -21,57 +32,58 @@ TrackedFile *tfopen(char *filename, int size) {
     tf->fptr     = fptr;
     tf->buffer   = buffer;
     tf->size     = size;
-    tf->line     = 0;
+    tf->line     = -1;
     tf->position = -1;
 
-    tf->linestack  = stack;
-    tf->stack_cap  = cap;
-    tf->stack_size = 0;
+    tf->linestack = stack;
+    tf->stack_cap = cap;
+    tf->stack_pos = 0;
   } else {
-    if (fptr   != NULL) fclose(fptr);
-    if (buffer != NULL) free(buffer);
-    if (stack  != NULL) free(stack);
-    if (tf     != NULL) free(tf);
+    tfclose(tf);
     tf = NULL;
   }
   return tf;
 }
 
 void tfclose(TrackedFile *tf) {
-  fclose(tf->fptr);
-  free(tf->buffer);
-  free(tf->linestack);
+  if (tf->fptr       != NULL) fclose(tf->fptr);
+  if (tf->buffer     != NULL) free(tf->buffer);
+  if (tf->linestack  != NULL) free(tf->linestack);
+  if (tf             != NULL) free(tf);
 }
 
 char tfgetc(TrackedFile *tf) {
-  if (tf->position >= 0) {
-    if (tf->buffer[0] == '\n') {
-      tf->line++;
-      push(tf->position);
-      tf->position = 0;
-    } else tf->position++;
-    for (int i = 0; i < tf->size - 1; i++) {
-      tf->buffer[i] = tf->buffer[i + 1];
-    }
-    tf->buffer[tf->size - 1] = fgetc(tf->fptr);
-  } else {
+  if (tf->line < 0) {
     for (int i = 0; i < tf->size; i++) {
       tf->buffer[i] = fgetc(tf->fptr);
     }
     tf->line = 0;
-    tf->position = 0;
   }
+  else {
+    for (int i = 0; i < tf->size - 1; i++) {
+      tf->buffer[i] = tf->buffer[i + 1];
+    }
+    tf->buffer[tf->size - 1] = fgetc(tf->fptr);
+  }
+  if (tf->buffer[0] == '\n') {
+    tf->line++;
+    push(tf);
+    tf->position = -1;
+  } else tf->position++;
+  
   return tf->buffer[0];
 }
 
 void tfungetc(TrackedFile *tf, char c) {
-  if (c == '\n') {
-    tf->line--;
-    tf->position = pop(tf);
-  } else tf->position--;
   ungetc(tf->buffer[tf->size - 1], tf->fptr);
   for (int i = tf->size - 1; i > 0; i--) {
     tf->buffer[i] = tf->buffer[i - 1];
   }
+  
+  if (tf->buffer[0] == '\n') {
+    tf->line--;
+    tf->position = pop(tf);
+  } else tf->position--;
+  
   tf->buffer[0] = c;
 }

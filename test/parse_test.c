@@ -9,7 +9,7 @@ int main(void) {
   Parser *parser = newParser("parsing/prs/bnf.prs");
   Symbol *aboutc = parse("misc/c.txt", parser);
 
-  printwarning("misc/c.txt", "wrong word", &aboutc[53]);
+  printwarning("misc/c.txt", "wrong word", &aboutc[500]);
   printsuggest("Maybe try (%s) instead?", "this");
   return 0;
 }

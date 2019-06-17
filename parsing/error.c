@@ -46,7 +46,9 @@ char **getcontext(char *filename, Symbol *symbol) {
     fgetc(fptr);
   }
   for (l = 0; l < CONTEXT_LENGTH;l++) {
-    after[l] = fgetc(fptr);
+    char c = fgetc(fptr);
+    if (c == '\n') break;
+    after[l] = c;
   }
   if (l >= CONTEXT_LENGTH) {
     for (int i = 3; i > 0; i--) after[CONTEXT_LENGTH - i] = '.';
