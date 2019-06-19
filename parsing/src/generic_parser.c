@@ -1,4 +1,4 @@
-#include "generic_parser.h"
+#include <generic_parser.h>
 
 // Gets characters one by one from a line in the input file
 char *readchar(FILE *fptr) {
@@ -125,16 +125,16 @@ Parser *newParser(char *filename) {
     emptyline(fptr); // Whitespaces
     parser->whitespaces  = readchar(fptr);
     emptyline(fptr); // Escape chars
-    parser->escape       = readchar(fptr);
+    parser->escapes      = readchar(fptr);
     emptyline(fptr); // Breaksymbols
     parser->breaksymbols = readline(fptr);
     
     if (parser->whitespaces  == NULL ||
-	parser->escape       == NULL ||
+	parser->escapes      == NULL ||
 	parser->breaksymbols == NULL)
       {
 	if (parser->whitespaces  == NULL) free(parser->whitespaces);
-	if (parser->escape       == NULL) free(parser->escape);
+	if (parser->escapes      == NULL) free(parser->escapes);
 	if (parser->breaksymbols == NULL) free(parser->breaksymbols);
 	parser = NULL;
       }
@@ -171,7 +171,6 @@ int nextsymbol(TrackedFile *tf, Parser *parser, Symbol *symbol) {
       int cmp, ws = 0;
       //////////////////////////////////////// NEW-LINE ////////////////////////////////////////
       if (c == '\n') {
-	printf("~~%s, %d, %d\n",buf, tf->line, tf->position);
 	if (buf_size) {
 	  tfungetc(tf, c);
 	}
@@ -181,9 +180,24 @@ int nextsymbol(TrackedFile *tf, Parser *parser, Symbol *symbol) {
 	}
 	break;
       }
+      //////////////////////////////////////// ESCAPE ////////////////////////////////////////
+      for (int i = 0; parser->escapes[i]; i++) {
+	if (c == parser->escapes[i]) {
+	  ws = 1;
+	  break;
+	}
+      }
+      if (ws) {
+	c = tfgetc(tf);
+	if (!extend(&buf, &buf_size, &buf_cap, c)) goto next_fail;
+	continue;
+      }
       //////////////////////////////////////// WHITESPACE ////////////////////////////////////////
       for (int i = 0; parser->whitespaces[i]; i++) {
-	if (c == parser->whitespaces[i]) ws = 1;
+	if (c == parser->whitespaces[i]) {
+	  ws = 1;
+	  break;
+	}
       }
       if (ws) {
 	if(buf_size) {

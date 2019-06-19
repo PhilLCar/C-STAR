@@ -1,4 +1,4 @@
-#include "error.h"
+#include <error.h>
 
 // find better algorithm for no memory r-rotation
 void rotate(char *buffer, int s, int r) {

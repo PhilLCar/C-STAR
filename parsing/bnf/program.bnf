@@ -1,0 +1,3 @@
+<program> ::= { <include> } { <statement> }
+<include> ::= "#include" "<" <char-sequence> ">"
+<char-sequence> ::= { "a" }

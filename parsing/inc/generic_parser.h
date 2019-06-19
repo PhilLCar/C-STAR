@@ -10,7 +10,7 @@
 
 typedef struct parser {
   char   *whitespaces;
-  char   *escape;
+  char   *escapes;
   char  **breaksymbols;
   int     max_depth;
 } Parser;
