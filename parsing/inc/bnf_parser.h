@@ -20,8 +20,8 @@ typedef struct node {
 } Node;
 
 typedef struct symbols {
-Symbol *symbol;
-
+  Symbol *symbol;
+  int     i;
 } Symbols;
 
 #endif
