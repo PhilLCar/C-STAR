@@ -19,9 +19,4 @@ typedef struct node {
   void *nodelist;
 } Node;
 
-typedef struct symbols {
-  Symbol *symbol;
-  int     i;
-} Symbols;
-
 #endif

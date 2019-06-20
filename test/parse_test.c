@@ -1,4 +1,4 @@
-#include <generic_parser.h>
+#include <symbol.h>
 #include <error.h>
 
 void printsymbol(Symbol *symbol) {

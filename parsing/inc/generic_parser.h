@@ -6,7 +6,6 @@
 #include <string.h>
 
 #include "tracked_file.h"
-#include "symbol.h"
 
 typedef struct parser {
   char   *whitespaces;
@@ -22,7 +21,6 @@ int     strcmps(char*, char*);
 int     extend(char**, int*, int*, char);
 
 Parser *newParser(char*);
-int     nextsymbol(TrackedFile*, Parser*, Symbol*);
-Symbol *parse(char*, Parser*);
+void    deleteParser(Parser**);
 
 #endif
