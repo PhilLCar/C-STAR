@@ -89,33 +89,6 @@ void emptyline(FILE *fptr) {
   while (fgetc(fptr) != '\n');
 }
 
-// Compares the string until one ends (will return true in that case)
-int strcmps(char *s1, char *s2) {
-  int i;
-  for (i = 0;; i++) {
-    if (s1[i] != s2[i]) {
-      if (s1[i] && s2[i]) return 0;
-      else break;
-    }
-    if (!s1[i] || !s2[i]) break;
-  }
-  return i;
-}
-
-// Extends a buffer by one char, reallocating if need be
-int extend(char **buffer, int *size, int *cap, char c) {
-  (*buffer)[(*size)++] = c;
-  if (*size >= *cap) {
-    char *t = realloc(*buffer, (*cap *= 2) * sizeof(char));
-    if (t != NULL) {
-      *buffer = t;
-      memset(*buffer + *size, 0, (*cap - *size) * sizeof(char));
-    }
-    else return 0;
-  }
-  return 1;
-}
-
 // Creates the parser object from a .prs file
 Parser *newParser(char *filename) {
   FILE *fptr = fopen(filename, "r");

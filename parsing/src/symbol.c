@@ -1,5 +1,32 @@
 #include <symbol.h>
 
+// Compares the string until one ends (will return true in that case)
+int strcmps(char *s1, char *s2) {
+  int i;
+  for (i = 0;; i++) {
+    if (s1[i] != s2[i]) {
+      if (s1[i] && s2[i]) return 0;
+      else break;
+    }
+    if (!s1[i] || !s2[i]) break;
+  }
+  return i;
+}
+
+// Extends a buffer by one char, reallocating if need be
+int extend(char **buffer, int *size, int *cap, char c) {
+  (*buffer)[(*size)++] = c;
+  if (*size >= *cap) {
+    char *t = realloc(*buffer, (*cap *= 2) * sizeof(char));
+    if (t != NULL) {
+      *buffer = t;
+      memset(*buffer + *size, 0, (*cap - *size) * sizeof(char));
+    }
+    else return 0;
+  }
+  return 1;
+}
+
 // Returns the next symbol in the tracked file tf
 int nextsymbol(TrackedFile *tf, Parser *parser, Symbol *symbol) {
   char  c;
@@ -123,25 +150,31 @@ SymbolStream *sopen(char *filename, Parser *parser) {
     ss->filename = filename;
     ss->tfptr    = tf;
     ss->parser   = parser;
-    ss->symbol   = malloc(sizeof(Symbol));
+    
+    ss->symbol.text = NULL;
   } else {
     if (ss) free(ss);
-    if (parser) deleteParser(&parser);
+    ss = NULL;
   }
   return ss;
 }
 
 void sclose(SymbolStream *ss) {
   if (ss->tfptr) tfclose(ss->tfptr);
-  if (ss->symbol) free(ss->symbol);
+  if (ss->symbol.text) free(ss->symbol.text);
   if (ss) free(ss);
 }
 
 Symbol *getsymbol(SymbolStream *ss) {
-  Symbol *s = NULL;
-  if(nextsymbol(ss->tfptr, ss->parser, ss->symbol)) {
-    s = ss->symbol;
-  }
+  Symbol *s = &ss->symbol;
+  if (ss->symbol.text) free(ss->symbol.text);
+  if (nextsymbol(ss->tfptr, ss->parser, s)) {
+    s = &ss->symbol;
+  } else s = NULL;
   return s;
 }
 
+void freesymbol(Symbol *s) {
+  free(s->text);
+  free(s);
+}

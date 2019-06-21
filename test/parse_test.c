@@ -11,5 +11,11 @@ int main(void) {
 
   printwarning("misc/c.txt", "wrong word", &aboutc[500]);
   printsuggest("Maybe try (%s) instead?", "this");
+
+  deleteParser(&parser);
+  for (int i = 0; aboutc[i].text; i++) {
+    free(aboutc[i].text);
+  }
+  free(aboutc);
   return 0;
 }

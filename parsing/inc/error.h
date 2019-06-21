@@ -6,7 +6,7 @@
 #include <stdlib.h>
 
 #include <terminal.h>
-#include "symbol.h"
+#include <symbol.h>
 
 #define CONTEXT_LENGTH 35
 

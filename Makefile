@@ -1,12 +1,24 @@
 INCLUDES=-Iparsing/inc -Iutils/inc
-OBJECTS=obj
+OBJECTS =obj
 BINARIES=bin
-C-FLAGS=-Wall
+C-FLAGS =-Wall
 
-parse-test: clean bin/parse_test
+ERROR_O=$(OBJECTS)/error.o
+PARSE_O=$(OBJECTS)/symbol.o $(OBJECTS)/generic_parser.o $(OBJECTS)/tracked_file.o
+BNF_O  =$(OBJECTS)/bnf_parser.o
+
+test: parse-test bnf-test
+
+parse-test: clean $(BINARIES)/parse_test
 	@./$(BINARIES)/parse_test
 
-$(BINARIES)/parse_test: obj/parse_test.o obj/symbol.o obj/generic_parser.o obj/tracked_file.o obj/error.o
+bnf-test: clean $(BINARIES)/bnf_test
+	@./$(BINARIES)/bnf_test
+
+$(BINARIES)/parse_test: $(OBJECTS)/parse_test.o $(ERROR_O) $(PARSE_O)
+	@gcc $(C-FLAGS) $^ -o $@
+
+$(BINARIES)/bnf_test:  $(OBJECTS)/bnf_test.o $(ERROR_O) $(PARSE_O) $(BNF_O)
 	@gcc $(C-FLAGS) $^ -o $@
 
 $(OBJECTS)/%.o: parsing/src/%.c

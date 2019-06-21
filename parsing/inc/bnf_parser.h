@@ -3,7 +3,8 @@
 
 #include <string.h>
 
-#include "symbol.h"
+#include <symbol.h>
+#include <error.h>
 
 enum type {
   NODE_LEAF = 0,
@@ -18,5 +19,10 @@ typedef struct node {
   int   type;
   void *nodelist;
 } Node;
+
+Node *parsefile(char*);
+void  parseincludes(Node*, SymbolStream*);
+void  parseline(Node*, SymbolStream*);
+int   expect(SymbolStream*, char*);
 
 #endif

@@ -47,7 +47,7 @@ char **getcontext(char *filename, Symbol *symbol) {
   }
   for (l = 0; l < CONTEXT_LENGTH;l++) {
     char c = fgetc(fptr);
-    if (c == '\n') break;
+    if (c == '\n' || c == EOF) break;
     after[l] = c;
   }
   if (l >= CONTEXT_LENGTH) {
@@ -81,15 +81,15 @@ void printerror(char *filename, char *error, Symbol *symbol) {
   free(context);
 }
 
-void printwarning(char *filename, char *error, Symbol *symbol) {
+void printwarning(char *filename, char *warning, Symbol *symbol) {
   char **context = getcontext(filename, symbol);
   if (!context) {
-    fprintf(stderr, "Memory allocation error!");
+    fprintf(stderr, "Memory allocation warning!");
     return;
   }
 			      
   fprintf(stderr, TEXT_YELLOW""FONT_BOLD"WARNING:"FONT_RESET
-	  " In file "FONT_BOLD"%s"FONT_RESET" (line: %d, col: %d): %s\n", filename, symbol->line, symbol->position, error);
+	  " In file "FONT_BOLD"%s"FONT_RESET" (line: %d, col: %d): %s\n", filename, symbol->line, symbol->position, warning);
   fprintf(stderr, "%s"FONT_BOLD""TEXT_MAGENTA"%s"FONT_RESET"%s\n", context[0], symbol->text, context[1]);
 
   for (int i = 0; context[0][i]; i++) fprintf(stderr, " ");
