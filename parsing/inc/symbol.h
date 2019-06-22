@@ -25,6 +25,7 @@ Symbol       *parse(char*, Parser*);
 SymbolStream *sopen(char*, Parser*);
 void          sclose(SymbolStream*);
 Symbol       *getsymbol(SymbolStream*);
+void          ungetsymbol(SymbolStream*, Symbol*);
 void          freesymbol(Symbol*);
 
 #endif

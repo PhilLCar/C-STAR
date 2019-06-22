@@ -11,6 +11,7 @@ Node *newNode(Node *basenode, char *nodename, type t) {
 	new->type = t;
 	new->num  = 0;
 	new->cap  = 0;
+	new->content = NULL;
       } else {
 	free(new);
 	new = NULL;
@@ -65,11 +66,12 @@ void addnode(Node *parent, Node *child) {
 }
 
 int parsenode(Node *basenode, Node *node, SymbolStream *ss, char *stop) {
-  Symbol *s = getsymbol(ss);
+  Symbol *s;
   Node *subnode = newNode(basenode, "", NODE_LIST);
   addnode(node, subnode);
   
-  while (strcmp(s->text, stop)) {
+  do {
+    s = getsymbol(ss);
     if (!strcmp(s->text, "(")) {
       Node *n = newNode(basenode, "", NODE_ONE_OF);
       addnode(subnode, n);
@@ -127,7 +129,7 @@ int parsenode(Node *basenode, Node *node, SymbolStream *ss, char *stop) {
     else if (!strcmp(s->text, "")) {
       return 0;
     }
-  }
+  } while (strcmp(s->text, stop));
   return 1;
 }
 
@@ -155,6 +157,20 @@ Node *parsefile(char *filename) {
 
 int parseinclude(Node *basenode, SymbolStream *ss) {
   Symbol *s = getsymbol(ss);
+  
+  // Comment
+  if (!strcmp(s->text, ";")) {
+    while (strcmp(s->text, "\n")) {
+      s = getsymbol(ss);
+      if (strcmp(s->text, "")) return 0;
+    }
+    return 1;
+  }
+  // Emptyline
+  if (!strcmp(s->text, "\n")) {
+    return 1;
+  }
+  // Include
   if (!strcmp(s->text, ";;")) {
     expect(ss, "include");
     expect(ss, "(");
@@ -163,20 +179,29 @@ int parseinclude(Node *basenode, SymbolStream *ss) {
     expect(ss, ")");
     expect(ss, "\n");
     return 1;
-  }
+  } else ungetsymbol(ss, s);
   return 0;
 }
 
 int parseline(Node *basenode, SymbolStream *ss) {
   Symbol *s = getsymbol(ss);
   Node *n;
-  
+
+  // Comment
   if (!strcmp(s->text, ";")) {
     while (strcmp(s->text, "\n")) {
       s = getsymbol(ss);
       if (strcmp(s->text, "")) return 0;
     }
     return 1;
+  }
+  // Emptyline
+  if (!strcmp(s->text, "\n")) {
+    return 1;
+  }
+  // EOF
+  if (!strcmp(s->text, "")) {
+    return 0;
   }
   if (strcmp(s->text, "<")) {
     printerror(ss->filename, "Expected '"FONT_BOLD"<"FONT_RESET"'!", s);

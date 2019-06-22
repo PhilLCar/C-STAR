@@ -176,11 +176,11 @@ Symbol *getsymbol(SymbolStream *ss) {
 
 void ungetsymbol(SymbolStream *ss, Symbol *s) {
   tfungetc(ss->tfptr, ' ');
-  for (int i = strlen(ss->symbol.text); i >= 0; i--) {
-    tfungetc(ss->tfptr, ss->symbol.text[i]);
+  for (int i = strlen(s->text) - 1; i >= 0; i--) {
+    tfungetc(ss->tfptr, s->text[i]);
   }
-  free(ss->symbol.text);
-  ss->symbol = *s;
+  if (ss->symbol.text) free(ss->symbol.text);
+  memset(&ss->symbol, 0, sizeof(Symbol));
 }
 
 void freesymbol(Symbol *s) {
