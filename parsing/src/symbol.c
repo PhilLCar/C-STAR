@@ -174,6 +174,15 @@ Symbol *getsymbol(SymbolStream *ss) {
   return s;
 }
 
+void ungetsymbol(SymbolStream *ss, Symbol *s) {
+  tfungetc(ss->tfptr, ' ');
+  for (int i = strlen(ss->symbol.text); i >= 0; i--) {
+    tfungetc(ss->tfptr, ss->symbol.text[i]);
+  }
+  free(ss->symbol.text);
+  ss->symbol = *s;
+}
+
 void freesymbol(Symbol *s) {
   free(s->text);
   free(s);

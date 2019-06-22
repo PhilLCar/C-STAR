@@ -1,33 +1,147 @@
 #include <bnf_parser.h>
 
-Node getnode(Node *basenode, char *nodename) {
-  for (int i = 0; i < basenode->num; i++) {
-    if (!strcmp(basenode->nodelist[i].name, nodename)) {
-      return &basenode->nodelist[i];
+Node newNode(Node *basenode, char *nodename, type t) {
+  Node *new = getnode(basenode, nodename);
+  if (new == NULL) {
+    new = malloc(sizeof(Node));
+    if (new != NULL) {
+      new->name = malloc((strlen(nodename) + 1) * sizeof(char));
+      if (new->name != NULL) {
+	sprintf(new->name, "%s", nodename);
+	new->type = t;
+	new->num  = 0;
+	new->cap  = 0;
+      } else {
+	free(new);
+	new = NULL;
+      }
     }
-    else if (basenode->nodelist[i].type != NODE_LEAF) {
-      Node *n = getnode(&basenode->nodelist[i], nodename);
+  } else {
+    new->type = t;
+  }
+  return new;
+}
+
+void deleteNode(Node **node) {
+  if (*node) {
+    if ((*node)->nodelist) free((*node)->nodelist);
+    free(*node);
+  }
+  *node = NULL;
+}
+
+Node getnode(Node *basenode, char *nodename) {
+  if (basenode == NULL || !strcmp(nodename, "")) return NULL;
+  for (int i = 0; i < basenode->num; i++) {
+    if (!strcmp(basenode->nodelist[i]->name, nodename)) {
+      return basenode->nodelist[i];
+    }
+    else if (basenode->nodelist[i]->type != NODE_LEAF) {
+      Node *n = getnode(basenode->nodelist[i], nodename);
       if (n != NULL) return n;
     }
   }
   return NULL;
 }
 
-void addnode(Node *basenode, Node *childnode) {
-  
+void addnode(Node *parent, Node *child) {
+  if (parent->cap == 0) {
+    parent->cap = 2;
+    parent->content = (void*)malloc(parent->cap * sizeof(Node*));
+  }
+  ((Node**)parent->content)[parent->num] = child;
+  parent->num++;
+  if (parent->num >= parent->cap) {
+    void *t = realloc(parent->content, 2 * parent->cap * sizeof(Node*));
+    if (t != NULL) {
+      parent->cap *= 2;
+      parent->content = t;
+    }
+  }
 }
 
-Node link(Node *basenode) {
+int parsenode(Node *basenode, Node *node, SymbolStream *ss, char *stop) {
+  Symbol *s = getsymbol(ss);
+  Node *subnode = newNode(basenode, "", NODE_LIST);
+  addnode(node, subnode);
+  
+  while (strcmp(s->text, stop)) {
+    if (!strcmp(s->text, "(")) {
+      Node *n = newNode(basenode, "", NODE_ONE_OF);
+      addnode(subnode, n);
+      parsenode(basenode, n, ss, ")");
+    }
+    else if (!strcmp(s->text, "{")) {
+      Node *n1 = newNode(basenode, "", NODE_MANY_OR_NONE);
+      Node *n2 = newNode(basenode, "", NODE_ONE_OF);
+      addnode(subnode, n1);
+      addnode(n1, n2);
+      parsenode(basenode, n2, ss, "}");
+    }
+    else if (!strcmp(s->text, "[")) {
+      Node *n1 = newNode(basenode, "", NODE_ONE_OR_NONE);
+      Node *n2 = newNode(basenode, "", NODE_ONE_OF);
+      addnode(subnode, n1);
+      addnode(n1, n2);
+      parsenode(basenode, n2, ss, "]");
+    }
+    else if (!strcmp(s->text, "'")) {
+      Node *n = newNode(basenode, "", NODE_LEAF);
+      s = getsymbol(ss);
+      n->content = (void*)malloc((strlen(s->text) + 1) * sizeof(char));
+      sprintf((char*)n->content, "%s", s->text);
+      expect(ss, "'");
+      addnode(subnode, n);
+    }
+    else if (!strcmp(s->text, "\"")) {
+      Node *n = newNode(basenode, "", NODE_LEAF);
+      s = getsymbol(ss);
+      n->content = (void*)malloc((strlen(s->text) + 1) * sizeof(char));
+      sprintf((char*)n->content, "%s", s->text);
+      expect(ss, "\"");
+      addnode(subnode, n);
+    }
+    else if (!strcmp(s->text, "<")) {
+      Node *n;
+      s = getsymbol(ss);
+      n = newNode(basenode, s->text, NODE_UNKNOWN);
+      expect(ss, ">");
+      addnode(subnode, n);
+    }
+    else if (!strcmp(s->text, "|")) {
+      subnode = newNode(basenode, "", NODE_LIST);
+      addnode(node, subnode);
+    }
+    else if (!strcmp(s->text, ";")) {
+      if (!strcmp(stop, "\n")) {
+	char error[256];
+	sprintf(error, "Expected '"FONT_BOLD"%s"FONT_RESET"'!", stop);
+	printerror(ss->filename, error, s);
+	exit(1);
+      }
+    }
+    else if (!strcmp(s->text, "")) {
+      return 0;
+    }
+  }
+  return 1;
+}
+
+void link(Node *basenode) {
 }
 
 Node *parsefile(char *filename) {
   // TODO: Have parser saved to file for quicker recuperation
   Parser       *parser   = newParser("parsing/prs/bnf.prs");
   SymbolStream *ss       = sopen(filename, parser);
-  Node         *basenode = malloc(sizeof(Node));
+  Node         *basenode;
+  char          nodename[256];
   
-  parseincludes(basenode, ss);
-  parseline(basenode, ss);
+  sprintf(nodename, "root:%s", filename);
+  basenode = newNode(NULL, nodename, NODE_ROOT);
+  
+  while(parseincludes(basenode, ss));
+  while(parseline(basenode, ss));
 
   sclose(ss);
   deleteParser(&parser);
@@ -35,49 +149,42 @@ Node *parsefile(char *filename) {
   return basenode;
 }
 
-void parseincludes(Node *n, SymbolStream *ss) {
+int parseinclude(Node *basenode, SymbolStream *ss) {
   Symbol *s = getsymbol(ss);
-  //char inc[256];
+  char inc[256];
+  
   if (!strcmp(s->text, ";;")) {
     expect(ss, "include");
     expect(ss, "(");
     s = getsymbol(ss);
+    addnode(basenode, parsefile(s->text));
     expect(")");
     expect("\n");
+    return 1;
   }
+  return 0;
 }
 
-void parseline(Node *n, SymbolStream *ss) {
+int parseline(Node *basenode, SymbolStream *ss) {
   Symbol *s = getsymbol(ss);
+  Node *n;
+  
   if (!strcmp(s->text, ";")) {
-    while (strcmp(s->text, "\n")) s = getsymbol(ss);
+    while (strcmp(s->text, "\n")) {
+      s = getsymbol(ss);
+      if (strcmp(s->text, "")) return 0;
+    }
+    return 1;
   }
-  expect(ss, "<");
-  //getname
+  if (strcmp(s->text, "<")) {
+    printerror(ss->filename, "Expected '"FONT_BOLD"<"FONT_RESET"'!", s);
+    exit(1);
+  }
+  s = getsymbol(ss);
+  n = newNode(basenode, s->text, NODE_ONE_OF);
   expect(ss, ">");
   expect(ss, "::=");
-  parsenode(n, ss, "\n");
-}
-
-void parsenode(Node *n, SymbolStream *ss, char *stop) {
-  Symbol *s = getsymbol(ss);
-  while (strcmp(s->text, stop)) {
-    if (!strcmp(s->text, "(")) {
-      parsenode(/**/, ss, ")");
-    }
-    else if (!strcmp(s->text, "{")) {
-      parsenode(/**/, ss, "}");
-    }
-    else if (!strcmp(s->text, "[")) {
-      parsenode(/**/, ss, "]");
-    }
-    else if (!strcmp(s->text, "'")) {
-    }
-    else if (!strcmp(s->text, "\"")) {
-    }
-    else if (!strcmp(s->text, "<")) {
-    }
-  }
+  return parsenode(basenode, n, ss, "\n");
 }
 
 int expect(SymbolStream *ss, char *str) {
@@ -86,17 +193,22 @@ int expect(SymbolStream *ss, char *str) {
 
   if (strcmp("\n", str)) {
     int junk = 0;
+    char prev[256];
+    sprintf(prev, "%s", s->text);
+    s = getsymbol(ss);
     while (strcmp(s, str)) {
       s = getsymbol(ss);
       junk = 1;
     }
-    sprintf(
+    sprintf(error, "Junk after '"FONT_BOLD"%s"FONT_RESET"'");
+    printwarning(ss->filename, error, s);
   }
   else if (strcmp(s->text, str)) {
     s = getsymbol(ss);
-    sprintf(error, "Expected '%s'!", str);
+    sprintf(error, "Expected '"FONT_BOLD"%s"FONT_RESET"'!", str);
     printerror(ss->filename, error, s);
-    return 0;
+    exit(1);
+    //return 0;
   }
 
   return 1;
