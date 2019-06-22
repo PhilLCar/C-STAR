@@ -1,6 +1,6 @@
 #include <bnf_parser.h>
 
-Node newNode(Node *basenode, char *nodename, type t) {
+Node *newNode(Node *basenode, char *nodename, type t) {
   Node *new = getnode(basenode, nodename);
   if (new == NULL) {
     new = malloc(sizeof(Node));
@@ -24,20 +24,20 @@ Node newNode(Node *basenode, char *nodename, type t) {
 
 void deleteNode(Node **node) {
   if (*node) {
-    if ((*node)->nodelist) free((*node)->nodelist);
+    if ((*node)->content) free((*node)->content);
     free(*node);
   }
   *node = NULL;
 }
 
-Node getnode(Node *basenode, char *nodename) {
+Node *getnode(Node *basenode, char *nodename) {
   if (basenode == NULL || !strcmp(nodename, "")) return NULL;
   for (int i = 0; i < basenode->num; i++) {
-    if (!strcmp(basenode->nodelist[i]->name, nodename)) {
-      return basenode->nodelist[i];
+    if (!strcmp(((Node**)basenode->content)[i]->name, nodename)) {
+      return ((Node**)basenode->content)[i];
     }
-    else if (basenode->nodelist[i]->type != NODE_LEAF) {
-      Node *n = getnode(basenode->nodelist[i], nodename);
+    else if (((Node**)basenode->content)[i]->type != NODE_LEAF) {
+      Node *n = getnode(((Node**)basenode->content)[i], nodename);
       if (n != NULL) return n;
     }
   }
@@ -45,6 +45,10 @@ Node getnode(Node *basenode, char *nodename) {
 }
 
 void addnode(Node *parent, Node *child) {
+  if (parent->type != NODE_ROOT || parent->type != NODE_LIST) {
+    // TODO: Have the option to print non-file specific errors and warnings
+    //printwarning("bnf_node", "Children was added to parent of wrong type"
+  }
   if (parent->cap == 0) {
     parent->cap = 2;
     parent->content = (void*)malloc(parent->cap * sizeof(Node*));
@@ -140,8 +144,8 @@ Node *parsefile(char *filename) {
   sprintf(nodename, "root:%s", filename);
   basenode = newNode(NULL, nodename, NODE_ROOT);
   
-  while(parseincludes(basenode, ss));
-  while(parseline(basenode, ss));
+  while (parseinclude(basenode, ss));
+  while (parseline(basenode, ss));
 
   sclose(ss);
   deleteParser(&parser);
@@ -151,15 +155,13 @@ Node *parsefile(char *filename) {
 
 int parseinclude(Node *basenode, SymbolStream *ss) {
   Symbol *s = getsymbol(ss);
-  char inc[256];
-  
   if (!strcmp(s->text, ";;")) {
     expect(ss, "include");
     expect(ss, "(");
     s = getsymbol(ss);
     addnode(basenode, parsefile(s->text));
-    expect(")");
-    expect("\n");
+    expect(ss, ")");
+    expect(ss, "\n");
     return 1;
   }
   return 0;
@@ -191,23 +193,27 @@ int expect(SymbolStream *ss, char *str) {
   char error[256];
   Symbol *s;
 
-  if (strcmp("\n", str)) {
+  if (!strcmp("\n", str)) {
     int junk = 0;
     char prev[256];
-    sprintf(prev, "%s", s->text);
+    sprintf(prev, "%s", ss->symbol.text);
     s = getsymbol(ss);
-    while (strcmp(s, str)) {
+    while (strcmp(s->text, str) && strcmp(s->text, "")) {
       s = getsymbol(ss);
       junk = 1;
     }
-    sprintf(error, "Junk after '"FONT_BOLD"%s"FONT_RESET"'");
-    printwarning(ss->filename, error, s);
+    if (junk) {
+      sprintf(error, "Junk after '"FONT_BOLD"%s"FONT_RESET"'", prev);
+      printwarning(ss->filename, error, s);
+    }
   }
-  else if (strcmp(s->text, str)) {
+  else {
     s = getsymbol(ss);
-    sprintf(error, "Expected '"FONT_BOLD"%s"FONT_RESET"'!", str);
-    printerror(ss->filename, error, s);
-    exit(1);
+    if (strcmp(s->text, str)) {
+      sprintf(error, "Expected '"FONT_BOLD"%s"FONT_RESET"'!", str);
+      printerror(ss->filename, error, s);
+      exit(1);
+    }
     //return 0;
   }
 

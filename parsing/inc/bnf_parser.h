@@ -7,7 +7,7 @@
 #include <error.h>
 #include <terminal.h>
 
-enum type {
+typedef enum nodetype {
   NODE_ROOT = 0,
   NODE_LEAF,
   NODE_LIST,
@@ -15,7 +15,7 @@ enum type {
   NODE_ONE_OR_NONE,
   NODE_MANY_OR_NONE,
   NODE_UNKNOWN
-};
+} type;
 
 typedef struct node {
   char *name;
@@ -25,9 +25,9 @@ typedef struct node {
   int   cap;
 } Node;
 
-Node  newNode(Node*, char*, type);
+Node *newNode(Node*, char*, type);
 void  deleteNode(Node**);
-Node  getnode(Node*, char*);
+Node *getnode(Node*, char*);
 void  addnode(Node*, Node*);
 int   parsenode(Node*, Node*, SymbolStream*, char*);
 void  link(Node*);
