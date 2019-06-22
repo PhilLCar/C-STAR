@@ -60,15 +60,19 @@ char **getcontext(char *filename, Symbol *symbol) {
   return context;
 }
 
-void printerror(char *filename, char *error, Symbol *symbol) {
+void printincerror(char *filename, char *included, char *error, Symbol *symbol) {
   char **context = getcontext(filename, symbol);
   if (!context) {
     fprintf(stderr, "Memory allocation error!");
     return;
   }
+  char inc[256];
+  if (!strcmp(included, "")) {
+    sprintf(inc, " included from %s", included);
+  }
 			      
   fprintf(stderr, TEXT_RED""FONT_BOLD"ERROR:"FONT_RESET
-	  " In file "FONT_BOLD"%s"FONT_RESET": %s\n", filename, error);
+	  " In file "FONT_BOLD"%s"FONT_RESET" (%d, %d)%s: %s\n", filename, symbol->line, symbol->position, included, error);
   fprintf(stderr, "%s"FONT_BOLD""TEXT_MAGENTA"%s"FONT_RESET"%s\n", context[0], symbol->text, context[1]);
 
   for (int i = 0; context[0][i]; i++) fprintf(stderr, " ");
@@ -81,15 +85,23 @@ void printerror(char *filename, char *error, Symbol *symbol) {
   free(context);
 }
 
-void printwarning(char *filename, char *warning, Symbol *symbol) {
+void printerror(char *filename, char *error, Symbol *symbol) {
+  printincerror(filename, "", error, symbol);
+}
+
+void printincwarning(char *filename, char* included, char *warning, Symbol *symbol) {
   char **context = getcontext(filename, symbol);
   if (!context) {
     fprintf(stderr, "Memory allocation warning!");
     return;
   }
+  char inc[256];
+  if (!strcmp(included, "")) {
+    sprintf(inc, " included from %s", included);
+  }
 			      
   fprintf(stderr, TEXT_YELLOW""FONT_BOLD"WARNING:"FONT_RESET
-	  " In file "FONT_BOLD"%s"FONT_RESET" (line: %d, col: %d): %s\n", filename, symbol->line, symbol->position, warning);
+	  " In file "FONT_BOLD"%s"FONT_RESET" (%d, %d)%s: %s\n", filename, symbol->line, symbol->position, included, warning);
   fprintf(stderr, "%s"FONT_BOLD""TEXT_MAGENTA"%s"FONT_RESET"%s\n", context[0], symbol->text, context[1]);
 
   for (int i = 0; context[0][i]; i++) fprintf(stderr, " ");
@@ -100,6 +112,10 @@ void printwarning(char *filename, char *warning, Symbol *symbol) {
   free(context[0]);
   free(context[1]);
   free(context);
+}
+
+void printwarning(char *filename, char *warning, Symbol *symbol) {
+  printincwarning(filename, "", warning, symbol);
 }
 
 void printsuggest(char *suggest, char *highlight) {

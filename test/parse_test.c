@@ -1,4 +1,5 @@
 #include <symbol.h>
+#include <struct.h>
 #include <error.h>
 
 void printsymbol(Symbol *symbol) {
@@ -12,6 +13,7 @@ int main(void) {
   printwarning("misc/c.txt", "wrong word", &aboutc[500]);
   printsuggest("Maybe try (%s) instead?", "this");
 
+  savetofile("data/bnf_parser.struct", (void*)parser, sizeof(Parser));
   deleteParser(&parser);
   for (int i = 0; aboutc[i].text; i++) {
     free(aboutc[i].text);

@@ -17,7 +17,9 @@ enum type {
 typedef struct node {
   char *name;
   int   type;
-  void *nodelist;
+  Node *nodelist;
+  int   num;
+  int   cap;
 } Node;
 
 Node *parsefile(char*);
