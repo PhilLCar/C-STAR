@@ -9,10 +9,18 @@
 #include <symbol.h>
 
 #define CONTEXT_LENGTH 35
-void printincerror(char*, char*, char*, Symbol*);
-void printerror(char*, char*, Symbol*);
-void printincwarning(char*, char*, char*, Symbol*);
-void printwarning(char*, char*, Symbol*);
+
+typedef enum messagetype {
+  INFO = 0,
+  DEBUG,
+  WARNING,
+  ERROR
+} MessageType;
+
+void printnodemessage(MessageType, char*, char*, char**, char*);
+void printsymbolmessage(MessageType, char*, char**, char*, Symbol*);
+void printfilemessage(MessageType, char*, char**, char*);
+void printmessage(MessageType, char*);
 void printsuggest(char*, char*);
 
 #endif

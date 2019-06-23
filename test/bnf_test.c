@@ -34,7 +34,7 @@ void printnode(Node *n, char *s, int lvl, int last, int exp) {
     }
     break;
   case NODE_ONE_OF:
-    if (exp) {
+    if (exp || 1) {
       printf(TEXT_MAGENTA""FONT_BOLD"[o] %s\n"FONT_RESET, n->name);
       for (int i = 0; i < n->num; i++) {
 	printnode(((Node**)n->content)[i], t, lvl + 1, i == (n->num - 1), 0);

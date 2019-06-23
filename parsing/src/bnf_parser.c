@@ -1,5 +1,9 @@
 #include <bnf_parser.h>
 
+int    include_depth    = 0;
+char  *current_filename = NULL;
+char **trace            = NULL;
+
 Node *newNode(Node *basenode, char *nodename, type t) {
   Node *new = getnode(basenode, nodename);
   if (new == NULL) {
@@ -18,7 +22,9 @@ Node *newNode(Node *basenode, char *nodename, type t) {
       }
     }
   } else {
-    new->type = t;
+    if (t != NODE_UNKNOWN) {
+      new->type = t;
+    }
   }
   return new;
 }
@@ -34,22 +40,20 @@ void deleteNode(Node **node) {
 Node *getnode(Node *basenode, char *nodename) {
   if (basenode == NULL || !strcmp(nodename, "")) return NULL;
   for (int i = 0; i < basenode->num; i++) {
-    if (!strcmp(((Node**)basenode->content)[i]->name, nodename)) {
-      return ((Node**)basenode->content)[i];
-    }
-    else if (((Node**)basenode->content)[i]->type != NODE_LEAF) {
-      Node *n = getnode(((Node**)basenode->content)[i], nodename);
-      if (n != NULL) return n;
+    if (((Node**)basenode->content)[i] != NULL) {
+      if (!strcmp(((Node**)basenode->content)[i]->name, nodename)) {
+	return ((Node**)basenode->content)[i];
+      }
+      else if (((Node**)basenode->content)[i]->type != NODE_LEAF) {
+	Node *n = getnode(((Node**)basenode->content)[i], nodename);
+	if (n != NULL) return n;
+      }
     }
   }
   return NULL;
 }
 
 void addnode(Node *parent, Node *child) {
-  if (parent->type != NODE_ROOT || parent->type != NODE_LIST) {
-    // TODO: Have the option to print non-file specific errors and warnings
-    //printwarning("bnf_node", "Children was added to parent of wrong type"
-  }
   if (parent->cap == 0) {
     parent->cap = 2;
     parent->content = (void*)malloc(parent->cap * sizeof(Node*));
@@ -122,7 +126,7 @@ int parsenode(Node *basenode, Node *node, SymbolStream *ss, char *stop) {
       if (!strcmp(stop, "\n")) {
 	char error[256];
 	sprintf(error, "Expected '"FONT_BOLD"%s"FONT_RESET"'!", stop);
-	printerror(ss->filename, error, s);
+	printsymbolmessage(ERROR, ss->filename, trace, error, s);
 	exit(1);
       }
     }
@@ -134,6 +138,26 @@ int parsenode(Node *basenode, Node *node, SymbolStream *ss, char *stop) {
 }
 
 void link(Node *basenode) {
+  int count = 0;
+  for (int i = 0; i < basenode->num; i++) {
+    Node *n = ((Node**)basenode->content)[i];
+    ((Node**)basenode->content)[i] = NULL;
+    if (n != NULL && getnode(basenode, n->name) == NULL) {
+      ((Node**)basenode->content)[count++] = n;
+    }
+  }
+  if (count == 0) {
+    printnodemessage(WARNING, current_filename, basenode->name, trace, "Node is empty!");
+  } else if (count > 1) {
+    printnodemessage(WARNING, current_filename, basenode->name, trace, "Multiple roots!");
+    for (int i = 0; i < basenode->num; i++) {
+      Node *n = ((Node**)basenode->content)[i];
+      if (n != NULL) {
+	fprintf(stderr, "    :<%s>\n", n->name);
+      }
+    }
+  }
+  basenode->num = count;
 }
 
 Node *parsefile(char *filename) {
@@ -142,7 +166,8 @@ Node *parsefile(char *filename) {
   SymbolStream *ss       = sopen(filename, parser);
   Node         *basenode;
   char          nodename[256];
-  
+
+  current_filename = filename;
   sprintf(nodename, "root:%s", filename);
   basenode = newNode(NULL, nodename, NODE_ROOT);
   
@@ -152,6 +177,7 @@ Node *parsefile(char *filename) {
   sclose(ss);
   deleteParser(&parser);
 
+  link(basenode);
   return basenode;
 }
 
@@ -175,7 +201,25 @@ int parseinclude(Node *basenode, SymbolStream *ss) {
     expect(ss, "include");
     expect(ss, "(");
     s = getsymbol(ss);
+    // START INCLUSION
+    if (include_depth >= MAX_INCLUDE_DEPTH) {
+      printfilemessage(ERROR, current_filename, trace, "Reached maximum inclusion depth!");
+      exit(1);
+    } else if (include_depth == 0) {
+      trace = malloc(MAX_INCLUDE_DEPTH * sizeof(char*));
+      memset(trace, 0, MAX_INCLUDE_DEPTH * sizeof(char*));
+    }
+    trace[include_depth++] = current_filename;
     addnode(basenode, parsefile(s->text));
+    trace[include_depth--] = NULL;
+    current_filename = trace[include_depth];
+    if (include_depth == 0) {
+      free(trace);
+      trace = NULL;
+    } else {
+      trace[include_depth] = 0;
+    }
+    // END INCLUSION
     expect(ss, ")");
     expect(ss, "\n");
     return 1;
@@ -204,7 +248,7 @@ int parseline(Node *basenode, SymbolStream *ss) {
     return 0;
   }
   if (strcmp(s->text, "<")) {
-    printerror(ss->filename, "Expected '"FONT_BOLD"<"FONT_RESET"'!", s);
+    printsymbolmessage(ERROR, ss->filename, trace, "Expected '"FONT_BOLD"<"FONT_RESET"'!", s);
     exit(1);
   }
   s = getsymbol(ss);
@@ -230,14 +274,14 @@ int expect(SymbolStream *ss, char *str) {
     }
     if (junk) {
       sprintf(error, "Junk after '"FONT_BOLD"%s"FONT_RESET"'", prev);
-      printwarning(ss->filename, error, s);
+      printsymbolmessage(ERROR, ss->filename, trace, error, s);
     }
   }
   else {
     s = getsymbol(ss);
     if (strcmp(s->text, str)) {
       sprintf(error, "Expected '"FONT_BOLD"%s"FONT_RESET"'!", str);
-      printerror(ss->filename, error, s);
+      printsymbolmessage(ERROR, ss->filename, trace, error, s);
       exit(1);
     }
     //return 0;

@@ -60,23 +60,72 @@ char **getcontext(char *filename, Symbol *symbol) {
   return context;
 }
 
-void printincerror(char *filename, char *included, char *error, Symbol *symbol) {
+void printtrace(char **trace) {
+  if (trace != NULL && trace[0]) {
+    fprintf(stderr, "In file included from "FONT_BOLD"%s"FONT_RESET"\n", trace[0]);
+    for (int i = 1; trace[i]; i++) {
+      fprintf(stderr, "                 from "FONT_BOLD"%s"FONT_RESET"\n", trace[i]);
+    }
+  }
+}
+
+void printmessagetype(MessageType type) {
+  switch (type) {
+  case INFO:
+    fprintf(stderr, TEXT_GREEN""FONT_BOLD"INFO: "FONT_RESET);
+    break;
+  case DEBUG:
+    fprintf(stderr, TEXT_BLUE""FONT_BOLD"DEBUG: "FONT_RESET);
+    break;
+  case WARNING:
+    fprintf(stderr, TEXT_YELLOW""FONT_BOLD"WARNING: "FONT_RESET);
+    break;
+  case ERROR:
+    fprintf(stderr, TEXT_RED""FONT_BOLD"ERROR: "FONT_RESET);
+    break;
+  }
+}
+
+void printfilename(char *filename) {
+  if (strcmp(filename, "")) {
+    fprintf(stderr, "In file "FONT_BOLD"%s"FONT_RESET": ", filename);
+  }
+}
+
+void printnodename(char *nodename) {
+  if (strcmp(nodename, "")) {
+    fprintf(stderr, "Node "FONT_BOLD"<%s>"FONT_RESET": ", nodename);
+  }
+}
+
+void printcoords(Symbol *symbol) {
+  fprintf(stderr, "%d: %d: ", symbol->line, symbol->position);
+}
+
+void printcontext(MessageType type, Symbol *symbol, char *filename) {
   char **context = getcontext(filename, symbol);
   if (!context) {
     fprintf(stderr, "Memory allocation error!");
     return;
   }
-  char inc[256];
-  if (!strcmp(included, "")) {
-    sprintf(inc, " included from %s", included);
-  }
-			      
-  fprintf(stderr, TEXT_RED""FONT_BOLD"ERROR:"FONT_RESET
-	  " In file "FONT_BOLD"%s"FONT_RESET" (%d, %d)%s: %s\n", filename, symbol->line, symbol->position, included, error);
+  
   fprintf(stderr, "%s"FONT_BOLD""TEXT_MAGENTA"%s"FONT_RESET"%s\n", context[0], symbol->text, context[1]);
-
+  
   for (int i = 0; context[0][i]; i++) fprintf(stderr, " ");
-  for (int i = 0; symbol->text[i]; i++) fprintf(stderr, "^");
+  switch (type) {
+  case INFO:
+    for (int i = 0; symbol->text[i]; i++) fprintf(stderr, ".");
+    break;
+  case DEBUG:
+    for (int i = 0; symbol->text[i]; i++) fprintf(stderr, "-");
+    break;
+  case WARNING:
+    for (int i = 0; symbol->text[i]; i++) fprintf(stderr, "~");
+    break;
+  case ERROR:
+    for (int i = 0; symbol->text[i]; i++) fprintf(stderr, "^");
+    break;
+  }
   fprintf(stderr, "\n");
 
   
@@ -85,37 +134,33 @@ void printincerror(char *filename, char *included, char *error, Symbol *symbol) 
   free(context);
 }
 
-void printerror(char *filename, char *error, Symbol *symbol) {
-  printincerror(filename, "", error, symbol);
+void printnodemessage(MessageType type, char *filename, char *nodename, char **trace, char* message) {
+  printtrace(trace);
+  printmessagetype(type);
+  printfilename(filename);
+  printnodename(nodename);
+  fprintf(stderr, "%s\n", message);
 }
 
-void printincwarning(char *filename, char* included, char *warning, Symbol *symbol) {
-  char **context = getcontext(filename, symbol);
-  if (!context) {
-    fprintf(stderr, "Memory allocation warning!");
-    return;
-  }
-  char inc[256];
-  if (!strcmp(included, "")) {
-    sprintf(inc, " included from %s", included);
-  }
-			      
-  fprintf(stderr, TEXT_YELLOW""FONT_BOLD"WARNING:"FONT_RESET
-	  " In file "FONT_BOLD"%s"FONT_RESET" (%d, %d)%s: %s\n", filename, symbol->line, symbol->position, included, warning);
-  fprintf(stderr, "%s"FONT_BOLD""TEXT_MAGENTA"%s"FONT_RESET"%s\n", context[0], symbol->text, context[1]);
-
-  for (int i = 0; context[0][i]; i++) fprintf(stderr, " ");
-  for (int i = 0; symbol->text[i]; i++) fprintf(stderr, "~");
-  fprintf(stderr, "\n");
-
-  
-  free(context[0]);
-  free(context[1]);
-  free(context);
+void printsymbolmessage(MessageType type, char *filename, char **trace, char *message, Symbol *symbol) {
+  printtrace(trace);
+  printmessagetype(type);
+  printfilename(filename);
+  printcoords(symbol);
+  fprintf(stderr, "%s\n", message);
+  printcontext(type, symbol, filename);
+}
+      
+void printfilemessage(MessageType type, char *filename, char **trace, char *message) {
+  printtrace(trace);
+  printmessagetype(type);
+  printfilename(filename);
+  fprintf(stderr, "%s\n", message);
 }
 
-void printwarning(char *filename, char *warning, Symbol *symbol) {
-  printincwarning(filename, "", warning, symbol);
+void printmessage(MessageType type, char *message) {
+  printmessagetype(type);
+  fprintf(stderr, "%s\n", message);
 }
 
 void printsuggest(char *suggest, char *highlight) {

@@ -10,7 +10,7 @@ int main(void) {
   Parser *parser = newParser("parsing/prs/bnf.prs");
   Symbol *aboutc = parse("misc/c.txt", parser);
 
-  printwarning("misc/c.txt", "wrong word", &aboutc[500]);
+  printsymbolmessage(INFO, "misc/c.txt", NULL, "This is a test", &aboutc[500]);
   printsuggest("Maybe try (%s) instead?", "this");
 
   savetofile("data/bnf_parser.struct", (void*)parser, sizeof(Parser));

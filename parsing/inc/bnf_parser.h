@@ -7,6 +7,8 @@
 #include <error.h>
 #include <terminal.h>
 
+#define MAX_INCLUDE_DEPTH 16
+
 typedef enum nodetype {
   NODE_ROOT = 0,
   NODE_LEAF,
