@@ -211,6 +211,7 @@ int parseline(Node *basenode, SymbolStream *ss) {
   n = newNode(basenode, s->text, NODE_ONE_OF);
   expect(ss, ">");
   expect(ss, "::=");
+  addnode(basenode, n);
   return parsenode(basenode, n, ss, "\n");
 }
 
