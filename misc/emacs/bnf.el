@@ -9,5 +9,9 @@
 	("\\(\".*?\"\\)" . (1 font-lock-string-face))))
 
 (define-derived-mode bnf-mode text-mode "BNF"
-  "Major mode for editing Bachus-Naur Form (BNF) syntax declaration files."
+  "Major mode for editing Backus-Naur Form (BNF) syntax declaration files."
   (setq font-lock-defaults '(bnf-highlights)))
+
+(provide 'bnf-mode)
+
+(add-to-list 'auto-mode-alist '("\\.bnf\\'" . bnf-mode))
