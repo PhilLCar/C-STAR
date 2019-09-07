@@ -2,7 +2,7 @@
 <integer> ::= <signed-integer> | <unsigned-integer>
 <signed-integer> ::= <integer-type>
 <unsigned-integer> ::= "unsigned" <integer-type>
-<integer-type> ::= "byte" | "short" | "int" | "long" | "num"
-<floating-point> ::= "mini" | "float" | "double" | "ext"
+<integer-type> ::= "byte" | "short" | "int" | "long" | "number"
+<floating-point> ::= "mini" | "float" | "double" | "decimal"
 <character> ::= "char" | "utf8" | "utf16" | "utf32"
 <string> ::= "string"

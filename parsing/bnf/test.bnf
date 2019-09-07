@@ -1,2 +1,3 @@
 ;; include (parsing/bnf/numbers.bnf)
-;; include (parsing/bnf/types.bnf)gae
+;; include (parsing/bnf/types.bnf)
+;; include (parsing/bnf/if.bnf)
