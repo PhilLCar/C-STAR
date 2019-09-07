@@ -1,5 +1,5 @@
-#ifndef ERROR_PARSING
-#define ERROR_PARSING
+#ifndef ERROR_UTILS
+#define ERROR_UTILS
 
 #include <stdio.h>
 #include <string.h>
