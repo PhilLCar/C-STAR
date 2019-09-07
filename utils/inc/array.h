@@ -14,6 +14,6 @@ typedef struct array {
 Array *newArray(int, int);
 void   deleteArray(Array**);
 int    resize(Array*, int);
-void   push(Array*, void*);
-void  *pop(Array*);
+void   append(Array*, void*);
+void  *rmlast(Array*);
 #endif

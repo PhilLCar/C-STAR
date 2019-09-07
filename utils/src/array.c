@@ -41,7 +41,7 @@ int resize(Array *array, int new_size)
   return success;
 }
 
-void push(Array *array, void *data)
+void append(Array *array, void *data)
 {
   if (array->size == array->capacity) {
     if (!resize(array, array->capacity * 2)) return;
@@ -49,15 +49,16 @@ void push(Array *array, void *data)
   memcpy((char*)array->content + (array->element_size * array->size),
 	 (char*)data,
 	 array->element_size);
+  array->size++;
 }
 
-void *pop(Array *array)
+void *rmlast(Array *array)
 {
-  void index = NULL;
+  void *index = NULL;
   if (array->size > 0) {
-    int size     = --array->size;
+    int size     = array->size--;
     int capacity = array->capacity;
-    index = &array->content[size];
+    index = (char*)array->content + (array->size * array->element_size);
     if (size > 1 && size < capacity / 2) {
       resize(array, capacity / 2);
     }
