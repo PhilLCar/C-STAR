@@ -1,3 +1,25 @@
 <program> ::= { <include> } { <statement> }
 <include> ::= "#include" "<" <char-sequence> ">"
 <char-sequence> ::= { "a" }
+
+<statement> ::= <line> | <declaration> | <function association> | <special-blocks>
+
+<line> ::= <expression> ";"
+
+<declaration> ::= [ <type> ] <declarative-expression>
+<declarative-expression> ::= 
+
+<function-association> ::= <variable> <lambda-expression>
+<lambda-expression> ::= [ <parameter-block> ] <block>
+<parameter-block> ::= "(" ")" | "(" <parameter> { "," <parameter> } ")"
+<parameter> ::= [ <type> ] <declarative-expression>
+
+
+<block> ::= <line> | "{" { <statement> } "}"
+
+<if-block> ::= "if" <expression> <block> [ "else" <block> ]
+<while-block> ::= [ <do-block> ] "while" <block>
+<for-block> ::= [ <do-block> ] "for" "(" [ <expression> ] ";" [ <expression> ] ";" [ <expression ] ")" <block>
+<switch-block> ::= "switch" <expression> {}
+
+

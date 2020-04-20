@@ -1,6 +1,6 @@
 #include <tracked_file.h>
 
-void push(TrackedFile *tf) {
+void tfpush(TrackedFile *tf) {
   if (tf->linestack) {
     tf->linestack[tf->stack_pos++] = tf->position;
     if (tf->stack_pos == tf->stack_cap) {
@@ -11,7 +11,7 @@ void push(TrackedFile *tf) {
   }
 }
 
-int pop(TrackedFile *tf) {
+int tfpop(TrackedFile *tf) {
   int r = 0;
   if (tf->linestack) {
     r = tf->linestack[--tf->stack_pos];
@@ -67,7 +67,7 @@ char tfgetc(TrackedFile *tf) {
   }
   if (tf->buffer[0] == '\n') {
     tf->line++;
-    push(tf);
+    tfpush(tf);
     tf->position = -1;
   } else tf->position++;
   
@@ -82,7 +82,7 @@ void tfungetc(TrackedFile *tf, char c) {
   
   if (tf->buffer[0] == '\n') {
     tf->line--;
-    tf->position = pop(tf);
+    tf->position = tfpop(tf);
   } else tf->position--;
   
   tf->buffer[0] = c;

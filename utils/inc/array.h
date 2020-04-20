@@ -5,15 +5,15 @@
 #include <stdlib.h>
 
 typedef struct array {
-  void *content;
-  int   element_size;
-  int   size;
-  int   capacity;
+  void   *content;
+  size_t  element_size;
+  int     size;
+  int     capacity;
 } Array;
 
-Array *newArray(int, int);
+Array *newArray(size_t);
 void   deleteArray(Array**);
 int    resize(Array*, int);
-void   append(Array*, void*);
-void  *rmlast(Array*);
+void   push(Array*, void*);
+void  *pop(Array*);
 #endif

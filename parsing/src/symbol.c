@@ -1,12 +1,15 @@
 #include <symbol.h>
 
 // Compares the string until one ends (will return true in that case)
-int strcmps(char *s1, char *s2) {
+int strcmps(char *s1, char *s2)
+{
   int i;
-  for (i = 0;; i++) {
-    if (s1[i] != s2[i]) {
+  for (i = 0;; i++)
+  {
+    if (s1[i] != s2[i])
+    {
       if (s1[i] && s2[i]) return 0;
-      else break;
+      else                break;
     }
     if (!s1[i] || !s2[i]) break;
   }
@@ -14,11 +17,14 @@ int strcmps(char *s1, char *s2) {
 }
 
 // Extends a buffer by one char, reallocating if need be
-int extend(char **buffer, int *size, int *cap, char c) {
+int extend(char **buffer, int *size, int *cap, char c)
+{
   (*buffer)[(*size)++] = c;
-  if (*size >= *cap) {
+  if (*size >= *cap)
+  {
     char *t = realloc(*buffer, (*cap *= 2) * sizeof(char));
-    if (t != NULL) {
+    if (t != NULL)
+    {
       *buffer = t;
       memset(*buffer + *size, 0, (*cap - *size) * sizeof(char));
     }
@@ -28,82 +34,106 @@ int extend(char **buffer, int *size, int *cap, char c) {
 }
 
 // Returns the next symbol in the tracked file tf
-int nextsymbol(TrackedFile *tf, Parser *parser, Symbol *symbol) {
+int nextsymbol(TrackedFile *tf, Parser *parser, Symbol *symbol)
+{
   char  c;
   int   buf_size = 0, buf_cap = 2;
   char *buf = malloc(buf_cap * sizeof(char));
   int   new = 0;
   int   pos = 0;
 
-  if (buf != NULL) {
+  if (buf != NULL)
+  {
     memset(buf, 0, buf_cap * sizeof(char));
-    while ((c = tfgetc(tf))) {
+    while ((c = tfgetc(tf)))
+    {
       if (c == EOF) break;
       int cmp, ws = 0;
       //////////////////////////////////////// NEW-LINE ////////////////////////////////////////
-      if (c == '\n') {
-	if (buf_size) {
-	  tfungetc(tf, c);
-	}
-	else {
-	  pos = tf->position;
-	  if(!extend(&buf, &buf_size, &buf_cap, c)) goto next_fail;
-	}
-	break;
+      if (c == '\n')
+      {
+        if (buf_size)
+        {
+          tfungetc(tf, c);
+        }
+        else
+        {
+          pos = tf->position;
+          if (!extend(&buf, &buf_size, &buf_cap, c)) goto next_fail;
+        }
+        break;
       }
       //////////////////////////////////////// ESCAPE ////////////////////////////////////////
-      for (int i = 0; parser->escapes[i]; i++) {
-	if (c == parser->escapes[i]) {
-	  ws = 1;
-	  break;
-	}
+      for (int i = 0; parser->escapes[i]; i++)
+      {
+        if (c == parser->escapes[i])
+        {
+          ws = 1;
+          break;
+        }
       }
-      if (ws) {
-	c = tfgetc(tf);
-	if (!extend(&buf, &buf_size, &buf_cap, c)) goto next_fail;
-	continue;
+      if (ws)
+      {
+        c = tfgetc(tf);
+        if (!extend(&buf, &buf_size, &buf_cap, c)) goto next_fail;
+        continue;
       }
       //////////////////////////////////////// WHITESPACE ////////////////////////////////////////
-      for (int i = 0; parser->whitespaces[i]; i++) {
-	if (c == parser->whitespaces[i]) {
-	  ws = 1;
-	  break;
-	}
+      for (int i = 0; parser->whitespaces[i]; i++)
+      {
+        if (c == parser->whitespaces[i])
+        {
+          ws = 1;
+          break;
+        }
       }
-      if (ws) {
-	if(buf_size) {
-	  break;
-	}
-	else continue;
+      if (ws)
+      {
+        if (buf_size)
+        {
+          break;
+        }
+        else continue;
       }
       //////////////////////////////////////// BREAKSYMBOLS ////////////////////////////////////////
-      for (int i = 0; parser->breaksymbols[i]; i++) {
-	if ((cmp = strcmps(tf->buffer, parser->breaksymbols[i]))) {
-	  if (cmp > ws) {
-	    ws = cmp;
-	  }
-	}
+      for (int i = 0; parser->breaksymbols[i]; i++)
+      {
+        if ((cmp = strcmps(tf->buffer, parser->breaksymbols[i])))
+        {
+          if (cmp > ws)
+          {
+            ws = cmp;
+          }
+        }
       }
-      if (ws) {
-        if (buf_size) {
-	  tfungetc(tf, c);
-	}
-	else {
-	  pos = tf->position;
-	  for (int i = 1;; i++) {
-	    if(!extend(&buf, &buf_size, &buf_cap, c)) goto next_fail;
-	    if (i == ws) break;
-	    c = tfgetc(tf);
-	  }
-	}
-	break;
+      if (ws)
+      {
+        if (buf_size)
+        {
+          tfungetc(tf, c);
+        }
+        else
+        {
+          pos = tf->position;
+          for (int i = 1;; i++)
+          {
+            if (!extend(&buf, &buf_size, &buf_cap, c))
+              goto next_fail;
+            if (i == ws)
+              break;
+            c = tfgetc(tf);
+          }
+        }
+        break;
       }
       //////////////////////////////////////// SYMBOL ////////////////////////////////////////
-      if (!buf_size) pos = tf->position;
-      if(!extend(&buf, &buf_size, &buf_cap, c)) {
+      if (!buf_size)
+        pos = tf->position;
+      if (!extend(&buf, &buf_size, &buf_cap, c))
+      {
       next_fail:
-	free(buf);
-	return 0;
+        free(buf);
+        return 0;
       }
     }
     symbol->text = buf;
@@ -115,26 +145,35 @@ int nextsymbol(TrackedFile *tf, Parser *parser, Symbol *symbol) {
 }
 
 // Parses a file using the rules provided in parser
-Symbol *parse(char *filename, Parser *parser) {
+Symbol *parse(char *filename, Parser *parser)
+{
   TrackedFile *tf = tfopen(filename, parser->max_depth);
   int symbols_size = 0, symbols_cap = 1024;
   Symbol *symbols = NULL;
-  if (tf != NULL) {
+  if (tf != NULL)
+  {
     symbols = malloc(symbols_cap * sizeof(Symbol));
-    if (symbols != NULL) {
+    if (symbols != NULL)
+    {
       memset(symbols, 0, symbols_cap * sizeof(Symbol));
-      while (nextsymbol(tf, parser, &symbols[symbols_size])) {
-	if (!symbols[symbols_size].text[0]) {
-	  // END OF FILE
-	  break;
-	}
-	if (++symbols_size == symbols_cap) {
-	  Symbol *t = realloc(symbols, (symbols_cap *= 2) * sizeof(Symbol));
-	  if (t != NULL) {
-	    symbols = t;
-	    memset(symbols + symbols_size, 0, (symbols_cap - symbols_size) * sizeof(Symbol));
-	  } else break;
-	}
+      while (nextsymbol(tf, parser, &symbols[symbols_size]))
+      {
+        if (!symbols[symbols_size].text[0])
+        {
+          // END OF FILE
+          break;
+        }
+        if (++symbols_size == symbols_cap)
+        {
+          Symbol *t = realloc(symbols, (symbols_cap *= 2) * sizeof(Symbol));
+          if (t != NULL)
+          {
+            symbols = t;
+            memset(symbols + symbols_size, 0, (symbols_cap - symbols_size) * sizeof(Symbol));
+          }
+          else
+            break;
+        }
       }
     }
     tfclose(tf);
@@ -142,48 +181,63 @@ Symbol *parse(char *filename, Parser *parser) {
   return symbols;
 }
 
-SymbolStream *sopen(char *filename, Parser *parser) {
+SymbolStream *sopen(char *filename, Parser *parser)
+{
   SymbolStream *ss = malloc(sizeof(SymbolStream));
-  TrackedFile  *tf = tfopen(filename, parser->max_depth);
-  
-  if (ss != NULL && parser != NULL) {
+  TrackedFile *tf = tfopen(filename, parser->max_depth);
+
+  if (ss != NULL && parser != NULL)
+  {
     ss->filename = filename;
-    ss->tfptr    = tf;
-    ss->parser   = parser;
-    
+    ss->tfptr = tf;
+    ss->parser = parser;
+
     ss->symbol.text = NULL;
-  } else {
-    if (ss) free(ss);
+  }
+  else
+  {
+    if (ss)
+      free(ss);
     ss = NULL;
   }
   return ss;
 }
 
-void sclose(SymbolStream *ss) {
-  if (ss->tfptr) tfclose(ss->tfptr);
+void sclose(SymbolStream *ss)
+{
+  if (ss->tfptr)       tfclose(ss->tfptr);
   if (ss->symbol.text) free(ss->symbol.text);
-  if (ss) free(ss);
+  if (ss)              free(ss);
 }
 
-Symbol *getsymbol(SymbolStream *ss) {
+Symbol *getsymbol(SymbolStream *ss)
+{
   Symbol *s = &ss->symbol;
-  if (ss->symbol.text) free(ss->symbol.text);
-  if (nextsymbol(ss->tfptr, ss->parser, s)) {
+  if (ss->symbol.text)
+    free(ss->symbol.text);
+  if (nextsymbol(ss->tfptr, ss->parser, s))
+  {
     s = &ss->symbol;
-  } else s = NULL;
+  }
+  else
+    s = NULL;
   return s;
 }
 
-void ungetsymbol(SymbolStream *ss, Symbol *s) {
+void ungetsymbol(SymbolStream *ss, Symbol *s)
+{
   tfungetc(ss->tfptr, ' ');
-  for (int i = strlen(s->text) - 1; i >= 0; i--) {
+  for (int i = strlen(s->text) - 1; i >= 0; i--)
+  {
     tfungetc(ss->tfptr, s->text[i]);
   }
-  if (ss->symbol.text) free(ss->symbol.text);
+  if (ss->symbol.text)
+    free(ss->symbol.text);
   memset(&ss->symbol, 0, sizeof(Symbol));
 }
 
-void freesymbol(Symbol *s) {
+void freesymbol(Symbol *s)
+{
   free(s->text);
   free(s);
 }
