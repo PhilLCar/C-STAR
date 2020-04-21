@@ -1,6 +1,6 @@
 <program> ::= { <statement> }
 
-<statement> ::= <line> | <func-assoc> | <special-blocks> | <class-decl>
+<statement> ::= <line> | <func-assoc> | <special-blocks> | <class-decl> | <operator-decl>
 
 <line> ::= ( <expression> | <declaration> ) ";"
 
@@ -19,7 +19,16 @@
 <while-block> ::= [ <do-block> ] "while" <expression> <block>
 <for-block> ::= [ <do-block> ] "for" "(" [ <expression> ] ";" [ <expression> ] ";" [ <expression> ] ")" <block>
 <foreach-block> ::= [ <do-block> ] "foreach" "(" [ <expression> ] "in" <variable> ")" <block>
-<metafor-block> ::= [ <do-block> ] "metafor" "(" [ <declaration> ] "in" <variable> ")" <block>
 <switch-block> ::= "switch" <expression> {}
+
+# var[10, 10, 10] a;
+#
+# metafor (var x in a) {
+# 	// normal access, if you know a's structure
+# 	a[x[0], x[1], x[2]] = wtv;
+# 	// meta access, if a's structure is unknown
+# 	a[meta x] = wtv;
+# }
+<metafor-block> ::= [ <do-block> ] "metafor" "(" [ <declaration> ] "in" <variable> ")" <block>
 
 

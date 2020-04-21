@@ -10,8 +10,11 @@
 typedef struct parser {
   char   *whitespaces;
   char   *escapes;
+  char  **delimiters;
+  char  **linecom;
+  char  **multicom;
   char  **breaksymbols;
-  int     max_depth;
+  int     lookahead;
 } Parser;
 
 char   *characters(FILE*);

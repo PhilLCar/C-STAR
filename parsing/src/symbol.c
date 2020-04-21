@@ -147,7 +147,7 @@ int nextsymbol(TrackedFile *tf, Parser *parser, Symbol *symbol)
 // Parses a file using the rules provided in parser
 Symbol *parse(char *filename, Parser *parser)
 {
-  TrackedFile *tf = tfopen(filename, parser->max_depth);
+  TrackedFile *tf = tfopen(filename, parser->lookahead);
   int symbols_size = 0, symbols_cap = 1024;
   Symbol *symbols = NULL;
   if (tf != NULL)
@@ -184,7 +184,7 @@ Symbol *parse(char *filename, Parser *parser)
 SymbolStream *sopen(char *filename, Parser *parser)
 {
   SymbolStream *ss = malloc(sizeof(SymbolStream));
-  TrackedFile *tf = tfopen(filename, parser->max_depth);
+  TrackedFile *tf = tfopen(filename, parser->lookahead);
 
   if (ss != NULL && parser != NULL)
   {

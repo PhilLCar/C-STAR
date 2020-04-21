@@ -2,6 +2,21 @@
  	
 == Escape chars ==
 \
+== Delimiters
+"
+"
+'
+'
+
+== Line comments ==
+//
+#
+;
+
+== Multiline comments ==
+/*
+*/
+
 == Breaksymbols ==
 |
 ::=
@@ -13,9 +28,6 @@
 ]
 <
 >
-;
 ;;
-"
-'
 
 == EOF ==
