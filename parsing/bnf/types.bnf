@@ -1,8 +1,10 @@
-<type> ::= ( <integer> | <floating-point> | <character> | <string> ) { "*" }
-<integer> ::= <signed-integer> | <unsigned-integer>
-<signed-integer> ::= <integer-type>
-<unsigned-integer> ::= "unsigned" <integer-type>
-<integer-type> ::= "byte" | "short" | "int" | "long" | "number"
-<floating-point> ::= "mini" | "float" | "double" | "decimal"
-<character> ::= "char" | "utf8" | "utf16" | "utf32"
-<string> ::= "string"
+<const-type> ::= "const" <type>
+<type> ::= ( "var" | <integer=type> | <decimal-type> | <character-type> | <string-type> ) [ <dimension> ]
+<integer-type> ::= ([ "unsigned" ] ( "byte" | "short" | "int" | "long" )) | "integer"
+<decimal-type> ::= "mini" | "float" | "double" | "decimal"
+<character-type> ::= "char" | "utf16" | "utf32"
+<string-type> ::= "string" | "string16" | "string32"
+<dimension> ::= ( "*" | <array-type> | <list-type> | <dict-type>) [ <dimension> ]
+<list-type> ::= "(" [ <const-expr> ] ")"
+<array-type> ::= "[" [ <const-expr> ] { "," <const-expr> } "]"
+<dict-type> ::= "{" [ <const-expr> ] "}"

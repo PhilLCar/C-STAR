@@ -1,13 +1,11 @@
-<program> ::= { <include> } { <statement> }
-<include> ::= "#include" "<" <char-sequence> ">"
-<char-sequence> ::= { "a" }
+<program> ::= { <statement> }
 
-<statement> ::= <line> | <declaration> | <function association> | <special-blocks>
+<statement> ::= <line> | <func-assoc> | <special-blocks> | <class-decl>
 
-<line> ::= <expression> ";"
+<line> ::= ( <expression> | <declaration> ) ";"
 
-<declaration> ::= [ <type> ] <declarative-expression>
-<declarative-expression> ::= 
+<expression> ::= <expr> | <const-expr>
+<declaration> ::= [ <type> ] <variable> { "," <variable> }
 
 <function-association> ::= <variable> <lambda-expression>
 <lambda-expression> ::= [ <parameter-block> ] <block>
@@ -18,8 +16,10 @@
 <block> ::= <line> | "{" { <statement> } "}"
 
 <if-block> ::= "if" <expression> <block> [ "else" <block> ]
-<while-block> ::= [ <do-block> ] "while" <block>
-<for-block> ::= [ <do-block> ] "for" "(" [ <expression> ] ";" [ <expression> ] ";" [ <expression ] ")" <block>
+<while-block> ::= [ <do-block> ] "while" <expression> <block>
+<for-block> ::= [ <do-block> ] "for" "(" [ <expression> ] ";" [ <expression> ] ";" [ <expression> ] ")" <block>
+<foreach-block> ::= [ <do-block> ] "foreach" "(" [ <expression> ] "in" <variable> ")" <block>
+<metafor-block> ::= [ <do-block> ] "metafor" "(" [ <declaration> ] "in" <variable> ")" <block>
 <switch-block> ::= "switch" <expression> {}
 
 

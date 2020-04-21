@@ -1,0 +1,10 @@
+;; include (parsing/bnf/digits.bnf)
+
+<decimal> ::= (<bin-decimal> | <oct-decimal> | <dec-decimal> | <hex-decimal>) [ <decimal-spec> ]
+
+<bin-decimal> ::= "0b" <bin-digit> { <bin-digit> } "." { <bin-digit> }
+<oct-decimal> ::= ( "0o" | "0" ) <oct-digit> { <oct-digit> } "." { <oct-digit> }
+<dec-decimal> ::= <dec-digit> { <dec-digit> } "." { <dec-digit> }
+<hex-decimal> ::= "0x" <hex-digit> { <hex-digit> } "." { <hex-digit> }
+
+<decimal-spec> ::= [ "f" | "m" ]

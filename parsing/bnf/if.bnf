@@ -1,2 +1,0 @@
-<if-block> := "if" <statement> <statement> [ "else" <statement> ]
-<statement> := "0"
