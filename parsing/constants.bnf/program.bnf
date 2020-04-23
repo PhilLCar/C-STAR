@@ -1,0 +1,44 @@
+;; include (parsing/bnf/types.bnf)
+;; include (parsing/bnf/constants.bnf)
+
+<program> ::= { <statement> }
+
+<statement> ::= <line> | <func-assoc> | <special-blocks> | <class-decl> | <operator-assoc>
+
+<line> ::= ( <expression> | <declaration> ) [ ";" ]
+
+<expression> ::= ( <unary> <expression> ) |
+                 ( <expression> <binary> <expression> ) |
+                 ( <expression> <binary1> <expression> <binary2> ) |
+                 ( <expression> <tertiary1> <expression> <tertiary2> <expression> ) |
+                 ( <variable> | <const-variable> | <constant>)
+
+<assignment> ::= <variable> [ "=" <expression> ]
+
+<declaration> ::= [ <type> ] <assignment> { "," <assignment> }
+
+<function-association> ::= [ <type> ] <variable> <lambda-expression>
+<lambda-expression> ::= [ <parameter-block> ] <block>
+<parameter-block> ::= "(" ")" | "(" [ <parameter> { "," <parameter> } ] ")"
+<parameter> ::= [ <type> ] <assignment>
+
+
+<block> ::= <line> | "{" { <statement> } "}"
+
+<if-block> ::= "if" <expression> <block> [ "else" <block> ]
+<while-block> ::= [ <do-block> ] "while" <expression> <block>
+<for-block> ::= [ <do-block> ] "for" "(" [ <expression> ] ";" [ <expression> ] ";" [ <expression> ] ")" <block>
+<foreach-block> ::= [ <do-block> ] "foreach" "(" [ <expression> ] "in" <variable> ")" <block>
+<switch-block> ::= "switch" <expression> {}
+
+# var[10, 10, 10] a;
+#
+# metafor (var x in a) {
+# 	// normal access, if you know a's structure
+# 	a[x[0], x[1], x[2]] = wtv;
+# 	// meta access, if a's structure is unknown
+# 	a[meta x] = wtv;
+# }
+<metafor-block> ::= [ <do-block> ] "metafor" "(" [ <declaration> ] "in" <variable> ")" <block>
+
+

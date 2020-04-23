@@ -5,6 +5,7 @@
 #include <string.h>
 #include <stdlib.h>
 
+#include <array.h>
 #include <terminal.h>
 #include <symbol.h>
 
@@ -17,9 +18,9 @@ typedef enum messagetype {
   ERROR
 } MessageType;
 
-void printnodemessage(MessageType, char*, char*, char**, char*);
-void printsymbolmessage(MessageType, char*, char**, char*, Symbol*);
-void printfilemessage(MessageType, char*, char**, char*);
+void printnodemessage(MessageType, Array*, char*, char*);
+void printsymbolmessage(MessageType, Array*, Symbol*, char*);
+void printfilemessage(MessageType, Array*, char*);
 void printmessage(MessageType, char*);
 void printsuggest(char*, char*);
 

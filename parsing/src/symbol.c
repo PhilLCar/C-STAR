@@ -296,16 +296,16 @@ void ssclose(SymbolStream *ss)
 
 Symbol *ssgets(SymbolStream *ss)
 {
-  Symbol *s = &ss->symbol;
+  Symbol s = ss->symbol;
   if (ss->stack->size) {
-    memcpy(s, pop(ss->stack), sizeof(Symbol));
+    memcpy(&ss->symbol, pop(ss->stack), sizeof(Symbol));
   } else {
-    freesymbol(s);
-    if (!nextsymbol(ss->tfptr, ss->parser, s)) {
-      s = NULL;
+    if (!nextsymbol(ss->tfptr, ss->parser, &ss->symbol)) {
+      return NULL;
     }
   }
-  return s;
+  freesymbol(&s);
+  return &ss->symbol;
 }
 
 void ssungets(SymbolStream *ss, Symbol *s)

@@ -60,10 +60,10 @@ char **getcontext(char *filename, Symbol *symbol) {
   return context;
 }
 
-void printtrace(char **trace) {
-  if (trace != NULL && trace[0]) {
+void printtrace(Array *trace) {
+  if (trace->size > 1) {
     fprintf(stderr, "In file included from "FONT_BOLD"%s"FONT_RESET"\n", trace[0]);
-    for (int i = 1; trace[i]; i++) {
+    for (int i = 2; i < trace->size; i++) {
       fprintf(stderr, "                 from "FONT_BOLD"%s"FONT_RESET"\n", trace[i]);
     }
   }
@@ -134,27 +134,27 @@ void printcontext(MessageType type, Symbol *symbol, char *filename) {
   free(context);
 }
 
-void printnodemessage(MessageType type, char *filename, char *nodename, char **trace, char* message) {
+void printnodemessage(MessageType type, Array *trace, char *nodename, char* message) {
   printtrace(trace);
   printmessagetype(type);
-  printfilename(filename);
+  printfilename(at(trace, 0));
   printnodename(nodename);
   fprintf(stderr, "%s\n", message);
 }
 
-void printsymbolmessage(MessageType type, char *filename, char **trace, char *message, Symbol *symbol) {
+void printsymbolmessage(MessageType type, Array *trace,  Symbol *symbol, char *message) {
   printtrace(trace);
   printmessagetype(type);
-  printfilename(filename);
+  printfilename(at(trace, 0));
   printcoords(symbol);
   fprintf(stderr, "%s\n", message);
   printcontext(type, symbol, filename);
 }
       
-void printfilemessage(MessageType type, char *filename, char **trace, char *message) {
+void printfilemessage(MessageType type, Array *trace, char *message) {
   printtrace(trace);
   printmessagetype(type);
-  printfilename(filename);
+  printfilename(at(trace, 0));
   fprintf(stderr, "%s\n", message);
 }
 

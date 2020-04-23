@@ -4,7 +4,7 @@
 <decimal-type> ::= "mini" | "float" | "double" | "decimal"
 <character-type> ::= "char" | "utf16" | "utf32"
 <string-type> ::= "string" | "string16" | "string32"
-<dimension> ::= ( "*" | <array-type> | <list-type> | <dict-type>) [ <dimension> ]
+<dimension> ::= ( "*" | "&" | <array-type> | <list-type> | <dict-type>) [ <dimension> ]
 <list-type> ::= "(" [ <const-expr> ] ")"
 <array-type> ::= "[" [ <const-expr> ] { "," <const-expr> } "]"
 <dict-type> ::= "{" [ <const-expr> ] "}"

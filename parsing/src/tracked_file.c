@@ -1,6 +1,7 @@
 #include <tracked_file.h>
 
-void tfpush(TrackedFile *tf) {
+void tfpush(TrackedFile *tf)
+{
   if (tf->linestack) {
     tf->linestack[tf->stack_pos++] = tf->position;
     if (tf->stack_pos == tf->stack_cap) {
@@ -11,7 +12,8 @@ void tfpush(TrackedFile *tf) {
   }
 }
 
-int tfpop(TrackedFile *tf) {
+int tfpop(TrackedFile *tf)
+{
   int r = 0;
   if (tf->linestack) {
     r = tf->linestack[--tf->stack_pos];
@@ -19,7 +21,8 @@ int tfpop(TrackedFile *tf) {
   return r;
 }
 
-TrackedFile *tfopen(char *filename, int size) {
+TrackedFile *tfopen(char *filename, int size)
+{
   FILE        *fptr   = fopen(filename, "r");
   char        *buffer = malloc((size + 1) * sizeof(char));
   int          cap    = 16;
@@ -45,14 +48,16 @@ TrackedFile *tfopen(char *filename, int size) {
   return tf;
 }
 
-void tfclose(TrackedFile *tf) {
+void tfclose(TrackedFile *tf)
+{
   if (tf->fptr       != NULL) fclose(tf->fptr);
   if (tf->buffer     != NULL) free(tf->buffer);
   if (tf->linestack  != NULL) free(tf->linestack);
   if (tf             != NULL) free(tf);
 }
 
-char tfgetc(TrackedFile *tf) {
+char tfgetc(TrackedFile *tf)
+{
   if (tf->line < 0) {
     for (int i = 0; i < tf->size; i++) {
       tf->buffer[i] = fgetc(tf->fptr);
@@ -74,7 +79,8 @@ char tfgetc(TrackedFile *tf) {
   return tf->buffer[0];
 }
 
-void tfungetc(TrackedFile *tf, char c) {
+void tfungetc(TrackedFile *tf, char c)
+{
   ungetc(tf->buffer[tf->size - 1], tf->fptr);
   for (int i = tf->size - 1; i > 0; i--) {
     tf->buffer[i] = tf->buffer[i - 1];
