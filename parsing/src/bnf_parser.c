@@ -75,7 +75,7 @@ int parsenode(Node *basenode, Node *node, SymbolStream *ss, char *stop) {
   addnode(node, subnode);
   
   do {
-    s = getsymbol(ss);
+    s = gets(ss);
     if (!strcmp(s->text, "(")) {
       Node *n = newNode(basenode, "", NODE_ONE_OF);
       addnode(subnode, n);
@@ -97,7 +97,7 @@ int parsenode(Node *basenode, Node *node, SymbolStream *ss, char *stop) {
     }
     else if (!strcmp(s->text, "'")) {
       Node *n = newNode(basenode, "", NODE_LEAF);
-      s = getsymbol(ss);
+      s = gets(ss);
       n->content = (void*)malloc((strlen(s->text) + 1) * sizeof(char));
       sprintf((char*)n->content, "%s", s->text);
       expect(ss, "'");
@@ -105,7 +105,7 @@ int parsenode(Node *basenode, Node *node, SymbolStream *ss, char *stop) {
     }
     else if (!strcmp(s->text, "\"")) {
       Node *n = newNode(basenode, "", NODE_LEAF);
-      s = getsymbol(ss);
+      s = gets(ss);
       n->content = (void*)malloc((strlen(s->text) + 1) * sizeof(char));
       sprintf((char*)n->content, "%s", s->text);
       expect(ss, "\"");
@@ -113,7 +113,7 @@ int parsenode(Node *basenode, Node *node, SymbolStream *ss, char *stop) {
     }
     else if (!strcmp(s->text, "<")) {
       Node *n;
-      s = getsymbol(ss);
+      s = gets(ss);
       n = newNode(basenode, s->text, NODE_UNKNOWN);
       expect(ss, ">");
       addnode(subnode, n);
@@ -163,7 +163,7 @@ void link(Node *basenode) {
 Node *parsefile(char *filename) {
   // TODO: Have parser saved to file for quicker recuperation
   Parser       *parser   = newParser("parsing/prs/bnf.prs");
-  SymbolStream *ss       = sopen(filename, parser);
+  SymbolStream *ss       = ssopen(filename, parser);
   Node         *basenode;
   char          nodename[256];
 
@@ -174,7 +174,7 @@ Node *parsefile(char *filename) {
   while (parseinclude(basenode, ss));
   while (parseline(basenode, ss));
 
-  sclose(ss);
+  ssclose(ss);
   deleteParser(&parser);
 
   link(basenode);
@@ -182,12 +182,12 @@ Node *parsefile(char *filename) {
 }
 
 int parseinclude(Node *basenode, SymbolStream *ss) {
-  Symbol *s = getsymbol(ss);
+  Symbol *s = gets(ss);
   
   // Comment
   if (!strcmp(s->text, ";")) {
     while (strcmp(s->text, "\n")) {
-      s = getsymbol(ss);
+      s = gets(ss);
       if (strcmp(s->text, "")) return 0;
     }
     return 1;
@@ -200,7 +200,7 @@ int parseinclude(Node *basenode, SymbolStream *ss) {
   if (!strcmp(s->text, ";;")) {
     expect(ss, "include");
     expect(ss, "(");
-    s = getsymbol(ss);
+    s = gets(ss);
     // START INCLUSION
     if (include_depth >= MAX_INCLUDE_DEPTH) {
       printfilemessage(ERROR, current_filename, trace, "Reached maximum inclusion depth!");
@@ -223,18 +223,18 @@ int parseinclude(Node *basenode, SymbolStream *ss) {
     expect(ss, ")");
     expect(ss, "\n");
     return 1;
-  } else ungetsymbol(ss, s);
+  } else ungets(ss, s);
   return 0;
 }
 
 int parseline(Node *basenode, SymbolStream *ss) {
-  Symbol *s = getsymbol(ss);
+  Symbol *s = gets(ss);
   Node *n;
 
   // Comment
   if (!strcmp(s->text, ";")) {
     while (strcmp(s->text, "\n")) {
-      s = getsymbol(ss);
+      s = gets(ss);
       if (strcmp(s->text, "")) return 0;
     }
     return 1;
@@ -251,7 +251,7 @@ int parseline(Node *basenode, SymbolStream *ss) {
     printsymbolmessage(ERROR, ss->filename, trace, "Expected '"FONT_BOLD"<"FONT_RESET"'!", s);
     exit(1);
   }
-  s = getsymbol(ss);
+  s = gets(ss);
   n = newNode(basenode, s->text, NODE_ONE_OF);
   expect(ss, ">");
   expect(ss, "::=");
@@ -267,9 +267,9 @@ int expect(SymbolStream *ss, char *str) {
     int junk = 0;
     char prev[256];
     sprintf(prev, "%s", ss->symbol.text);
-    s = getsymbol(ss);
+    s = gets(ss);
     while (strcmp(s->text, str) && strcmp(s->text, "")) {
-      s = getsymbol(ss);
+      s = gets(ss);
       junk = 1;
     }
     if (junk) {
@@ -278,7 +278,7 @@ int expect(SymbolStream *ss, char *str) {
     }
   }
   else {
-    s = getsymbol(ss);
+    s = gets(ss);
     if (strcmp(s->text, str)) {
       sprintf(error, "Expected '"FONT_BOLD"%s"FONT_RESET"'!", str);
       printsymbolmessage(ERROR, ss->filename, trace, error, s);

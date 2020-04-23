@@ -48,10 +48,9 @@ void push(Array *array, void *data)
   if (array->size == array->capacity) {
     if (!resize(array, array->capacity * 2)) return;
   }
-  memcpy((char*)array->content + (array->element_size * array->size),
+  memcpy((char*)array->content + (array->element_size * array->size++),
 	       (char*)data,
 	       array->element_size);
-  array->size++;
 }
 
 void *pop(Array *array)
@@ -66,4 +65,11 @@ void *pop(Array *array)
     }
   }
   return index;
+}
+
+void *at(Array* array, int index) {
+  if (index >= 0 && index < array->size) {
+    return array->content + (index * array->element_size);
+  }
+  return NULL;
 }

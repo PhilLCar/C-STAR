@@ -8,7 +8,7 @@ void printsymbol(Symbol *symbol) {
 
 int main(void) {
   Parser *parser = newParser("parsing/prs/bnf.prs");
-  Symbol *aboutc = parse("misc/c.txt", parser);
+  Symbol *aboutc = sparse("misc/c.txt", parser);
 
   printsymbolmessage(INFO, "misc/c.txt", NULL, "This is a test", &aboutc[500]);
   printsuggest("Maybe try (%s) instead?", "this");

@@ -3,11 +3,17 @@
 
 #include <generic_parser.h>
 #include <tracked_file.h>
+#include <array.h>
 
 typedef struct symbol {
   char *text;
+  char *open;
+  char *close;
   int   line;
   int   position;
+  int   string;
+  int   comment;
+  int   eof;
 } Symbol;
 
 typedef struct symbolstream {
@@ -15,17 +21,14 @@ typedef struct symbolstream {
   TrackedFile *tfptr;
   Parser      *parser;
   Symbol       symbol;
+  Array       *stack;
 } SymbolStream;
 
-int           strcmps(char*, char*);
-int           extend(char**, int*, int*, char);
-int           nextsymbol(TrackedFile*, Parser*, Symbol*);
-Symbol       *parse(char*, Parser*);
-
-SymbolStream *sopen(char*, Parser*);
-void          sclose(SymbolStream*);
-Symbol       *getsymbol(SymbolStream*);
-void          ungetsymbol(SymbolStream*, Symbol*);
-void          freesymbol(Symbol*);
+Symbol       *sparse(char*, Parser*);
+SymbolStream *ssopen(char*, Parser*);
+void          ssclose(SymbolStream*);
+Symbol       *gets(SymbolStream*);
+void          ungets(SymbolStream*, Symbol*);
+void          deleteSymbol(Symbol**);
 
 #endif

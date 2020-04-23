@@ -16,4 +16,5 @@ void   deleteArray(Array**);
 int    resize(Array*, int);
 void   push(Array*, void*);
 void  *pop(Array*);
+void  *at(Array*, int);
 #endif
