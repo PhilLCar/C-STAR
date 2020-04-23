@@ -27,8 +27,9 @@ typedef struct symbolstream {
 Symbol       *sparse(char*, Parser*);
 SymbolStream *ssopen(char*, Parser*);
 void          ssclose(SymbolStream*);
-Symbol       *gets(SymbolStream*);
-void          ungets(SymbolStream*, Symbol*);
+Symbol       *ssgets(SymbolStream*);
+void          ssungets(SymbolStream*, Symbol*);
 void          deleteSymbol(Symbol**);
+void          freesymbol(Symbol*);
 
 #endif

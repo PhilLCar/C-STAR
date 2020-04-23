@@ -75,7 +75,7 @@ int parsenode(Node *basenode, Node *node, SymbolStream *ss, char *stop) {
   addnode(node, subnode);
   
   do {
-    s = gets(ss);
+    s = ssgets(ss);
     if (!strcmp(s->text, "(")) {
       Node *n = newNode(basenode, "", NODE_ONE_OF);
       addnode(subnode, n);
@@ -97,7 +97,7 @@ int parsenode(Node *basenode, Node *node, SymbolStream *ss, char *stop) {
     }
     else if (!strcmp(s->text, "'")) {
       Node *n = newNode(basenode, "", NODE_LEAF);
-      s = gets(ss);
+      s = ssgets(ss);
       n->content = (void*)malloc((strlen(s->text) + 1) * sizeof(char));
       sprintf((char*)n->content, "%s", s->text);
       expect(ss, "'");
@@ -105,7 +105,7 @@ int parsenode(Node *basenode, Node *node, SymbolStream *ss, char *stop) {
     }
     else if (!strcmp(s->text, "\"")) {
       Node *n = newNode(basenode, "", NODE_LEAF);
-      s = gets(ss);
+      s = ssgets(ss);
       n->content = (void*)malloc((strlen(s->text) + 1) * sizeof(char));
       sprintf((char*)n->content, "%s", s->text);
       expect(ss, "\"");
@@ -113,7 +113,7 @@ int parsenode(Node *basenode, Node *node, SymbolStream *ss, char *stop) {
     }
     else if (!strcmp(s->text, "<")) {
       Node *n;
-      s = gets(ss);
+      s = ssgets(ss);
       n = newNode(basenode, s->text, NODE_UNKNOWN);
       expect(ss, ">");
       addnode(subnode, n);
@@ -182,12 +182,12 @@ Node *parsefile(char *filename) {
 }
 
 int parseinclude(Node *basenode, SymbolStream *ss) {
-  Symbol *s = gets(ss);
+  Symbol *s = ssgets(ss);
   
   // Comment
   if (!strcmp(s->text, ";")) {
     while (strcmp(s->text, "\n")) {
-      s = gets(ss);
+      s = ssgets(ss);
       if (strcmp(s->text, "")) return 0;
     }
     return 1;
@@ -200,7 +200,7 @@ int parseinclude(Node *basenode, SymbolStream *ss) {
   if (!strcmp(s->text, ";;")) {
     expect(ss, "include");
     expect(ss, "(");
-    s = gets(ss);
+    s = ssgets(ss);
     // START INCLUSION
     if (include_depth >= MAX_INCLUDE_DEPTH) {
       printfilemessage(ERROR, current_filename, trace, "Reached maximum inclusion depth!");
@@ -223,18 +223,18 @@ int parseinclude(Node *basenode, SymbolStream *ss) {
     expect(ss, ")");
     expect(ss, "\n");
     return 1;
-  } else ungets(ss, s);
+  } else ssungets(ss, s);
   return 0;
 }
 
 int parseline(Node *basenode, SymbolStream *ss) {
-  Symbol *s = gets(ss);
+  Symbol *s = ssgets(ss);
   Node *n;
 
   // Comment
   if (!strcmp(s->text, ";")) {
     while (strcmp(s->text, "\n")) {
-      s = gets(ss);
+      s = ssgets(ss);
       if (strcmp(s->text, "")) return 0;
     }
     return 1;
@@ -251,7 +251,7 @@ int parseline(Node *basenode, SymbolStream *ss) {
     printsymbolmessage(ERROR, ss->filename, trace, "Expected '"FONT_BOLD"<"FONT_RESET"'!", s);
     exit(1);
   }
-  s = gets(ss);
+  s = ssgets(ss);
   n = newNode(basenode, s->text, NODE_ONE_OF);
   expect(ss, ">");
   expect(ss, "::=");
@@ -267,9 +267,9 @@ int expect(SymbolStream *ss, char *str) {
     int junk = 0;
     char prev[256];
     sprintf(prev, "%s", ss->symbol.text);
-    s = gets(ss);
+    s = ssgets(ss);
     while (strcmp(s->text, str) && strcmp(s->text, "")) {
-      s = gets(ss);
+      s = ssgets(ss);
       junk = 1;
     }
     if (junk) {
@@ -278,7 +278,7 @@ int expect(SymbolStream *ss, char *str) {
     }
   }
   else {
-    s = gets(ss);
+    s = ssgets(ss);
     if (strcmp(s->text, str)) {
       sprintf(error, "Expected '"FONT_BOLD"%s"FONT_RESET"'!", str);
       printsymbolmessage(ERROR, ss->filename, trace, error, s);

@@ -3,10 +3,10 @@ OBJECTS =obj
 BINARIES=bin
 C-FLAGS =-Wall
 
-UTILS  =$(OBJECTS)/error.o $(OBJECTS)/struct.o $(OBJECTS)/array.o
+UTILS  =$(OBJECTS)/error.o $(OBJECTS)/array.o
 PARSING=$(OBJECTS)/symbol.o $(OBJECTS)/generic_parser.o $(OBJECTS)/tracked_file.o $(OBJECTS)/bnf_parser.o
 
-test: parse-test bnf-test array-test
+test: parse-test array-test
 
 %-test: $(BINARIES)/%_test
 	@./$<

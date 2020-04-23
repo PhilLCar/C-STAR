@@ -1,7 +1,9 @@
 Like most imperative languages in the ALGOL tradition, C has facilities for structured programming and allows lexical variable scope and recursion. Its static type system prevents unintended operations. In C, all executable code is contained within subroutines (also called "functions", though not strictly in the sense of functional programming). Function parameters are always passed by value. Pass-by-reference is simulated in C by explicitly passing pointer values. C program source text is free-format, using the semicolon as a statement terminator and curly braces for grouping blocks of statements.
 
-The C language also exhibits the following characteristics:
-
+The C language also exhibits /*inline comment*/ the following characteristics:
+    /* Multiline
+     * comment
+     * lol */
     There is a small, fixed number of keywords, including a full set of control flow primitives: if/else, for, do/while, while, and switch. User-defined names are not distinguished from keywords by any kind of sigil.
     There are a large number of arithmetic, bitwise and logic operators: +, +=, ++, &, ||, etc.
     More than one assignment may be performed in a single statement.
@@ -21,5 +23,5 @@ The C language also exhibits the following characteristics:
     A preprocessor performs macro definition, source code file inclusion, and conditional compilation.
     There is a basic form of modularity: files can be compiled separately and linked together, with control over which functions and data objects are visible to other files via static and extern attributes.
     Complex functionality such as I/O, string manipulation, and mathematical functions are consistently delegated to library routines.
-
+// Regular comment
 While C does not include certain features found in other languages (such as object orientation and garbage collection), these can be implemented or emulated, often through the use of external libraries (e.g., the GLib Object System or the Boehm garbage collector). 
