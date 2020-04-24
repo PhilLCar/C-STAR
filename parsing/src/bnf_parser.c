@@ -1,291 +1,325 @@
 #include <bnf_parser.h>
 
-int    include_depth    = 0;
-char  *current_filename = NULL;
-char **trace            = NULL;
+BNFNode *parsebnfnode(char*, Parser*, BNFNode*, Array*);
 
-Node *newNode(Node *basenode, char *nodename, type t) {
-  Node *new = getnode(basenode, nodename);
-  if (new == NULL) {
-    new = malloc(sizeof(Node));
-    if (new != NULL) {
-      new->name = malloc((strlen(nodename) + 1) * sizeof(char));
-      if (new->name != NULL) {
-	sprintf(new->name, "%s", nodename);
-	new->type = t;
-	new->num  = 0;
-	new->cap  = 0;
-	new->content = NULL;
-      } else {
-	free(new);
-	new = NULL;
-      }
-    }
+BNFNode *getnode(BNFNode *basenode, BNFNode *node, char *name) {
+  if (node == NULL || !strcmp(name, "")) return NULL;
+  if (!strcmp(node->name, name)) return node;
+  if (node == basenode) {
+    basenode->rec++;
+  } else if (node->rec < basenode-> rec) {
+    node->rec = basenode->rec;
   } else {
-    if (t != NODE_UNKNOWN) {
-      new->type = t;
-    }
+    return NULL;
   }
-  return new;
-}
-
-void deleteNode(Node **node) {
-  if (*node) {
-    if ((*node)->content) free((*node)->content);
-    free(*node);
-  }
-  *node = NULL;
-}
-
-Node *getnode(Node *basenode, char *nodename) {
-  if (basenode == NULL || !strcmp(nodename, "")) return NULL;
-  for (int i = 0; i < basenode->num; i++) {
-    if (((Node**)basenode->content)[i] != NULL) {
-      if (!strcmp(((Node**)basenode->content)[i]->name, nodename)) {
-	return ((Node**)basenode->content)[i];
-      }
-      else if (((Node**)basenode->content)[i]->type != NODE_LEAF) {
-	Node *n = getnode(((Node**)basenode->content)[i], nodename);
-	if (n != NULL) return n;
-      }
+  if (node->type != NODE_LEAF && node->type != NODE_LEAF_CONCAT) {
+    Array *a = node->content;
+    for (int i = 0; i < a->size; i++) {
+      BNFNode *ret = getnode(basenode, at(a, i), name);
+      if (ret) return ret;
     }
   }
   return NULL;
 }
 
-void addnode(Node *parent, Node *child) {
-  if (parent->cap == 0) {
-    parent->cap = 2;
-    parent->content = (void*)malloc(parent->cap * sizeof(Node*));
-  }
-  ((Node**)parent->content)[parent->num] = child;
-  parent->num++;
-  if (parent->num >= parent->cap) {
-    void *t = realloc(parent->content, 2 * parent->cap * sizeof(Node*));
-    if (t != NULL) {
-      parent->cap *= 2;
-      parent->content = t;
-    }
-  }
-}
-
-int parsenode(Node *basenode, Node *node, SymbolStream *ss, char *stop) {
-  Symbol *s;
-  Node *subnode = newNode(basenode, "", NODE_LIST);
-  addnode(node, subnode);
-  
-  do {
-    s = ssgets(ss);
-    if (!strcmp(s->text, "(")) {
-      Node *n = newNode(basenode, "", NODE_ONE_OF);
-      addnode(subnode, n);
-      parsenode(basenode, n, ss, ")");
-    }
-    else if (!strcmp(s->text, "{")) {
-      Node *n1 = newNode(basenode, "", NODE_MANY_OR_NONE);
-      Node *n2 = newNode(basenode, "", NODE_ONE_OF);
-      addnode(subnode, n1);
-      addnode(n1, n2);
-      parsenode(basenode, n2, ss, "}");
-    }
-    else if (!strcmp(s->text, "[")) {
-      Node *n1 = newNode(basenode, "", NODE_ONE_OR_NONE);
-      Node *n2 = newNode(basenode, "", NODE_ONE_OF);
-      addnode(subnode, n1);
-      addnode(n1, n2);
-      parsenode(basenode, n2, ss, "]");
-    }
-    else if (!strcmp(s->text, "'")) {
-      Node *n = newNode(basenode, "", NODE_LEAF);
-      s = ssgets(ss);
-      n->content = (void*)malloc((strlen(s->text) + 1) * sizeof(char));
-      sprintf((char*)n->content, "%s", s->text);
-      expect(ss, "'");
-      addnode(subnode, n);
-    }
-    else if (!strcmp(s->text, "\"")) {
-      Node *n = newNode(basenode, "", NODE_LEAF);
-      s = ssgets(ss);
-      n->content = (void*)malloc((strlen(s->text) + 1) * sizeof(char));
-      sprintf((char*)n->content, "%s", s->text);
-      expect(ss, "\"");
-      addnode(subnode, n);
-    }
-    else if (!strcmp(s->text, "<")) {
-      Node *n;
-      s = ssgets(ss);
-      n = newNode(basenode, s->text, NODE_UNKNOWN);
-      expect(ss, ">");
-      addnode(subnode, n);
-    }
-    else if (!strcmp(s->text, "|")) {
-      subnode = newNode(basenode, "", NODE_LIST);
-      addnode(node, subnode);
-    }
-    else if (!strcmp(s->text, ";")) {
-      if (!strcmp(stop, "\n")) {
-	char error[256];
-	sprintf(error, "Expected '"FONT_BOLD"%s"FONT_RESET"'!", stop);
-	printsymbolmessage(ERROR, ss->filename, trace, error, s);
-	exit(1);
-      }
-    }
-    else if (!strcmp(s->text, "")) {
-      return 0;
-    }
-  } while (strcmp(s->text, stop));
-  return 1;
-}
-
-void link(Node *basenode) {
-  int count = 0;
-  for (int i = 0; i < basenode->num; i++) {
-    Node *n = ((Node**)basenode->content)[i];
-    ((Node**)basenode->content)[i] = NULL;
-    if (n != NULL && getnode(basenode, n->name) == NULL) {
-      ((Node**)basenode->content)[count++] = n;
-    }
-  }
-  if (count == 0) {
-    printnodemessage(WARNING, current_filename, basenode->name, trace, "Node is empty!");
-  } else if (count > 1) {
-    printnodemessage(WARNING, current_filename, basenode->name, trace, "Multiple roots!");
-    for (int i = 0; i < basenode->num; i++) {
-      Node *n = ((Node**)basenode->content)[i];
-      if (n != NULL) {
-	fprintf(stderr, "    :<%s>\n", n->name);
-      }
-    }
-  }
-  basenode->num = count;
-}
-
-Node *parsefile(char *filename) {
-  // TODO: Have parser saved to file for quicker recuperation
-  Parser       *parser   = newParser("parsing/prs/bnf.prs");
-  SymbolStream *ss       = ssopen(filename, parser);
-  Node         *basenode;
-  char          nodename[256];
-
-  current_filename = filename;
-  sprintf(nodename, "root:%s", filename);
-  basenode = newNode(NULL, nodename, NODE_ROOT);
-  
-  while (parseinclude(basenode, ss));
-  while (parseline(basenode, ss));
-
-  ssclose(ss);
-  deleteParser(&parser);
-
-  link(basenode);
-  return basenode;
-}
-
-int parseinclude(Node *basenode, SymbolStream *ss) {
-  Symbol *s = ssgets(ss);
-  
-  // Comment
-  if (!strcmp(s->text, ";")) {
-    while (strcmp(s->text, "\n")) {
-      s = ssgets(ss);
-      if (strcmp(s->text, "")) return 0;
-    }
-    return 1;
-  }
-  // Emptyline
-  if (!strcmp(s->text, "\n")) {
-    return 1;
-  }
-  // Include
-  if (!strcmp(s->text, ";;")) {
-    expect(ss, "include");
-    expect(ss, "(");
-    s = ssgets(ss);
-    // START INCLUSION
-    if (include_depth >= MAX_INCLUDE_DEPTH) {
-      printfilemessage(ERROR, current_filename, trace, "Reached maximum inclusion depth!");
+BNFNode *newBNFNode(BNFNode *basenode, char *name, BNFType type) {
+  BNFNode *node = NULL;
+  if (!basenode) {
+    if (type != NODE_ROOT) {
+      printmessage(ERROR, "A non-root node was created with no parent!");
       exit(1);
-    } else if (include_depth == 0) {
-      trace = malloc(MAX_INCLUDE_DEPTH * sizeof(char*));
-      memset(trace, 0, MAX_INCLUDE_DEPTH * sizeof(char*));
     }
-    trace[include_depth++] = current_filename;
-    addnode(basenode, parsefile(s->text));
-    trace[include_depth--] = NULL;
-    current_filename = trace[include_depth];
-    if (include_depth == 0) {
-      free(trace);
-      trace = NULL;
+  } else {
+    node = getnode(basenode, basenode, name);
+  }
+  if (!node) {
+    node     = malloc(sizeof(BNFNode));
+    char  *n = malloc((strlen(name) + 1) * sizeof(char));
+    Array *a = NULL;
+    if (type != NODE_LEAF && type != NODE_LEAF_CONCAT) a = newArray(sizeof(BNFNode));
+    if (node && n && (a || type == NODE_LEAF || type == NODE_LEAF_CONCAT)) {
+      sprintf(n, "%s", name);
+      node->name    = n;
+      node->type    = type;
+      node->content = a;
+      node->rec     = 0;
     } else {
-      trace[include_depth] = 0;
+      if (node) free(node);
+      if (n)    free(n);
+      deleteArray(&a);
     }
-    // END INCLUSION
-    expect(ss, ")");
-    expect(ss, "\n");
-    return 1;
-  } else ssungets(ss, s);
-  return 0;
+  }
+  return node;
 }
 
-int parseline(Node *basenode, SymbolStream *ss) {
-  Symbol *s = ssgets(ss);
-  Node *n;
-
-  // Comment
-  if (!strcmp(s->text, ";")) {
-    while (strcmp(s->text, "\n")) {
-      s = ssgets(ss);
-      if (strcmp(s->text, "")) return 0;
+void deleteBNFNode(BNFNode **node) {
+  if (*node) {
+    printf("%p\n", (*node)->name);
+    free((*node)->name);
+    if ((*node)->type == NODE_LEAF || (*node)->type == NODE_LEAF_CONCAT) {
+      if ((*node)->content) free((*node)->content);
+    } else {
+      deleteArray((Array**)&(*node)->content);
     }
-    return 1;
+    printf("ok1\n");
+    free(*node);
+    printf("ok2\n");
+    *node = NULL;
   }
-  // Emptyline
-  if (!strcmp(s->text, "\n")) {
-    return 1;
-  }
-  // EOF
-  if (!strcmp(s->text, "")) {
-    return 0;
-  }
-  if (strcmp(s->text, "<")) {
-    printsymbolmessage(ERROR, ss->filename, trace, "Expected '"FONT_BOLD"<"FONT_RESET"'!", s);
-    exit(1);
-  }
-  s = ssgets(ss);
-  n = newNode(basenode, s->text, NODE_ONE_OF);
-  expect(ss, ">");
-  expect(ss, "::=");
-  addnode(basenode, n);
-  return parsenode(basenode, n, ss, "\n");
 }
 
-int expect(SymbolStream *ss, char *str) {
+int expect(SymbolStream *ss, Array *trace, char *str) {
   char error[256];
   Symbol *s;
 
   if (!strcmp("\n", str)) {
     int junk = 0;
-    char prev[256];
-    sprintf(prev, "%s", ss->symbol.text);
+    Symbol *t = newSymbol(&ss->symbol);
     s = ssgets(ss);
-    while (strcmp(s->text, str) && strcmp(s->text, "")) {
+    while (strcmp(s->text, str) && !s->eof) {
       s = ssgets(ss);
       junk = 1;
     }
     if (junk) {
-      sprintf(error, "Junk after '"FONT_BOLD"%s"FONT_RESET"'", prev);
-      printsymbolmessage(ERROR, ss->filename, trace, error, s);
+      sprintf(error, "Junk after '"FONT_BOLD"%s"FONT_RESET"'", t->text);
+      printsymbolmessage(ERROR, trace, t, error);
     }
+    deleteSymbol(&t);
   }
   else {
     s = ssgets(ss);
     if (strcmp(s->text, str)) {
-      sprintf(error, "Expected '"FONT_BOLD"%s"FONT_RESET"'!", str);
-      printsymbolmessage(ERROR, ss->filename, trace, error, s);
+      sprintf(error, "Expected '"FONT_BOLD"%s"FONT_RESET"', got '"FONT_BOLD"%s"FONT_RESET"' instead!", str, s->text);
+      printsymbolmessage(ERROR, trace, s, error);
       exit(1);
     }
-    //return 0;
   }
 
   return 1;
+}
+
+void parsebnfincludes(Parser *parser, SymbolStream *ss, BNFNode *basenode, Array *trace) {
+  Symbol *s = NULL;
+  if (trace->size > INCLUDE_MAX_DEPTH) {
+    printfilemessage(ERROR, trace, "Maximum include depth reached, check for recursive includes");
+    exit(1);
+  }
+  while ((s = ssgets(ss))) {
+    if (strcmp(s->text, ";;") || s->eof) break;
+    expect(ss, trace, "include");
+    expect(ss, trace, "(");
+    Symbol *n = newSymbol(&ss->symbol);
+    String *a = newString("");
+    while ((s = ssgets(ss))) {
+      if (!strcmp(s->text, "\n")) {
+        printsymbolmessage(ERROR, trace, n, "Expected closing parenthesis, reached newline instead");
+        break;
+      }
+      if (s->eof) {
+        printsymbolmessage(ERROR, trace, n, "Expected closing parenthesis, reached end of file instead");
+        break;
+      }
+      if (!strcmp(s->text, ")")) {
+        break;
+      }
+      concat(a, newString(s->text));
+    }
+    if (strcmp(a->content, "")) {
+      parsebnfnode(a->content, parser, basenode, trace);
+    } else {
+      printsymbolmessage(ERROR, trace, n, "Expected file name inbetween parentheses");
+    }
+    deleteString(&a);
+    deleteSymbol(&n);
+    expect(ss, trace, "\n");
+  }
+  ssungets(ss, s);
+}
+
+int isoperator(Symbol *s) {
+  if (!strcmp(s->text, "{")) return 1;
+  if (!strcmp(s->text, "[")) return 1;
+  if (!strcmp(s->text, "(")) return 1;
+  if (!strcmp(s->text, "|")) return 1;
+  if (!strcmp(s->text, "}")) return 1;
+  if (!strcmp(s->text, "]")) return 1;
+  if (!strcmp(s->text, ")")) return 1;
+  return 0;
+}
+
+BNFNode *parsebnfnodename(SymbolStream *ss, BNFNode *basenode, Array *trace)
+{
+  Symbol *s = &ss->symbol;
+  Symbol *t = newSymbol(s);
+  s = ssgets(ss);
+  if (s->eof) {
+    printsymbolmessage(ERROR, trace, t, "Expected node name, reached end of file!");
+  }
+  if (!strcmp(s->text, "\n")) {
+    printsymbolmessage(ERROR, trace, t, "Expected node name, reached new line!");
+  }
+  if (s->string || s->comment || isoperator(s)) {
+    printsymbolmessage(ERROR, trace, s, "Bad format for node name!");
+  }
+  if (!strcmp(s->text, basenode->name)) {
+    printsymbolmessage(ERROR, trace, s, "Cannot use that name! (Reserved for root node)");
+  }
+  deleteSymbol(&t);
+  return newBNFNode(basenode, s->text, NODE_ONE_OF);
+}
+
+int parsebnfstatement(SymbolStream *ss, BNFNode *basenode, BNFNode *parent, Array *trace, char *stop)
+{
+  int oplast, ret = 1;
+  Symbol *s;
+  BNFNode *subnode = newBNFNode(basenode, "", NODE_LIST);
+  push(parent->content, subnode);
+
+  do {
+    oplast = 0;
+    s = ssgets(ss);
+    if (s->eof) return 0;
+    if (s->comment) continue;
+    if (!strcmp(s->text, "(")) {
+      BNFNode *node = newBNFNode(basenode, "", NODE_ONE_OF);
+      push(subnode->content, node);
+      ret = parsebnfstatement(ss, basenode, node, trace, ")");
+    }
+    if (!strcmp(s->text, "[")) {
+      BNFNode *node = newBNFNode(basenode, "", NODE_ONE_OR_NONE);
+      push(subnode->content, node);
+      ret = parsebnfstatement(ss, basenode, node, trace, "]");
+    }
+    if (!strcmp(s->text, "{")) {
+      BNFNode *node = newBNFNode(basenode, "", NODE_MANY_OR_NONE);
+      push(subnode->content, node);
+      ret = parsebnfstatement(ss, basenode, node, trace, "}");
+    }
+    if (!strcmp(s->text, "|")) {
+      subnode = newBNFNode(basenode, "", NODE_LIST);
+      push(parent->content, subnode);
+      oplast = 1;
+    }
+    if (!strcmp(s->text, "<")) {
+      push(subnode->content, parsebnfnodename(ss, basenode, trace));
+      expect(ss, trace, ">");
+    }
+    if (s->string) {
+      BNFNode *node = NULL;
+      char *content = malloc((strlen(s->text) + 1) * sizeof(char));
+      sprintf(content, "%s", s->text);
+      if      (!strcmp(s->open, "\"")) node = newBNFNode(basenode, "", NODE_LEAF);
+      else if (!strcmp(s->open, "'"))  node = newBNFNode(basenode, "", NODE_LEAF_CONCAT);
+      node->content = content;
+      push(subnode->content, node);
+    }
+  } while(ret && (strcmp(s->text, stop) || (stop[0] == '\n' && oplast)));
+  return ret;
+}
+
+void parsebnfbody(SymbolStream *ss, BNFNode *basenode, Array *trace)
+{
+  Symbol *s;
+  while ((s = ssgets(ss))) {
+    if (s->eof) break;
+    if (!strcmp(s->text, "\n")) continue;
+    if (s->comment)             continue;
+    if (strcmp(s->text, "<")) {
+      char error[256];
+      sprintf(error, "Expected '"FONT_BOLD"<"FONT_RESET"', got '"FONT_BOLD"%s"FONT_RESET"' instead!", s->text);
+      printsymbolmessage(ERROR, trace, s, error);
+      break;
+    } else {
+      BNFNode *node = parsebnfnodename(ss, basenode, trace);
+      expect(ss, trace, ">");
+      expect(ss, trace, "::=");
+      push(basenode->content, node);
+      if (!parsebnfstatement(ss, basenode, node, trace, "\n")) break;
+    }
+  }
+}
+
+BNFNode *parsebnfnode(char *filename, Parser *parser, BNFNode *basenode, Array *trace)
+{
+  SymbolStream *ss = ssopen(filename, parser);
+  push(trace, &filename);
+
+  if (!ss) {
+    printfilemessage(ERROR, trace, "Could not open file!");
+    exit(1);
+  }
+
+  parsebnfincludes(parser, ss, basenode, trace);
+  parsebnfbody(ss, basenode, trace);
+
+  pop(trace);
+  ssclose(ss);
+  return basenode;
+}
+
+void linkbnf(BNFNode *basenode, Array* trace) {
+  Array *a = basenode->content;
+  BNFNode *n;
+  for (int i = 0; i < a->size;) {
+    n = rem(a, 0);
+    if (n != NULL && getnode(basenode, basenode, n->name) == NULL) {
+      push(a, n);
+      i++;
+    }
+  }
+  if (a->size == 0) {
+    printnodemessage(WARNING, trace, basenode->name, "Node is empty!");
+  } else if (a->size > 1) {
+    printnodemessage(WARNING, trace, basenode->name, "Multiple roots!");
+    for (int i = 0; i < a->size; i++) {
+      BNFNode *root = at(a, i);
+      fprintf(stderr, "    :<%s>\n", root->name);
+    }
+  }
+}
+
+BNFNode *parsebnf(char *filename) 
+{
+  // TODO: Have parser saved to file for quicker recuperation
+  Parser  *parser   = newParser("parsing/prs/bnf.prs");
+  BNFNode *basenode;
+  Array   *trace    = newArray(sizeof(char*));
+  char     nodename[256];
+
+  sprintf(nodename, "root:%s", filename);
+  basenode = newBNFNode(NULL, nodename, NODE_ROOT);
+  parsebnfnode(filename, parser, basenode, trace);
+  push(trace, &filename);
+  linkbnf(basenode, trace);
+  
+  deleteParser(&parser);
+  deleteArray(&trace);
+  return basenode;
+}
+
+void delbnftree(BNFNode *basenode, BNFNode *node)
+{
+  if (node == NULL) return;
+  if (node == basenode) {
+    basenode->rec++;
+  } else if (node->rec < basenode-> rec) {
+    node->rec = basenode->rec;
+  } else {
+    return;
+  }
+  if (node->type != NODE_LEAF && node->type != NODE_LEAF_CONCAT) {
+    Array *a = node->content;
+    for (int i = 0; i < a->size; i++) {
+      delbnftree(basenode, at(a, i));
+    }
+  }
+  deleteBNFNode(&node);
+}
+
+void deleteBNFTree(BNFNode **basenode)
+{
+  if (*basenode) {
+    delbnftree(*basenode, *basenode);
+    *basenode = NULL;
+  }
 }

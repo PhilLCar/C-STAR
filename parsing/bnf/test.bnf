@@ -1,1 +1,1 @@
-<test> ::= "a"
+;; include (parsing/bnf/integers.bnf)

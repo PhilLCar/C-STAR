@@ -4,38 +4,31 @@
 #include <string.h>
 
 #include <symbol.h>
-#include <error.h>
 #include <terminal.h>
+#include <error.h>
+#include <array.h>
+#include <strings.h>
 
-#define MAX_INCLUDE_DEPTH 16
+#define INCLUDE_MAX_DEPTH   128
 
-typedef enum nodetype {
+typedef enum bnftype {
   NODE_ROOT = 0,
   NODE_LEAF,
+  NODE_LEAF_CONCAT,
   NODE_LIST,
   NODE_ONE_OF,
   NODE_ONE_OR_NONE,
-  NODE_MANY_OR_NONE,
-  NODE_UNKNOWN
-} type;
+  NODE_MANY_OR_NONE
+} BNFType;
 
-typedef struct node {
-  char *name;
-  type  type;
-  void *content;
-  int   num;
-  int   cap;
-} Node;
+typedef struct bnfnode {
+  char    *name;
+  BNFType  type;
+  void    *content;
+  int      rec;
+} BNFNode;
 
-Node *newNode(Node*, char*, type);
-void  deleteNode(Node**);
-Node *getnode(Node*, char*);
-void  addnode(Node*, Node*);
-int   parsenode(Node*, Node*, SymbolStream*, char*);
-void  link(Node*);
-Node *parsefile(char*);
-int   parseinclude(Node*, SymbolStream*);
-int   parseline(Node*, SymbolStream*);
-int   expect(SymbolStream*, char*);
+BNFNode *parsebnf(char*);
+void     deleteBNFTree(BNFNode**);
 
 #endif

@@ -1,4 +1,4 @@
-#include <bnf_parser2.h>
+#include <bnf_parser.h>
 #include <terminal.h>
 
 #define BRANCH    "│"
@@ -69,6 +69,6 @@ void printnode(BNFNode *n, char *s, int lvl, int last, int exp) {
 int main() {
   BNFNode *n = parsebnf("parsing/bnf/test.bnf");
   printnode(n, "", 0, 0, 0);
-  deleteBNFTree(n, n);
+  deleteBNFTree(&n);
   return 0;
 }
