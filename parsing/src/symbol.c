@@ -80,6 +80,20 @@ int nextsymbol(TrackedFile *tf, Parser *parser, Symbol *symbol)
       }
       if (ws && !symbol->comment) {
         c = tfgetc(tf);
+        switch (c) {
+          case 'n':
+            c = '\n';
+            break;
+          case 't':
+            c = '\t';
+            break;
+          case 'r':
+            c = '\r';
+            break;
+          case '0':
+            c = '\0';
+            break;
+        }
         if (!extend(&buf, &buf_size, &buf_cap, c)) goto next_fail;
         continue;
       }

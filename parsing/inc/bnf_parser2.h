@@ -22,11 +22,13 @@ typedef enum bnftype {
 } BNFType;
 
 typedef struct bnfnode {
-  char  *name;
-  BNFType   type;
-  void  *content;
+  char    *name;
+  BNFType  type;
+  void    *content;
+  int      rec;
 } BNFNode;
 
 BNFNode *parsebnf(char*);
+void     deleteBNFTree(BNFNode*, BNFNode*);
 
 #endif
