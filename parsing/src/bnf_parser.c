@@ -142,13 +142,12 @@ char *parsebnfname(SymbolStream *ss, BNFNode *basenode, Array *trace)
 
 int parsebnfstatement(SymbolStream *ss, BNFNode *basenode, BNFNode *parent, Array *trace, char *stop)
 {
-  int oplast, ret = 1;
+  int oplast = 0, ret = 1;
   Symbol *s;
   BNFNode *subnode = newBNFNode(basenode, "", NODE_LIST);
   pushnewbnfnode(parent->content, &subnode);
 
   do {
-    oplast = 0;
     s = ssgets(ss);
     if (s->eof) {
       ret = 0;
@@ -160,18 +159,21 @@ int parsebnfstatement(SymbolStream *ss, BNFNode *basenode, BNFNode *parent, Arra
       checkbnfnode(node);
       pushnewbnfnode(subnode->content, &node);
       ret = parsebnfstatement(ss, basenode, node, trace, ")");
+      oplast = 0;
     }
     if (!strcmp(s->text, "[")) {
       BNFNode *node = newBNFNode(basenode, "", NODE_ONE_OR_NONE);
       checkbnfnode(node);
       pushnewbnfnode(subnode->content, &node);
       ret = parsebnfstatement(ss, basenode, node, trace, "]");
+      oplast = 0;
     }
     if (!strcmp(s->text, "{")) {
       BNFNode *node = newBNFNode(basenode, "", NODE_MANY_OR_NONE);
       checkbnfnode(node);
       pushnewbnfnode(subnode->content, &node);
       ret = parsebnfstatement(ss, basenode, node, trace, "}");
+      oplast = 0;
     }
     if (!strcmp(s->text, "|")) {
       subnode = newBNFNode(basenode, "", NODE_LIST);
@@ -191,6 +193,7 @@ int parsebnfstatement(SymbolStream *ss, BNFNode *basenode, BNFNode *parent, Arra
       if (new) pushnewbnfnode(subnode->content, &node);
       else     push(subnode->content, node);
       expect(ss, trace, ">");
+      oplast = 0;
     }
     if (s->string) {
       BNFNode *node = NULL;
@@ -201,6 +204,7 @@ int parsebnfstatement(SymbolStream *ss, BNFNode *basenode, BNFNode *parent, Arra
       checkbnfnode(node);
       node->content = content;
       pushnewbnfnode(subnode->content, &node);
+      oplast = 0;
     }
   } while(ret && (strcmp(s->text, stop) || (stop[0] == '\n' && oplast)));
 
@@ -209,7 +213,6 @@ int parsebnfstatement(SymbolStream *ss, BNFNode *basenode, BNFNode *parent, Arra
 
 void parsebnfincludes(Parser *parser, SymbolStream *ss, BNFNode *basenode, Array *trace, Array *includes) {
   Symbol *s = NULL;
-  char   *filename = *(char**)at(trace, trace->size - 1);
   if (trace->size > INCLUDE_MAX_DEPTH) {
     printfilemessage(ERROR, trace, "Maximum include depth reached, check for recursive includes");
     exit(1);
@@ -237,13 +240,13 @@ void parsebnfincludes(Parser *parser, SymbolStream *ss, BNFNode *basenode, Array
     if (strcmp(a->content, "")) {
       int parse = 1;
       for (int i = 0; i < includes->size; i++) {
-        if (!strcmp(filename, ((String*)at(includes, i))->content)) {
+        if (!strcmp(a->content, ((String*)at(includes, i))->content)) {
           parse = 0;
           break;
         }
       }
       if (parse) parsebnfnode(a->content, parser, basenode, trace, includes);
-      String *str = newString(filename);
+      String *str = newString(a->content);
       push(includes, str);
       free(str);
     } else {
@@ -332,8 +335,11 @@ BNFNode *parsebnf(char *filename)
   BNFNode *basenode;
   Array   *trace    = newArray(sizeof(char*));
   Array   *includes = newArray(sizeof(String));
+  String  *fn       = newString(filename);
   char     nodename[256];
 
+  push(includes, fn);
+  free(fn);
   sprintf(nodename, "root:%s", filename);
   basenode = newBNFNode(NULL, nodename, NODE_ROOT);
   parsebnfnode(filename, parser, basenode, trace, includes);
