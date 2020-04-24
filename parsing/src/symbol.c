@@ -1,5 +1,13 @@
 #include <symbol.h>
 
+enum symboltype {
+  NONE = 0,
+  DELIM,
+  LINECOM,
+  MULTICOM,
+  BREAK
+};
+
 // Compares the string until one ends (will return true in that case)
 int strcmps(char *s1, char *s2)
 {
@@ -35,6 +43,7 @@ int nextsymbol(TrackedFile *tf, Parser *parser, Symbol *symbol)
   int   buf_size = 0, buf_cap = 2;
   char *buf = malloc(buf_cap * sizeof(char));
   int   tmp;
+  int   type;
   int   new = 0;
   int   pos = 0;
 
@@ -49,6 +58,7 @@ int nextsymbol(TrackedFile *tf, Parser *parser, Symbol *symbol)
   if (buf != NULL) {
     memset(buf, 0, buf_cap * sizeof(char));
     while ((c = tfgetc(tf)) != EOF) {
+      type = NONE;
       symbol->eof = 0;
       int cmp, ws = 0;
       //////////////////////////////////////// NEW-LINE ////////////////////////////////////////
@@ -109,18 +119,49 @@ int nextsymbol(TrackedFile *tf, Parser *parser, Symbol *symbol)
           if (cmp > ws) {
             ws  = cmp;
             tmp = i;
+            type = DELIM;
           }
         }
       }
-      if (ws) {
+      //////////////////////////////////////// LINECOM ////////////////////////////////////////
+      for (int i = 0; parser->linecom[i]; i++) {
+        if ((cmp = strcmps(tf->buffer, parser->linecom[i]))) {
+          if (cmp > ws) {
+            ws  = cmp;
+            tmp = i;
+            type = LINECOM;
+          }
+        }
+      }
+      //////////////////////////////////////// MULTICOM ////////////////////////////////////////
+      for (int i = 0; parser->multicom[i]; i += 2) {
+        if ((cmp = strcmps(tf->buffer, parser->multicom[i]))) {
+          if (cmp > ws) {
+            ws  = cmp;
+            tmp = i;
+            type = MULTICOM;
+          }
+        }
+      }
+      //////////////////////////////////////// BREAKSYMBOLS ////////////////////////////////////////
+      for (int i = 0; parser->breaksymbols[i]; i++) {
+        if ((cmp = strcmps(tf->buffer, parser->breaksymbols[i]))) {
+          if (cmp > ws) {
+            ws = cmp;
+            type = BREAK;
+          }
+        }
+      }
+      // delim
+      if (ws && type == DELIM) {
         if (buf_size) {
           tfungetc(tf, c);
           break;
         } else {
           symbol->string = 1;
           symbol->line   = tf->line;
-          symbol->open   = malloc(parser->lookahead + 1);
-          symbol->close  = malloc(parser->lookahead + 1);
+          symbol->open   = malloc((parser->lookahead + 1) * sizeof(char));
+          symbol->close  = malloc((parser->lookahead + 1) * sizeof(char));
           if (symbol->open != NULL && symbol->close != NULL) {
             memcpy(symbol->open,  parser->delimiters[tmp],     ws                                  + 1);
             memcpy(symbol->close, parser->delimiters[tmp + 1], strlen(parser->delimiters[tmp + 1]) + 1);
@@ -134,22 +175,14 @@ int nextsymbol(TrackedFile *tf, Parser *parser, Symbol *symbol)
           continue;
         }
       }
-      //////////////////////////////////////// LINECOM ////////////////////////////////////////
-      for (int i = 0; parser->linecom[i]; i++) {
-        if ((cmp = strcmps(tf->buffer, parser->linecom[i]))) {
-          if (cmp > ws) {
-            ws  = cmp;
-            tmp = i;
-          }
-        }
-      }
-      if (ws) {
+      // linecom
+      if (ws && type == LINECOM) {
         if (buf_size) {
           tfungetc(tf, c);
           break;
         } else {
           symbol->comment = 1;
-          symbol->open    = malloc(parser->lookahead + 1);
+          symbol->open    = malloc((parser->lookahead + 1) * sizeof(char));
           if (symbol->open != NULL) {
             memcpy(symbol->open,  parser->linecom[tmp], ws + 1);
           } else {
@@ -162,24 +195,16 @@ int nextsymbol(TrackedFile *tf, Parser *parser, Symbol *symbol)
           continue;
         }
       }
-      //////////////////////////////////////// MULTICOM ////////////////////////////////////////
-      for (int i = 0; parser->multicom[i]; i += 2) {
-        if ((cmp = strcmps(tf->buffer, parser->multicom[i]))) {
-          if (cmp > ws) {
-            ws  = cmp;
-            tmp = i;
-          }
-        }
-      }
-      if (ws) {
+      // multicom
+      if (ws && type == MULTICOM) {
         if (buf_size) {
           tfungetc(tf, c);
           break;
         } else {
           symbol->comment = 1;
           symbol->line   = tf->line;
-          symbol->open    = malloc(parser->lookahead + 1);
-          symbol->close   = malloc(parser->lookahead + 1);
+          symbol->open    = malloc((parser->lookahead + 1) * sizeof(char));
+          symbol->close   = malloc((parser->lookahead + 1) * sizeof(char));
           if (symbol->open != NULL && symbol->close != NULL) {
             memcpy(symbol->open,  parser->multicom[tmp],     ws                                + 1);
             memcpy(symbol->close, parser->multicom[tmp + 1], strlen(parser->multicom[tmp + 1]) + 1);
@@ -193,13 +218,8 @@ int nextsymbol(TrackedFile *tf, Parser *parser, Symbol *symbol)
           continue;
         }
       }
-      //////////////////////////////////////// BREAKSYMBOLS ////////////////////////////////////////
-      for (int i = 0; parser->breaksymbols[i]; i++) {
-        if ((cmp = strcmps(tf->buffer, parser->breaksymbols[i]))) {
-          if (cmp > ws) ws = cmp;
-        }
-      }
-      if (ws) {
+      // break
+      if (ws && type == BREAK) {
         if (buf_size) {
           tfungetc(tf, c);
         } else {
@@ -240,7 +260,6 @@ Symbol *sparse(char *filename, Parser *parser)
     if (symbols != NULL) {
       memset(symbols, 0, symbols_cap * sizeof(Symbol));
       while (nextsymbol(tf, parser, &symbols[symbols_size])) {
-        printf("%s\n", symbols[symbols_size].text);
         if (symbols[symbols_size].eof) {
           // END OF FILE
           break;
@@ -266,7 +285,7 @@ SymbolStream *ssopen(char *filename, Parser *parser)
   TrackedFile  *tf    = tfopen(filename, parser->lookahead);
   Array        *stack = newArray(sizeof(Symbol));
 
-  if (ss != NULL && parser != NULL && stack != NULL) {
+  if (parser && ss && tf && stack) {
     ss->filename = filename;
     ss->tfptr    = tf;
     ss->parser   = parser;
@@ -278,7 +297,9 @@ SymbolStream *ssopen(char *filename, Parser *parser)
   }
   else
   {
-    ssclose(ss);
+    if (ss)    free(ss);
+    if (tf)    tfclose(tf);
+    if (stack) deleteArray(&stack);
     ss = NULL;
   }
   return ss;
@@ -296,21 +317,48 @@ void ssclose(SymbolStream *ss)
 
 Symbol *ssgets(SymbolStream *ss)
 {
-  Symbol s = ss->symbol;
+  Symbol *s = &ss->symbol;
   if (ss->stack->size) {
-    memcpy(&ss->symbol, pop(ss->stack), sizeof(Symbol));
+    Symbol *t = pop(ss->stack);
+    if (t->text != s->text) {
+      freesymbol(s);
+      memcpy(s, t, sizeof(Symbol));
+    }
   } else {
-    if (!nextsymbol(ss->tfptr, ss->parser, &ss->symbol)) {
+    freesymbol(s);
+    if (!nextsymbol(ss->tfptr, ss->parser, s)) {
       return NULL;
     }
   }
-  freesymbol(&s);
-  return &ss->symbol;
+  return s;
 }
 
 void ssungets(SymbolStream *ss, Symbol *s)
 {
+
   push(ss->stack, s);
+}
+
+Symbol *newSymbol(Symbol *s)
+{
+  Symbol *n = malloc(sizeof(Symbol));
+  if (n) {
+    memcpy(n, s, sizeof(Symbol));
+    n->text                = malloc((strlen(s->text)  + 1) * sizeof(char));
+    if (s->open)  n->open  = malloc((strlen(s->open)  + 1) * sizeof(char));
+    else          n->open  = NULL;
+    if (n->close) n->close = malloc((strlen(s->close) + 1) * sizeof(char));
+    else          n->close = NULL;
+
+    if (n->text) {
+                    memcpy(n->text,  s->text,  strlen(s->text)  + 1);
+      if (n->open)  memcpy(n->open,  s->open,  strlen(s->open)  + 1);
+      if (n->close) memcpy(n->close, s->close, strlen(s->close) + 1);
+    } else {
+      deleteSymbol(&n);
+    }
+  }
+  return n;
 }
 
 void deleteSymbol(Symbol **s)

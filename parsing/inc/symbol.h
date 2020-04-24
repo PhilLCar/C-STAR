@@ -29,6 +29,7 @@ SymbolStream *ssopen(char*, Parser*);
 void          ssclose(SymbolStream*);
 Symbol       *ssgets(SymbolStream*);
 void          ssungets(SymbolStream*, Symbol*);
+Symbol       *newSymbol(Symbol*);
 void          deleteSymbol(Symbol**);
 void          freesymbol(Symbol*);
 

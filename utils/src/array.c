@@ -69,7 +69,7 @@ void *pop(Array *array)
 
 void *at(Array* array, int index) {
   if (index >= 0 && index < array->size) {
-    return array->content + (index * array->element_size);
+    return (char*)array->content + (index * array->element_size);
   }
   return NULL;
 }

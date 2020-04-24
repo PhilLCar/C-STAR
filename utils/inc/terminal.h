@@ -1,8 +1,6 @@
 #ifndef TERMINAL_UTILS
 #define TERMINAL_UTILS
 
-// TODO: change to proper folder
-
 #define TEXT_RED     "\x1b[31m"
 #define TEXT_GREEN   "\x1b[32m"
 #define TEXT_YELLOW  "\x1b[33m"

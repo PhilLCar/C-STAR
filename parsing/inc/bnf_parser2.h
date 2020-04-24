@@ -7,23 +7,26 @@
 #include <terminal.h>
 #include <error.h>
 #include <array.h>
+#include <strings.h>
 
 #define INCLUDE_MAX_DEPTH   128
-#define NODENAME_MAX_LENGTH 256
 
-typedef enum nodetype {
+typedef enum bnftype {
   NODE_ROOT = 0,
   NODE_LEAF,
+  NODE_LEAF_CONCAT,
   NODE_LIST,
   NODE_ONE_OF,
   NODE_ONE_OR_NONE,
   NODE_MANY_OR_NONE
-} Type;
+} BNFType;
 
-typedef struct node {
-  char *name;
-  Type  type;
-  void *content;
-} Node;
+typedef struct bnfnode {
+  char  *name;
+  BNFType   type;
+  void  *content;
+} BNFNode;
+
+BNFNode *parsebnf(char*);
 
 #endif

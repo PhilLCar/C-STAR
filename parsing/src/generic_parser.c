@@ -141,6 +141,9 @@ Parser *newParser(char *filename)
 
 		fclose(fptr);
 		return parser;
+	} else {
+		if (parser) free(parser);
+		if (fptr)   fclose(fptr);
 	}
 
 	return NULL;

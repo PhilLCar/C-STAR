@@ -29,7 +29,7 @@ TrackedFile *tfopen(char *filename, int size)
   int         *stack  = malloc(cap * sizeof(int));
   TrackedFile *tf     = malloc(sizeof(TrackedFile));
   
-  if (fptr != NULL && buffer != NULL && stack != NULL && tf != NULL && size) {
+  if (fptr && buffer && stack && tf && size) {
     memset(buffer, 0, (size + 1) * sizeof(char));
     
     tf->fptr     = fptr;
@@ -42,7 +42,10 @@ TrackedFile *tfopen(char *filename, int size)
     tf->stack_cap = cap;
     tf->stack_pos = 0;
   } else {
-    tfclose(tf);
+    if (fptr   != NULL) fclose(fptr);
+    if (buffer != NULL) free(buffer);
+    if (stack  != NULL) free(stack);
+    if (tf     != NULL) free(tf);
     tf = NULL;
   }
   return tf;
