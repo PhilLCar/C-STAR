@@ -1,4 +1,4 @@
 ;; include (parsing/bnf/integers.bnf)
 ;; include (parsing/bnf/decimals.bnf)
 
-<constant> ::= <integers> | <decimals>
+<constant> ::= <integer> | <decimal>

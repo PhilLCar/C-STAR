@@ -1,1 +1,1 @@
-;; include (parsing/bnf/integers.bnf)
+;; include (parsing/bnf/numbers.bnf)

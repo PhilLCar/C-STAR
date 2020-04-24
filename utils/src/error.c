@@ -62,8 +62,8 @@ char **getcontext(char *filename, Symbol *symbol) {
 
 void printtrace(Array *trace) {
   if (trace->size > 1) {
-    fprintf(stderr, "In file included from "FONT_BOLD"%s"FONT_RESET"\n", *(char**)at(trace, 0));
-    for (int i = 2; i < trace->size; i++) {
+    fprintf(stderr, "In file included from "FONT_BOLD"%s"FONT_RESET"\n", *(char**)at(trace, trace->size - 2));
+    for (int i = trace->size - 3; i >= 0; i--) {
       fprintf(stderr, "                 from "FONT_BOLD"%s"FONT_RESET"\n", *(char**)at(trace, i));
     }
   }
@@ -105,7 +105,7 @@ void printcoords(Symbol *symbol) {
 void printcontext(MessageType type, Symbol *symbol, char *filename) {
   char **context = getcontext(filename, symbol);
   if (!context) {
-    fprintf(stderr, "Memory allocation error!");
+    fprintf(stderr, "Context not available! (Probably reached end of file)\n");
     return;
   }
   
@@ -137,7 +137,7 @@ void printcontext(MessageType type, Symbol *symbol, char *filename) {
 void printnodemessage(MessageType type, Array *trace, char *nodename, char* message) {
   printtrace(trace);
   printmessagetype(type);
-  printfilename(*(char**)at(trace, 0));
+  printfilename(*(char**)at(trace, trace->size - 1));
   printnodename(nodename);
   fprintf(stderr, "%s\n", message);
 }
@@ -145,16 +145,16 @@ void printnodemessage(MessageType type, Array *trace, char *nodename, char* mess
 void printsymbolmessage(MessageType type, Array *trace,  Symbol *symbol, char *message) {
   printtrace(trace);
   printmessagetype(type);
-  printfilename(*(char**)at(trace, 0));
+  printfilename(*(char**)at(trace, trace->size - 1));
   printcoords(symbol);
   fprintf(stderr, "%s\n", message);
-  printcontext(type, symbol, *(char**)at(trace, 0));
+  printcontext(type, symbol, *(char**)at(trace, trace->size - 1));
 }
       
 void printfilemessage(MessageType type, Array *trace, char *message) {
   printtrace(trace);
   printmessagetype(type);
-  printfilename(*(char**)at(trace, 0));
+  printfilename(*(char**)at(trace, trace->size - 1));
   fprintf(stderr, "%s\n", message);
 }
 
