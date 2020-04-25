@@ -45,8 +45,17 @@ int resize(Array *array, int new_size)
 
 void push(Array *array, void *data)
 {
-  if (array->size == array->capacity) {
+  if (array->size >= array->capacity) {
+    void *prevloc = NULL;
+    if ((char*)data >= (char*)array->content && 
+        (char*)data <  (char*)array->content + (array->element_size * array->size))
+    { // array is copying itself, update pointer
+      prevloc = array->content;
+    }
     if (!resize(array, array->capacity * 2)) return;
+    if (prevloc) {
+      data = (char*)data + ((long)array->content - (long)prevloc);
+    }
   }
   memcpy((char*)array->content + (array->element_size * array->size++),
 	       (char*)data,

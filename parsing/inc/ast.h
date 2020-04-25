@@ -7,6 +7,8 @@
 #include <strings.h>
 #include <array.h>
 
+#define AST_LOCK -1
+
 typedef enum aststatus {
   STATUS_POTENTIAL = 0,
   STATUS_CONFIRMED,

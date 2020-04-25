@@ -25,7 +25,7 @@ BNFNode *getnode(BNFNode *basenode, BNFNode *node, char *name) {
   } else {
     return NULL;
   }
-  if (node->type != NODE_LEAF && node->type != NODE_LEAF_CONCAT) {
+  if (node->type != NODE_LEAF) {
     Array *a = node->content;
     for (int i = 0; i < a->size; i++) {
       BNFNode *ret = getnode(basenode, at(a, i), name);
@@ -48,8 +48,8 @@ BNFNode *newBNFNode(BNFNode *basenode, char *name, BNFType type) {
   node     = malloc(sizeof(BNFNode));
   char  *n = malloc((strlen(name) + 1) * sizeof(char));
   Array *a = NULL;
-  if (type != NODE_LEAF && type != NODE_LEAF_CONCAT) a = newArray(sizeof(BNFNode));
-  if (node && n && (a || type == NODE_LEAF || type == NODE_LEAF_CONCAT)) {
+  if (type != NODE_LEAF) a = newArray(sizeof(BNFNode));
+  if (node && n && (a || type == NODE_LEAF)) {
     sprintf(n, "%s", name);
     node->name    = n;
     node->type    = type;
@@ -65,7 +65,7 @@ BNFNode *newBNFNode(BNFNode *basenode, char *name, BNFType type) {
 
 void freebnfnode(BNFNode *node) {
   free(node->name);
-  if (node->type == NODE_LEAF || node->type == NODE_LEAF_CONCAT) {
+  if (node->type == NODE_LEAF) {
     if (node->content) free(node->content);
   } else {
     deleteArray((Array**)&node->content);
@@ -110,6 +110,7 @@ int isoperator(Symbol *s) {
   if (!strcmp(s->text, "}")) return 1;
   if (!strcmp(s->text, "]")) return 1;
   if (!strcmp(s->text, ")")) return 1;
+  if (!strcmp(s->text, ",")) return 1;
   return 0;
 }
 
@@ -142,9 +143,10 @@ char *parsebnfname(SymbolStream *ss, BNFNode *basenode, Array *trace)
 
 int parsebnfstatement(SymbolStream *ss, BNFNode *basenode, BNFNode *parent, Array *trace, char *stop)
 {
-  int oplast = 0, ret = 1;
+  int oplast = 0, ret = 1, concat = 0;
   Symbol *s;
   BNFNode *subnode = newBNFNode(basenode, "", NODE_LIST);
+  BNFNode *concatnode = NULL;
   pushnewbnfnode(parent->content, &subnode);
 
   do {
@@ -154,34 +156,60 @@ int parsebnfstatement(SymbolStream *ss, BNFNode *basenode, BNFNode *parent, Arra
       break;
     }
     if (s->comment) continue;
+    if (concat) {
+      Array *a = subnode->content;
+      concatnode = at(a, a->size - 1);
+      concat = 0;
+    } else {
+      concatnode = NULL;
+    }
     if (!strcmp(s->text, "(")) {
       BNFNode *node = newBNFNode(basenode, "", NODE_ONE_OF);
       checkbnfnode(node);
-      pushnewbnfnode(subnode->content, &node);
+      if (concatnode) pushnewbnfnode(concatnode->content, &node);
+      else            pushnewbnfnode(subnode->content,    &node);
       ret = parsebnfstatement(ss, basenode, node, trace, ")");
       oplast = 0;
     }
     else if (!strcmp(s->text, "[")) {
       BNFNode *node = newBNFNode(basenode, "", NODE_ONE_OR_NONE);
       checkbnfnode(node);
-      pushnewbnfnode(subnode->content, &node);
+      if (concatnode) pushnewbnfnode(concatnode->content, &node);
+      else            pushnewbnfnode(subnode->content,    &node);
       ret = parsebnfstatement(ss, basenode, node, trace, "]");
       oplast = 0;
     }
     else if (!strcmp(s->text, "{")) {
       BNFNode *node = newBNFNode(basenode, "", NODE_MANY_OR_NONE);
       checkbnfnode(node);
-      pushnewbnfnode(subnode->content, &node);
+      if (concatnode) pushnewbnfnode(concatnode->content, &node);
+      else            pushnewbnfnode(subnode->content,    &node);
       ret = parsebnfstatement(ss, basenode, node, trace, "}");
       oplast = 0;
     }
     else if (!strcmp(s->text, "|")) {
       if (!((Array*)subnode->content)->size) {
         printsymbolmessage(WARNING, trace, s, "Empty group ignored");
+      } else if (concatnode) {
+        printsymbolmessage(ERROR, trace, s, "Unexpected operator!");
       } else {
         subnode = newBNFNode(basenode, "", NODE_LIST);
         checkbnfnode(subnode);
         pushnewbnfnode(parent->content, &subnode);
+      }
+      oplast = 1;
+    }
+    else if (!strcmp(s->text, ",")) {
+      if (!((Array*)subnode->content)->size) {
+        printsymbolmessage(WARNING, trace, s, "Empty group ignored");
+      } else if (concatnode) {
+        printsymbolmessage(ERROR, trace, s, "Unexpected operator!");
+      } else {
+        BNFNode *node = newBNFNode(basenode, "", NODE_CONCAT);
+        checkbnfnode(node);
+        push(node->content, pop(subnode->content));
+        pushnewbnfnode(subnode->content, &node);
+        concat = 1;
       }
       oplast = 1;
     }
@@ -194,8 +222,13 @@ int parsebnfstatement(SymbolStream *ss, BNFNode *basenode, BNFNode *parent, Arra
         node = newBNFNode(basenode, name, NODE_ONE_OF);
       }
       checkbnfnode(node);
-      if (new) pushnewbnfnode(subnode->content, &node);
-      else     push(subnode->content, node);
+      if (concatnode) {
+        if (new) pushnewbnfnode(concatnode->content, &node);
+        else     push(concatnode->content,            node);
+      } else {
+        if (new) pushnewbnfnode(subnode->content, &node);
+        else     push(subnode->content,            node);
+      }
       expect(ss, trace, ">");
       oplast = 0;
     }
@@ -206,18 +239,18 @@ int parsebnfstatement(SymbolStream *ss, BNFNode *basenode, BNFNode *parent, Arra
         BNFNode *node = NULL;
         char *content = malloc((strlen(s->text) + 1) * sizeof(char));
         sprintf(content, "%s", s->text);
+        node = newBNFNode(basenode, "", NODE_LEAF);
         if (!strcmp(s->open, "\"")) {
-          node = newBNFNode(basenode, "", NODE_LEAF);
           if (strcmp(s->close, "\"")) printsymbolmessage(ERROR, trace, s, "Expected closing '"FONT_BOLD"\""FONT_RESET"'!");
         } else if (!strcmp(s->open, "'")) {
-          node = newBNFNode(basenode, "", NODE_LEAF_CONCAT);
           if (strcmp(s->close, "\'")) printsymbolmessage(ERROR, trace, s, "Expected closing '"FONT_BOLD"'"FONT_RESET"'!");
         }
         checkbnfnode(node);
         node->content = content;
-        pushnewbnfnode(subnode->content, &node);
+      if (concatnode) pushnewbnfnode(concatnode->content, &node);
+      else            pushnewbnfnode(subnode->content,    &node);
+        oplast = 0;
       }
-      oplast = 0;
     }
     else if (!strcmp(s->text, stop)) {
       continue;
@@ -398,7 +431,7 @@ void delbnftree(BNFNode *basenode, BNFNode *node, Array *unique)
   } else {
     return;
   }
-  if (node->type != NODE_LEAF && node->type != NODE_LEAF_CONCAT) {
+  if (node->type != NODE_LEAF) {
     Array *a = node->content;
     for (int i = 0; i < a->size; i++) {
       delbnftree(basenode, at(a, i), unique);

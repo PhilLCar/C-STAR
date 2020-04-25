@@ -32,11 +32,14 @@ void printnode(BNFNode *n, char *s, int base, int lvl, int last) {
   case NODE_LEAF:
     printf("\"%s\"\n", (char*)n->content);
     break;
-  case NODE_LEAF_CONCAT:
-    printf("\'%s\'\n", (char*)n->content);
-    break;
   case NODE_LIST:
     printf(TEXT_YELLOW"[:]\n"FONT_RESET);
+    for (int i = 0; i < ((Array*)n->content)->size; i++) {
+      printnode(at(n->content, i), t, base, lvl + 1, i == (((Array*)n->content)->size - 1));
+    }
+    break;
+  case NODE_CONCAT:
+    printf(TEXT_BLUE"[@]\n"FONT_RESET);
     for (int i = 0; i < ((Array*)n->content)->size; i++) {
       printnode(at(n->content, i), t, base, lvl + 1, i == (((Array*)n->content)->size - 1));
     }

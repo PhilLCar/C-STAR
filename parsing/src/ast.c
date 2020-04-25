@@ -27,99 +27,105 @@ ASTNode *astfrombnf(BNFNode *bnf)
 void newcharast(ASTNode *ast, BNFNode *bnf, char c)
 {
   ASTNode *subnode;
-  BNFNode *subbnf;
-  int n;
+  ASTNode *supernode;
+  int fail, success;
   char *content;
   switch (bnf->type) {
     case NODE_ROOT:
       return;
     case NODE_LEAF:
-    case NODE_LEAF_CONCAT:
-      content = bnf->content;
-      if (content[ast->pos]) {
-        if (content[ast->pos] == c) {
-          if (content[ast->pos + 1]) {
-            ast->status = STATUS_ONGOING;
+      if (c == AST_LOCK) {
+        if (ast->status == STATUS_POTENTIAL) ast->status = STATUS_CONFIRMED;
+        else ast->status = STATUS_FAILED;
+      } else {
+        content = bnf->content;
+        if (content[ast->pos]) {
+          if (content[ast->pos] == c) {
+            if (!content[ast->pos + 1]) {
+              ast->status = bnf->type == NODE_LEAF ? STATUS_POTENTIAL : STATUS_CONFIRMED;
+            }
           } else {
-            ast->status = bnf->type == NODE_LEAF ? STATUS_POTENTIAL : STATUS_CONFIRMED;
+            ast->status = STATUS_FAILED;
           }
-        } else {
-          ast->status = STATUS_FAILED;
         }
+        ast->pos++;
       }
-      ast->pos++;
-      return;
+      break;
     case NODE_ONE_OR_NONE:
     case NODE_MANY_OR_NONE:
       if (!ast->subnodes->size) {
         subnode = astfrombnf(bnf);
-        subnode->status = STATUS_NOSTATUS;
+        subnode->status = STATUS_ONGOING;
         pushastnode(ast, &subnode);
       } else {
         subnode = at(ast->subnodes, ast->subnodes->size - 1);
       }
-      if (subnode->status == STATUS_CONFIRMED) {
-        if (bnf->type == NODE_ONE_OR_NONE) {
-            ast->status = STATUS_CONFIRMED;
-            return;
-        } else {
-          subnode = astfrombnf(bnf);
-          subnode->status = STATUS_NOSTATUS;
-          pushastnode(ast, &subnode);
-        }
-      }
+      supernode = ast;
       ast = subnode;
     case NODE_LIST:
-      n = 0;
-      for (int i = 0; i < ast->subnodes->size; i++) {
-        subnode = at(ast->subnodes, i);
-        if (subnode->status == STATUS_ONGOING) {
-          newcharast(subnode, at(bnf->content, i), c);
-        } else if (subnode->status == STATUS_FAILED) {
-          ast->status = STATUS_FAILED;
-          return;
-        } else if (subnode->status == STATUS_CONFIRMED) {
-          n++;
-        }
-      }
-      if (n == ((Array*)bnf->content)->size) {
-        ast->status = STATUS_CONFIRMED;
-        return;
-      }
-      ast->status = STATUS_ONGOING;
-      subbnf = at(bnf->content, ast->subnodes->size);
-      subnode = astfrombnf(subbnf);
-      subnode->status = STATUS_ONGOING;
-      pushastnode(ast, &subnode);
-      newcharast(subnode, subbnf, c);
-      return;
-    case NODE_ONE_OF:
-      n = 0;
+      success = 0;
       for (int i = 0; i < ((Array*)bnf->content)->size; i++) {
         subnode = at(ast->subnodes, i);
         if (!subnode) {
-          ast->status = STATUS_ONGOING;
           subnode = astfrombnf(at(bnf->content, i));
           subnode->status = STATUS_ONGOING;
           pushastnode(ast, &subnode);
         }
-      }
-      for (int i = 0; i < ast->subnodes->size; i++) {
-        subnode = at(ast->subnodes, i);
-        if (subnode->status == STATUS_CONFIRMED) {
-          ast->status = STATUS_CONFIRMED;
-          break;
-        } else  if (subnode->status == STATUS_FAILED) {
-          n++;
-        } else {
+        if (subnode->status != STATUS_CONFIRMED) {
           newcharast(subnode, at(bnf->content, i), c);
+          if (subnode->status == STATUS_CONFIRMED) success++;
+          break;
+        } 
+        if (subnode->status == STATUS_FAILED) {
+          ast->status = STATUS_FAILED;
+          break;
+        } else if (subnode->status == STATUS_CONFIRMED) {
+          success++;
         }
       }
-      if (n == ((Array*)bnf->content)->size) {
-        ast->status = STATUS_FAILED;
-        return;
+      if (success == ((Array*)bnf->content)->size) {
+        ast->status = STATUS_CONFIRMED;
       }
-      return;
+
+      if (bnf->type == NODE_ONE_OR_NONE || bnf->type == NODE_MANY_OR_NONE) {
+        if (ast->status == STATUS_CONFIRMED) {
+          if (bnf->type == NODE_ONE_OR_NONE) {
+              supernode->status = STATUS_CONFIRMED;
+          } else {
+            ast = astfrombnf(bnf);
+            ast->status = STATUS_ONGOING;
+            pushastnode(supernode, &ast);
+          }
+        }
+      }
+      break;
+    case NODE_ONE_OF:
+      fail = 0;
+      success = 0;
+      for (int i = 0; i < ((Array*)bnf->content)->size; i++) {
+        subnode = at(ast->subnodes, i);
+        if (!subnode) {
+          subnode = astfrombnf(at(bnf->content, i));
+          subnode->status = STATUS_ONGOING;
+          pushastnode(ast, &subnode);
+        }
+        if (subnode->status != STATUS_FAILED) {
+          newcharast(subnode, at(bnf->content, i), c);
+        }
+        if (subnode->status == STATUS_FAILED) {
+          fail++;
+        } else if (subnode->status == STATUS_CONFIRMED) {
+          ast->status = STATUS_CONFIRMED;
+          success++;
+        } 
+      }
+      if (success > 1) {
+        // priority
+      }
+      if (fail == ast->subnodes->size) {
+        ast->status = STATUS_FAILED;
+      }
+      break;
   }
   return;
 }

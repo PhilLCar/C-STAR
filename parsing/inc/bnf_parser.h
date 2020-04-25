@@ -14,7 +14,7 @@
 typedef enum bnftype {
   NODE_ROOT = 0,
   NODE_LEAF,
-  NODE_LEAF_CONCAT,
+  NODE_CONCAT,
   NODE_LIST,
   NODE_ONE_OF,
   NODE_ONE_OR_NONE,
