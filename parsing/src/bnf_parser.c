@@ -161,27 +161,31 @@ int parsebnfstatement(SymbolStream *ss, BNFNode *basenode, BNFNode *parent, Arra
       ret = parsebnfstatement(ss, basenode, node, trace, ")");
       oplast = 0;
     }
-    if (!strcmp(s->text, "[")) {
+    else if (!strcmp(s->text, "[")) {
       BNFNode *node = newBNFNode(basenode, "", NODE_ONE_OR_NONE);
       checkbnfnode(node);
       pushnewbnfnode(subnode->content, &node);
       ret = parsebnfstatement(ss, basenode, node, trace, "]");
       oplast = 0;
     }
-    if (!strcmp(s->text, "{")) {
+    else if (!strcmp(s->text, "{")) {
       BNFNode *node = newBNFNode(basenode, "", NODE_MANY_OR_NONE);
       checkbnfnode(node);
       pushnewbnfnode(subnode->content, &node);
       ret = parsebnfstatement(ss, basenode, node, trace, "}");
       oplast = 0;
     }
-    if (!strcmp(s->text, "|")) {
-      subnode = newBNFNode(basenode, "", NODE_LIST);
-      checkbnfnode(subnode);
-      pushnewbnfnode(parent->content, &subnode);
+    else if (!strcmp(s->text, "|")) {
+      if (!((Array*)subnode->content)->size) {
+        printsymbolmessage(WARNING, trace, s, "Empty group ignored");
+      } else {
+        subnode = newBNFNode(basenode, "", NODE_LIST);
+        checkbnfnode(subnode);
+        pushnewbnfnode(parent->content, &subnode);
+      }
       oplast = 1;
     }
-    if (!strcmp(s->text, "<")) {
+    else if (!strcmp(s->text, "<")) {
       int new = 0;
       char *name =  parsebnfname(ss, basenode, trace);
       BNFNode *node = getnode(basenode, basenode, name);
@@ -195,18 +199,41 @@ int parsebnfstatement(SymbolStream *ss, BNFNode *basenode, BNFNode *parent, Arra
       expect(ss, trace, ">");
       oplast = 0;
     }
-    if (s->string) {
-      BNFNode *node = NULL;
-      char *content = malloc((strlen(s->text) + 1) * sizeof(char));
-      sprintf(content, "%s", s->text);
-      if      (!strcmp(s->open, "\"")) node = newBNFNode(basenode, "", NODE_LEAF);
-      else if (!strcmp(s->open, "'"))  node = newBNFNode(basenode, "", NODE_LEAF_CONCAT);
-      checkbnfnode(node);
-      node->content = content;
-      pushnewbnfnode(subnode->content, &node);
+    else if (s->string) {
+      if (!s->text[0]) {
+        printsymbolmessage(WARNING, trace, s, "Empty string ignored");
+      } else {
+        BNFNode *node = NULL;
+        char *content = malloc((strlen(s->text) + 1) * sizeof(char));
+        sprintf(content, "%s", s->text);
+        if (!strcmp(s->open, "\"")) {
+          node = newBNFNode(basenode, "", NODE_LEAF);
+          if (strcmp(s->close, "\"")) printsymbolmessage(ERROR, trace, s, "Expected closing '"FONT_BOLD"\""FONT_RESET"'!");
+        } else if (!strcmp(s->open, "'")) {
+          node = newBNFNode(basenode, "", NODE_LEAF_CONCAT);
+          if (strcmp(s->close, "\'")) printsymbolmessage(ERROR, trace, s, "Expected closing '"FONT_BOLD"'"FONT_RESET"'!");
+        }
+        checkbnfnode(node);
+        node->content = content;
+        pushnewbnfnode(subnode->content, &node);
+      }
       oplast = 0;
     }
+    else if (!strcmp(s->text, stop)) {
+      continue;
+    }
+    else {
+      char error[256];
+      sprintf(error, "Unexpected symbol '"FONT_BOLD"%s"FONT_RESET"'!", s->text);
+      printsymbolmessage(ERROR, trace, s, error);
+      ret = 0;
+    }
   } while(ret && (strcmp(s->text, stop) || (stop[0] == '\n' && oplast)));
+
+  if (!((Array*)subnode->content)->size) {
+    printsymbolmessage(WARNING, trace, s, "Empty group ignored");
+    freebnfnode(pop(parent->content));
+  }
 
   return ret;
 }

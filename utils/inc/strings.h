@@ -12,6 +12,6 @@ typedef struct string {
 String *newString(char*);
 void    deleteString(String**);
 String *concat(String*, String*);
-
+String *append(String*, char);
 
 #endif

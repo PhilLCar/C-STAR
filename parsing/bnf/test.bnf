@@ -1,1 +1,4 @@
-;; include (parsing/bnf/numbers.bnf)
+#;; include (parsing/bnf/numbers.bnf)
+
+<add> ::= <bin> "+" <bin>
+<bin> ::= ('0' | '1') { <bin> }

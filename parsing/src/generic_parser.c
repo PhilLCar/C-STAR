@@ -40,7 +40,7 @@ char **readline(FILE *fptr)
 	if (fptr != NULL) {
 		bsa = malloc(bsa_cap * sizeof(char *));
 		if (bsa != NULL) {
-			memset(bsa, 0, bsa_cap * sizeof(char));
+			memset(bsa, 0, bsa_cap * sizeof(char *));
 			while ((c = fgetc(fptr)) != '\n') {
 				if (c == EOF) goto bs_fail;
 				unsigned char bs_size = 0, bs_cap = 2;
@@ -93,7 +93,6 @@ Parser *newParser(char *filename)
 {
 	FILE *fptr = fopen(filename, "r");
 	Parser *parser = malloc(sizeof(Parser));
-
 	if (fptr != NULL && parser != NULL) {
 		emptyline(fptr); // Whitespaces
 		parser->whitespaces  = readchar(fptr);
@@ -107,7 +106,6 @@ Parser *newParser(char *filename)
 		parser->multicom     = readline(fptr);
 		emptyline(fptr); // Breaksymbols
 		parser->breaksymbols = readline(fptr);
-
 		if (parser->whitespaces  == NULL ||
 			parser->escapes      == NULL ||
 			parser->delimiters   == NULL ||

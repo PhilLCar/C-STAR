@@ -2,10 +2,28 @@
 #define AST_PARSING
 
 #include <bnf_parser.h>
+#include <generic_parser.h>
+#include <symbol.h>
+#include <strings.h>
+#include <array.h>
+
+typedef enum aststatus {
+  STATUS_POTENTIAL = 0,
+  STATUS_CONFIRMED,
+  STATUS_FAILED,
+  STATUS_ONGOING,
+  STATUS_NOSTATUS
+} ASTStatus;
 
 typedef struct astnode {
-  char* tag;
-  void* content;
+  String    *name;
+  Array     *subnodes;
+  String    *value;
+  ASTStatus  status;
+  BNFNode   *ref;
+  int        pos;
 } ASTNode;
+
+ASTNode *parseast(char*);
 
 #endif

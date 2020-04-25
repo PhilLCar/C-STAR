@@ -5,7 +5,11 @@
 #define NODE      "├"
 #define LAST_NODE "└"
 
-void printnode(BNFNode *n, char *s, int lvl, int last, int exp) {
+void printnode(BNFNode *n, char *s, int base, int lvl, int last) {
+  if (n->type != NODE_ROOT) {
+    if (n->rec >= base) return;
+    else (n->rec = base);
+  }
   char t[256] = "";
   if (lvl) {
     if (last) {
@@ -20,8 +24,9 @@ void printnode(BNFNode *n, char *s, int lvl, int last, int exp) {
   case NODE_ROOT:
     if (lvl) printf(TEXT_BLUE""FONT_BOLD"[#] %s\n"FONT_RESET, n->name);
     else printf(TEXT_GREEN""FONT_BOLD"[#] %s\n"FONT_RESET, n->name);
+    base = ++n->rec;
     for (int i = 0; i < ((Array*)n->content)->size; i++) {
-      printnode(at(n->content, i), t, lvl + 1, i == (((Array*)n->content)->size - 1), 1);
+      printnode(at(n->content, i), t, base, lvl + 1, i == (((Array*)n->content)->size - 1));
     }
     break;
   case NODE_LEAF:
@@ -33,34 +38,25 @@ void printnode(BNFNode *n, char *s, int lvl, int last, int exp) {
   case NODE_LIST:
     printf(TEXT_YELLOW"[:]\n"FONT_RESET);
     for (int i = 0; i < ((Array*)n->content)->size; i++) {
-      printnode(at(n->content, i), t, lvl + 1, i == (((Array*)n->content)->size - 1), 0);
+      printnode(at(n->content, i), t, base, lvl + 1, i == (((Array*)n->content)->size - 1));
     }
     break;
   case NODE_ONE_OF:
-    if (exp || 1) {
-      printf(TEXT_MAGENTA""FONT_BOLD"[o] %s\n"FONT_RESET, n->name);
-      for (int i = 0; i < ((Array*)n->content)->size; i++) {
-	printnode(at(n->content, i), t, lvl + 1, i == (((Array*)n->content)->size - 1), 0);
-      }
-    } else {
-      printf(TEXT_MAGENTA"[o] %s\n"FONT_RESET, n->name);
-      if (!strcmp(n->name, "")) {
-	for (int i = 0; i < ((Array*)n->content)->size; i++) {
-	  printnode(at(n->content, i), t, lvl + 1, i == (((Array*)n->content)->size - 1), 0);
-	}
-      }
+    printf(TEXT_MAGENTA""FONT_BOLD"[o] %s\n"FONT_RESET, n->name);
+    for (int i = 0; i < ((Array*)n->content)->size; i++) {
+      printnode(at(n->content, i), t, base, lvl + 1, i == (((Array*)n->content)->size - 1));
     }
     break;
   case NODE_ONE_OR_NONE:
     printf(TEXT_GREEN"[+]\n"FONT_RESET);
     for (int i = 0; i < ((Array*)n->content)->size; i++) {
-      printnode(at(n->content, i), t, lvl + 1, i == (((Array*)n->content)->size - 1), 0);
+      printnode(at(n->content, i), t, base, lvl + 1, i == (((Array*)n->content)->size - 1));
     }
     break;
   case NODE_MANY_OR_NONE:
     printf(TEXT_RED"[*]\n"FONT_RESET);
     for (int i = 0; i < ((Array*)n->content)->size; i++) {
-      printnode(at(n->content, i), t, lvl + 1, i == (((Array*)n->content)->size - 1), 0);
+      printnode(at(n->content, i), t, base, lvl + 1, i == (((Array*)n->content)->size - 1));
     }
     break;
   }

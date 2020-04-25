@@ -42,10 +42,8 @@ int nextsymbol(TrackedFile *tf, Parser *parser, Symbol *symbol)
   char  c;
   int   buf_size = 0, buf_cap = 2;
   char *buf = malloc(buf_cap * sizeof(char));
-  int   tmp;
-  int   type;
-  int   new = 0;
-  int   pos = 0;
+  int   type, close = 0;
+  int   new = 0, pos = 0;
 
   symbol->text    = NULL;
   symbol->open    = NULL;
@@ -60,9 +58,9 @@ int nextsymbol(TrackedFile *tf, Parser *parser, Symbol *symbol)
     while ((c = tfgetc(tf)) != EOF) {
       type = NONE;
       symbol->eof = 0;
-      int cmp, ws = 0;
+      int cmp, tmp, ws = 0;
       //////////////////////////////////////// NEW-LINE ////////////////////////////////////////
-      if (c == '\n' && !symbol->string && !symbol->comment) {
+      if (c == '\n' && !symbol->comment) {
         if (buf_size) {
           tfungetc(tf, c);
         } else {
@@ -100,6 +98,7 @@ int nextsymbol(TrackedFile *tf, Parser *parser, Symbol *symbol)
       //////////////////////////////////////// STRING STOP ////////////////////////////////////////
       if (symbol->string) {
         if ((cmp = strcmps(tf->buffer, symbol->close))) {
+          close = 1;
           for (int i = 1; i < cmp; i++) tfgetc(tf);
           break;
         } else if (!extend(&buf, &buf_size, &buf_cap, c)) goto next_fail;
@@ -111,6 +110,7 @@ int nextsymbol(TrackedFile *tf, Parser *parser, Symbol *symbol)
           tfungetc(tf, c);
           break;
         } else if (symbol->close && (cmp = strcmps(tf->buffer, symbol->close))) {
+          close = 1;
           for (int i = 1; i < cmp; i++) tfgetc(tf);
           break;
         } else if (!extend(&buf, &buf_size, &buf_cap, c)) goto next_fail;
@@ -255,6 +255,7 @@ int nextsymbol(TrackedFile *tf, Parser *parser, Symbol *symbol)
         return 0;
       }
     }
+    if (!close && (symbol->string || (symbol->comment && symbol->close))) symbol->close[0] = 0;
     symbol->text = buf;
     if (symbol->line < 0) symbol->line = tf->line;
     symbol->position = pos;

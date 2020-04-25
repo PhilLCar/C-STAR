@@ -30,9 +30,22 @@ String *concat(String *a, String *b)
   if (n) {
     memcpy(n + a->length, b->content, b->length + 1);
     a->content = n;
+    a->length += b->length;
   } else {
     deleteString(&a);
   }
   deleteString(&b);
+  return a;
+}
+
+String *append(String *a, char c)
+{
+  char *n = realloc(a->content, (a->length + 2) * sizeof(char));
+  if (n) {
+    a->content[a->length]   = c;
+    a->content[++a->length] = 0;
+  } else {
+    deleteString(&a);
+  }
   return a;
 }
