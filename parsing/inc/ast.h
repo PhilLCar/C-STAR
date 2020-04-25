@@ -27,5 +27,6 @@ typedef struct astnode {
 } ASTNode;
 
 ASTNode *parseast(char*);
+void     deleteASTTree(ASTNode**);
 
 #endif
