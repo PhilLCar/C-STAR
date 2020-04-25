@@ -26,7 +26,15 @@ void freeastnode(ASTNode *node) {
   deleteArray(&node->subnodes);
 }
 
-void newcharast(ASTNode *ast, BNFNode *bnf, int con, char c)
+void concatastnode(ASTNode *a, ASTNode *b) {
+  for (int i = 0; i < b->subnodes->size; i++) {
+    concatastnode(b, at(b->subnodes, i));
+  }
+  concat(a->name,  newString(b->name->content));
+  concat(a->value, newString(b->value->content));
+}
+
+void newcharast(Array *reserved, ASTNode *ast, BNFNode *bnf, int con, char c)
 {
   ASTNode *subnode;
   ASTNode *supernode;
@@ -43,6 +51,7 @@ void newcharast(ASTNode *ast, BNFNode *bnf, int con, char c)
 
         }
       } else {
+        success = 0;
         for (int i = 0; i < 2; i++) {
           subnode = at(ast->subnodes, i);
           if (!subnode) {
@@ -51,13 +60,35 @@ void newcharast(ASTNode *ast, BNFNode *bnf, int con, char c)
             pushastnode(ast, &subnode);
           }
           if (subnode->status != STATUS_CONFIRMED && subnode->status != STATUS_FAILED) {
+            newcharast(reserved, subnode, at(bnf->content, i), 1, c);
+          }
+          if (subnode->status != STATUS_CONFIRMED && subnode->status != STATUS_FAILED) {
             i = 2;
           }
           if (subnode->status == STATUS_ONGOING) {
             ast->status = STATUS_ONGOING;
+          } else if (subnode->status == STATUS_FAILED) {
+            ast->status = STATUS_FAILED;
+            break;
+          } else if (subnode->status == STATUS_CONFIRMED) {
+            success++;
           }
         }
-
+        if (success == 2) ast->status = STATUS_CONFIRMED;
+        if (c == AST_LOCK && ast->status != STATUS_CONFIRMED) {
+          ast->status = STATUS_FAILED;
+        }
+        if (ast->status == STATUS_CONFIRMED) {
+          trickle = at(ast->subnodes, 0);
+          concatastnode(trickle, at(ast->subnodes, 1));
+          concat(ast->value, newString(trickle->value->content));
+          concat(ast->name,  newString(trickle->name->content));
+        }
+        if (ast->status == STATUS_CONFIRMED || ast->status == STATUS_FAILED) {
+          for (int i = 0; i < 2; i++) {
+            freeastnode(at(ast->subnodes, i));
+          }
+        }
       }
       break;
     //////////////////////////////////////////////////////////////////////////
@@ -109,7 +140,7 @@ void newcharast(ASTNode *ast, BNFNode *bnf, int con, char c)
           pushastnode(ast, &subnode);
         }
         if (subnode->status != STATUS_CONFIRMED) {
-          newcharast(subnode, at(bnf->content, i), i == 0 && con, c);
+          newcharast(reserved, subnode, at(bnf->content, i), i == 0 && con, c);
           // Break the loop at next iteration
           i = ((Array*)bnf->content)->size;
         } 
@@ -179,7 +210,7 @@ void newcharast(ASTNode *ast, BNFNode *bnf, int con, char c)
           pushastnode(ast, &subnode);
         }
         if (subnode->status != STATUS_FAILED) {
-          newcharast(subnode, at(bnf->content, i), con, c);
+          newcharast(reserved, subnode, at(bnf->content, i), con, c);
         }
         if (subnode->status == STATUS_FAILED) {
           fail++;
@@ -221,15 +252,18 @@ void newcharast(ASTNode *ast, BNFNode *bnf, int con, char c)
 
 ASTNode *parseast(char *filename)
 {
-  BNFNode      *root   = parsebnf("parsing/bnf/test.bnf");
-  Parser       *parser = newParser("parsing/prs/csr.prs");
-  SymbolStream *ss     = ssopen(filename, parser);
-  //ASTNode      *ast    = initast(root);
+  BNFNode      *root     = parsebnf("parsing/bnf/test.bnf");
+  Parser       *parser   = newParser("parsing/prs/csr.prs");
+  SymbolStream *ss       = ssopen(filename, parser);
+  ASTNode      *ast      = astfrombnf(at(root->content, 0));
+  Array        *reserved = newArray(sizeof(char*));
 
-  Symbol *s;
-  while (!(s = ssgets(ss))->eof) {
-    printf("%s\n", s->text);
-  }
+  // Symbol *s;
+  // while (!(s = ssgets(ss))->eof) {
+  //   printf("%s\n", s->text);
+  // }
+
+  newcharast(reserved, ast, at(root->content, 0), 0, '0');
 
   ssclose(ss);
   deleteParser(&parser);
