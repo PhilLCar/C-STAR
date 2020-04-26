@@ -30,7 +30,6 @@ void concatastnode(ASTNode *a, ASTNode *b) {
   for (int i = 0; i < b->subnodes->size; i++) {
     concatastnode(b, at(b->subnodes, i));
   }
-  concat(a->name,  newString(b->name->content));
   concat(a->value, newString(b->value->content));
 }
 
@@ -58,16 +57,17 @@ void newcharast(Array *reserved, ASTNode *ast, BNFNode *bnf, int con, char c)
         if (subnode->status == STATUS_FAILED) {
           ast->status = STATUS_FAILED;
         } else if (subnode->status == STATUS_CONFIRMED) {
+          ast->status = STATUS_ONGOING;
           ast->pos++;
         } else if (subnode->status == STATUS_ONGOING) {
           ast->status = STATUS_ONGOING;
         } 
       }
-      if (ast->status == STATUS_CONFIRMED) {
+      if (ast->pos >= ((Array*)bnf->content)->size) {
+        ast->status = STATUS_CONFIRMED;
         subnode = at(ast->subnodes, 0);
         concatastnode(subnode, at(ast->subnodes, 1));
         concat(ast->value, newString(subnode->value->content));
-        concat(ast->name,  newString(subnode->name->content));
       }
       if (ast->status == STATUS_CONFIRMED || ast->status == STATUS_FAILED) {
         while (ast->subnodes->size) {
@@ -130,6 +130,7 @@ void newcharast(Array *reserved, ASTNode *ast, BNFNode *bnf, int con, char c)
             freeastnode(pop(ast->subnodes));
           }
         } else if (subnode->status == STATUS_CONFIRMED) {
+          ast->status = STATUS_ONGOING;
           ast->pos++;
         } else if (subnode->status == STATUS_ONGOING) {
           ast->status = STATUS_ONGOING;
@@ -154,17 +155,22 @@ void newcharast(Array *reserved, ASTNode *ast, BNFNode *bnf, int con, char c)
           } else {
             supernode->status = STATUS_CONFIRMED;
           }
+        } else if (ast->status == STATUS_ONGOING) {
+          supernode->status = STATUS_ONGOING;
+        } else if (ast->status == STATUS_FAILED) {
+          supernode->status = STATUS_FAILED;
+          freeastnode(pop(supernode->subnodes));
         }
         if (supernode->status == STATUS_CONFIRMED) {
           if (!ast->subnodes->size) {
             concat(supernode->value, newString(ast->value->content));
             concat(supernode->name,  newString(ast->name->content));
-            freeastnode(ast);
+            freeastnode(pop(supernode->subnodes));
           } else if (ast->subnodes->size == 1) {
             Array *tmp = supernode->subnodes;
             supernode->subnodes = ast->subnodes;
             ast->subnodes = tmp;
-            freeastnode(ast);
+            freeastnode(pop(supernode->subnodes));
           }
         }
       }
@@ -175,7 +181,7 @@ void newcharast(Array *reserved, ASTNode *ast, BNFNode *bnf, int con, char c)
         ast->status = STATUS_FAILED;
         break;
       }
-      if (ast->pos < ((Array*)bnf->content)->size) {
+      for (int i = 0; i < ((Array*)bnf->content)->size; i++) {
         subnode = at(ast->subnodes, ast->pos);
         subbnf  = at(bnf->content,  ast->pos);
         if (!subnode) {
@@ -183,24 +189,31 @@ void newcharast(Array *reserved, ASTNode *ast, BNFNode *bnf, int con, char c)
           subnode->status = STATUS_NOSTATUS;
           pushastnode(ast, &subnode);
         }
-        newcharast(reserved, subnode, subbnf, con, c);
+        if (subnode->status != STATUS_FAILED) {
+          newcharast(reserved, subnode, subbnf, con, c);
+        }
         if (subnode->status == STATUS_FAILED) {
+          ast->status = STATUS_ONGOING;
           ast->pos++;
         } else if (subnode->status == STATUS_CONFIRMED) {
           ast->status = STATUS_CONFIRMED;
           concat(ast->value, newString(subnode->value->content));
           concat(ast->name,  newString(subnode->name->content));
+          // Swap array
+          Array *tmp = subnode->subnodes;
+
+          subnode->subnodes = NULL;
+          //while (ast->subnodes->size) freeastnode(pop(ast->subnodes));
+
+          ast->subnodes = tmp;
+          break;
         } else if (subnode->status == STATUS_ONGOING) {
           ast->status = STATUS_ONGOING;
         }
       }
       if (ast->pos >= ((Array*)bnf->content)->size) {
         ast->status = STATUS_FAILED;
-      }
-      if (ast->status == STATUS_CONFIRMED || ast->status == STATUS_FAILED) {
-        while (ast->subnodes->size) {
-          freeastnode(pop(ast->subnodes));
-        }
+        while (ast->subnodes->size) freeastnode(pop(ast->subnodes));
       }
       break;
   }
@@ -216,15 +229,16 @@ ASTNode *parseast(char *filename)
   ASTNode      *ast      = astfrombnf(at(root->content, 0));
   Array        *reserved = newArray(sizeof(char*));
 
-  // Symbol *s;
-  // while (!(s = ssgets(ss))->eof) {
-  //   printf("%s\n", s->text);
-  // }
-
-  newcharast(reserved, ast, at(root->content, 0), 0, '0');
-  newcharast(reserved, ast, at(root->content, 0), 0, '1');
-  newcharast(reserved, ast, at(root->content, 0), 0, '0');
-  newcharast(reserved, ast, at(root->content, 0), 0, AST_LOCK);
+  Symbol *s;
+  while (!(s = ssgets(ss))->eof) {
+    int i = 0;
+    char c;
+    while ((c = s->text[i++])) {
+      newcharast(reserved, ast, at(root->content, 0), 0, c);
+    }
+    newcharast(reserved, ast, at(root->content, 0), 0, AST_LOCK);
+    //if (i == 2) break;
+  }
 
   deleteArray(&reserved);
   ssclose(ss);
