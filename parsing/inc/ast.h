@@ -7,14 +7,16 @@
 #include <strings.h>
 #include <array.h>
 
-#define AST_LOCK -1
+#define AST_LOCK   0
+#define AST_CLOSE -1
 
 typedef enum aststatus {
   STATUS_POTENTIAL = 0,
   STATUS_CONFIRMED,
   STATUS_FAILED,
   STATUS_ONGOING,
-  STATUS_NOSTATUS
+  STATUS_NOSTATUS,
+  STATUS_PARTIAL
 } ASTStatus;
 
 typedef struct astnode {
@@ -22,7 +24,6 @@ typedef struct astnode {
   Array     *subnodes;
   String    *value;
   ASTStatus  status;
-  BNFNode   *ref;
   int        pos;
 } ASTNode;
 

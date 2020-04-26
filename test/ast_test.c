@@ -15,7 +15,9 @@ char *printstatus(ASTStatus status) {
     case STATUS_ONGOING:
       return TEXT_MAGENTA"[O]"FONT_RESET;
     case STATUS_POTENTIAL:
-      return TEXT_BLUE"[P]"FONT_RESET;
+      return TEXT_BLUE"[p]"FONT_RESET;
+    case STATUS_PARTIAL:
+      return TEXT_YELLOW"[P]"FONT_RESET;
   }
   return "[U]";
 }
@@ -50,6 +52,6 @@ int main()
 {
     ASTNode *n = parseast("csr/test.csr");
     printnode(n, "", 0, 0);
-    //deleteASTTree(&n);
+    deleteASTTree(&n);
     return 0;
 }

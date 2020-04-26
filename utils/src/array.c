@@ -19,7 +19,7 @@ Array *newArray(size_t element_size)
 
 void deleteArray(Array **array)
 {
-  if (array != NULL) {
+  if (*array != NULL) {
     void *content = (*array)->content;
     if (content != NULL) {
       free(content);

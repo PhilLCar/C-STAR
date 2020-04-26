@@ -163,7 +163,7 @@ int parsebnfstatement(SymbolStream *ss, BNFNode *basenode, BNFNode *parent, Arra
     } else {
       concatnode = NULL;
     }
-    if (!strcmp(s->text, "(")) {
+    if (s->text[0] == '(') {
       BNFNode *node = newBNFNode(basenode, "", NODE_ONE_OF);
       checkbnfnode(node);
       if (concatnode) pushnewbnfnode(concatnode->content, &node);
@@ -171,39 +171,62 @@ int parsebnfstatement(SymbolStream *ss, BNFNode *basenode, BNFNode *parent, Arra
       ret = parsebnfstatement(ss, basenode, node, trace, ")");
       oplast = 0;
     }
-    else if (!strcmp(s->text, "[")) {
-      BNFNode *node = newBNFNode(basenode, "", NODE_ONE_OR_NONE);
-      checkbnfnode(node);
-      if (concatnode) pushnewbnfnode(concatnode->content, &node);
-      else            pushnewbnfnode(subnode->content,    &node);
-      ret = parsebnfstatement(ss, basenode, node, trace, "]");
-      oplast = 0;
+    else if (s->text[0] == '[') {
+      if (oplast == 2) {
+        printsymbolmessage(ERROR, trace, s, "'OR' with nothing is everything!");
+        ret = 0;
+      } else {
+        BNFNode *node = newBNFNode(basenode, "", NODE_ONE_OR_NONE);
+        checkbnfnode(node);
+        if (concatnode) pushnewbnfnode(concatnode->content, &node);
+        else            pushnewbnfnode(subnode->content,    &node);
+        ret = parsebnfstatement(ss, basenode, node, trace, "]");
+        oplast = 0;
+      }
     }
-    else if (!strcmp(s->text, "{")) {
+    else if (s->text[0] == '{') {
+      Symbol *tmp = newSymbol(s);
       BNFNode *node = newBNFNode(basenode, "", NODE_MANY_OR_NONE);
       checkbnfnode(node);
       if (concatnode) pushnewbnfnode(concatnode->content, &node);
       else            pushnewbnfnode(subnode->content,    &node);
       ret = parsebnfstatement(ss, basenode, node, trace, "}");
+      s = ssgets(ss);
+      if (s->text[0] == '+') {
+        Array *content = node->content;
+        for (int i = 0; i < content->size; i++) {
+          if (concatnode) push(concatnode->content, at(content, i));
+          else            push(subnode->content,    at(content, i));
+        }
+      } else {
+        if (oplast == 2 && s->text[0] == '\n') {
+          printsymbolmessage(ERROR, trace, tmp, "'OR' with nothing is everything!");
+          ret = 0;
+        }
+        ssungets(ss, s);
+      }
+      deleteSymbol(&tmp);
       oplast = 0;
     }
-    else if (!strcmp(s->text, "|")) {
+    else if (s->text[0] == '|') {
       if (!((Array*)subnode->content)->size) {
         printsymbolmessage(WARNING, trace, s, "Empty group ignored");
       } else if (concatnode) {
         printsymbolmessage(ERROR, trace, s, "Unexpected operator!");
+        ret = 0;
       } else {
         subnode = newBNFNode(basenode, "", NODE_LIST);
         checkbnfnode(subnode);
         pushnewbnfnode(parent->content, &subnode);
       }
-      oplast = 1;
+      oplast = 2;
     }
-    else if (!strcmp(s->text, ",")) {
+    else if (s->text[0] == ',') {
       if (!((Array*)subnode->content)->size) {
         printsymbolmessage(WARNING, trace, s, "Empty group ignored");
       } else if (concatnode) {
         printsymbolmessage(ERROR, trace, s, "Unexpected operator!");
+        ret = 0;
       } else {
         BNFNode *node = newBNFNode(basenode, "", NODE_CONCAT);
         checkbnfnode(node);
@@ -213,7 +236,7 @@ int parsebnfstatement(SymbolStream *ss, BNFNode *basenode, BNFNode *parent, Arra
       }
       oplast = 1;
     }
-    else if (!strcmp(s->text, "<")) {
+    else if (s->text[0] == '<') {
       int new = 0;
       char *name =  parsebnfname(ss, basenode, trace);
       BNFNode *node = getnode(basenode, basenode, name);
