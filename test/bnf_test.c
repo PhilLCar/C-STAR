@@ -1,4 +1,4 @@
-#include <bnf_parser.h>
+#include <bnf.h>
 #include <terminal.h>
 
 #define BRANCH    "│"
@@ -45,19 +45,25 @@ void printnode(BNFNode *n, char *s, int base, int lvl, int last) {
     }
     break;
   case NODE_ONE_OF:
-    printf(TEXT_MAGENTA""FONT_BOLD"[o] %s\n"FONT_RESET, n->name);
+    printf(TEXT_MAGENTA""FONT_BOLD"[O] %s\n"FONT_RESET, n->name);
     for (int i = 0; i < ((Array*)n->content)->size; i++) {
       printnode(at(n->content, i), t, base, lvl + 1, i == (((Array*)n->content)->size - 1));
     }
     break;
   case NODE_ONE_OR_NONE:
-    printf(TEXT_GREEN"[+]\n"FONT_RESET);
+    printf(TEXT_GREEN"[X]\n"FONT_RESET);
     for (int i = 0; i < ((Array*)n->content)->size; i++) {
       printnode(at(n->content, i), t, base, lvl + 1, i == (((Array*)n->content)->size - 1));
     }
     break;
   case NODE_MANY_OR_NONE:
     printf(TEXT_RED"[*]\n"FONT_RESET);
+    for (int i = 0; i < ((Array*)n->content)->size; i++) {
+      printnode(at(n->content, i), t, base, lvl + 1, i == (((Array*)n->content)->size - 1));
+    }
+    break;
+  case NODE_MANY_OR_ONE:
+    printf(TEXT_CYAN"[+]\n"FONT_RESET);
     for (int i = 0; i < ((Array*)n->content)->size; i++) {
       printnode(at(n->content, i), t, base, lvl + 1, i == (((Array*)n->content)->size - 1));
     }

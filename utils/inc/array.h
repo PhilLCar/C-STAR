@@ -18,4 +18,6 @@ void   push(Array*, void*);
 void  *pop(Array*);
 void  *at(Array*, int);
 void  *rem(Array*, int);
+void   set(Array*, int, void*);
+void   combine(Array*, Array*);
 #endif

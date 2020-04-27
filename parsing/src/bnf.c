@@ -1,4 +1,4 @@
-#include <bnf_parser.h>
+#include <bnf.h>
 
 BNFNode *parsebnfnode(char*, Parser*, BNFNode*, Array*, Array*);
 
@@ -145,8 +145,9 @@ int parsebnfstatement(SymbolStream *ss, BNFNode *basenode, BNFNode *parent, Arra
 {
   int oplast = 0, ret = 1, concat = 0;
   Symbol *s;
-  BNFNode *subnode = newBNFNode(basenode, "", NODE_LIST);
+  BNFNode *subnode    = newBNFNode(basenode, "", NODE_LIST);
   BNFNode *concatnode = NULL;
+  Array   *content    = subnode->content;
   pushnewbnfnode(parent->content, &subnode);
 
   do {
@@ -172,57 +173,53 @@ int parsebnfstatement(SymbolStream *ss, BNFNode *basenode, BNFNode *parent, Arra
       oplast = 0;
     }
     else if (s->text[0] == '[') {
-      if (oplast == 2) {
-        printsymbolmessage(ERROR, trace, s, "'OR' with nothing is everything!");
-        ret = 0;
-      } else {
-        BNFNode *node = newBNFNode(basenode, "", NODE_ONE_OR_NONE);
-        checkbnfnode(node);
-        if (concatnode) pushnewbnfnode(concatnode->content, &node);
-        else            pushnewbnfnode(subnode->content,    &node);
-        ret = parsebnfstatement(ss, basenode, node, trace, "]");
-        oplast = 0;
-      }
-    }
-    else if (s->text[0] == '{') {
-      Symbol *tmp = newSymbol(s);
-      BNFNode *node = newBNFNode(basenode, "", NODE_MANY_OR_NONE);
+      BNFNode *node = newBNFNode(basenode, "", NODE_ONE_OR_NONE);
       checkbnfnode(node);
       if (concatnode) pushnewbnfnode(concatnode->content, &node);
       else            pushnewbnfnode(subnode->content,    &node);
-      ret = parsebnfstatement(ss, basenode, node, trace, "}");
-      s = ssgets(ss);
-      if (s->text[0] == '+') {
-        Array *content = node->content;
-        for (int i = 0; i < content->size; i++) {
-          if (concatnode) push(concatnode->content, at(content, i));
-          else            push(subnode->content,    at(content, i));
-        }
+      ret = parsebnfstatement(ss, basenode, node, trace, "]");
+      oplast = 0;
+    }
+    else if (s->text[0] == '{') {
+      if (EBNF_TO_BNF) {
+        
       } else {
-        if (oplast == 2 && s->text[0] == '\n') {
-          printsymbolmessage(ERROR, trace, tmp, "'OR' with nothing is everything!");
-          ret = 0;
+        BNFNode *node = newBNFNode(basenode, "", NODE_MANY_OR_NONE);
+        checkbnfnode(node);
+        if (concatnode) pushnewbnfnode(concatnode->content, &node);
+        else            pushnewbnfnode(subnode->content,    &node);
+        ret = parsebnfstatement(ss, basenode, node, trace, "}");
+        s = ssgets(ss);
+        if (s->text[0] == '+') {
+          node->type = NODE_MANY_OR_ONE;
+        } else {
+          ssungets(ss, s);
         }
-        ssungets(ss, s);
       }
-      deleteSymbol(&tmp);
       oplast = 0;
     }
     else if (s->text[0] == '|') {
-      if (!((Array*)subnode->content)->size) {
+      if (!content->size) {
         printsymbolmessage(WARNING, trace, s, "Empty group ignored");
       } else if (concatnode) {
         printsymbolmessage(ERROR, trace, s, "Unexpected operator!");
         ret = 0;
       } else {
+        if (content->size == 1) {
+          subnode->content = NULL;
+          freebnfnode(pop(parent->content));
+          push(parent->content, pop(content));
+          deleteArray(&content);
+        }
         subnode = newBNFNode(basenode, "", NODE_LIST);
         checkbnfnode(subnode);
         pushnewbnfnode(parent->content, &subnode);
+        content = subnode->content;
       }
-      oplast = 2;
+      oplast = 1;
     }
     else if (s->text[0] == ',') {
-      if (!((Array*)subnode->content)->size) {
+      if (!content->size) {
         printsymbolmessage(WARNING, trace, s, "Empty group ignored");
       } else if (concatnode) {
         printsymbolmessage(ERROR, trace, s, "Unexpected operator!");
@@ -286,11 +283,15 @@ int parsebnfstatement(SymbolStream *ss, BNFNode *basenode, BNFNode *parent, Arra
     }
   } while(ret && (strcmp(s->text, stop) || (stop[0] == '\n' && oplast)));
 
-  if (!((Array*)subnode->content)->size) {
+  if (!content->size) {
     printsymbolmessage(WARNING, trace, s, "Empty group ignored");
     freebnfnode(pop(parent->content));
+  } else if (content->size == 1) {
+    subnode->content = NULL;
+    freebnfnode(pop(parent->content));
+    push(parent->content, pop(content));
+    deleteArray(&content);
   }
-
   return ret;
 }
 

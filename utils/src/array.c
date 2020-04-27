@@ -76,14 +76,16 @@ void *pop(Array *array)
   return index;
 }
 
-void *at(Array* array, int index) {
+void *at(Array *array, int index)
+{
   if (index >= 0 && index < array->size) {
     return (char*)array->content + (index * array->element_size);
   }
   return NULL;
 }
 
-void *rem(Array* array, int index) {
+void *rem(Array *array, int index)
+{
   void *rem = NULL;
   if (index >= 0 && index < array->size) {
     void *tmp = malloc(array->element_size);
@@ -96,4 +98,22 @@ void *rem(Array* array, int index) {
     free(tmp);
   }
   return rem;
+}
+
+void set(Array *array, int index, void *value)
+{
+  if (index >= 0 && index < array->size) {
+    memcpy((char*)array->content + (index * array->element_size), value, array->element_size);
+  }
+}
+
+void combine(Array* a, Array *b)
+{
+  void *elem;
+  if (a->element_size == b->element_size) {
+    while ((elem = pop(b))) {
+      push(a, b);
+    }
+  }
+  deleteArray(&b);
 }

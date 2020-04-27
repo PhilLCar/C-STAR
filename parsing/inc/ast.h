@@ -1,7 +1,7 @@
 #ifndef AST_PARSING
 #define AST_PARSING
 
-#include <bnf_parser.h>
+#include <bnf.h>
 #include <generic_parser.h>
 #include <symbol.h>
 #include <strings.h>
@@ -11,13 +11,18 @@
 #define AST_CLOSE -1
 
 typedef enum aststatus {
-  STATUS_POTENTIAL = 0,
+  STATUS_NOSTATUS = 0,
+  STATUS_POTENTIAL,
   STATUS_CONFIRMED,
   STATUS_FAILED,
   STATUS_ONGOING,
-  STATUS_NOSTATUS,
   STATUS_PARTIAL
 } ASTStatus;
+
+typedef enum asterror {
+  ERROR_CONCAT_0MATCH,
+  ERROR_CONCAT_MANYMATCH,
+} ASTError;
 
 typedef struct astnode {
   String    *name;

@@ -1,4 +1,12 @@
 #;; include (parsing/bnf/numbers.bnf)
 
-<add> ::= <bin> { "+" <bin> }
-<bin> ::= ( '0' | '1' ), { <bin> }+
+<add> ::= <oct> { "+" <oct> }+
+<oct> ::=  [ "-" ] ( "0" | "0o" ), <oct-digit-no-zero>, { <oct-digit> }
+<oct-digit-no-zero> ::= '1' |
+                        '2' |
+                        '3' |
+                        '4' |
+                        '5' |
+                        '6' |
+                        '7'
+<oct-digit> ::= <oct-digit-no-zero> | '0'

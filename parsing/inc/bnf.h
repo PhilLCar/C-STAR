@@ -10,6 +10,7 @@
 #include <strings.h>
 
 #define INCLUDE_MAX_DEPTH   128
+#define EBNF_TO_BNF         1
 
 typedef enum bnftype {
   NODE_ROOT = 0,
@@ -18,7 +19,8 @@ typedef enum bnftype {
   NODE_LIST,
   NODE_ONE_OF,
   NODE_ONE_OR_NONE,
-  NODE_MANY_OR_NONE
+  NODE_MANY_OR_NONE,
+  NODE_MANY_OR_ONE
 } BNFType;
 
 typedef struct bnfnode {
