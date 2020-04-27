@@ -2,20 +2,16 @@
 
 BNFNode *parsebnfnode(char*, Parser*, BNFNode*, Array*, Array*);
 
-void checkbnfnode(BNFNode *node) {
+void checkbnfnode(BNFNode *node)
+{
   if (!node) {
     printmessage(ERROR, "Memory allocation failed!");
     exit(1);
   }
 }
 
-void pushnewbnfnode(Array *a, BNFNode **n) {
-  push(a, *n);
-  free(*n);
-  *n = at(a, a->size - 1);
-}
-
-BNFNode *getnode(BNFNode *basenode, BNFNode *node, char *name) {
+BNFNode *getnode(BNFNode *basenode, BNFNode *node, char *name)
+{
   if (node == NULL || !strcmp(name, "")) return NULL;
   if (!strcmp(node->name, name)) return node;
   if (node == basenode) {
@@ -28,14 +24,15 @@ BNFNode *getnode(BNFNode *basenode, BNFNode *node, char *name) {
   if (node->type != NODE_LEAF) {
     Array *a = node->content;
     for (int i = 0; i < a->size; i++) {
-      BNFNode *ret = getnode(basenode, at(a, i), name);
+      BNFNode *ret = getnode(basenode, *(BNFNode**)at(a, i), name);
       if (ret) return ret;
     }
   }
   return NULL;
 }
 
-BNFNode *newBNFNode(BNFNode *basenode, char *name, BNFType type) {
+BNFNode *newBNFNode(BNFNode *basenode, char *name, BNFType type)
+{
   BNFNode *node = NULL;
   if (!basenode) {
     if (type != NODE_ROOT) {
@@ -48,7 +45,7 @@ BNFNode *newBNFNode(BNFNode *basenode, char *name, BNFType type) {
   node     = malloc(sizeof(BNFNode));
   char  *n = malloc((strlen(name) + 1) * sizeof(char));
   Array *a = NULL;
-  if (type != NODE_LEAF) a = newArray(sizeof(BNFNode));
+  if (type != NODE_LEAF) a = newArray(sizeof(BNFNode*));
   if (node && n && (a || type == NODE_LEAF)) {
     sprintf(n, "%s", name);
     node->name    = n;
@@ -63,16 +60,20 @@ BNFNode *newBNFNode(BNFNode *basenode, char *name, BNFType type) {
   return node;
 }
 
-void freebnfnode(BNFNode *node) {
-  free(node->name);
-  if (node->type == NODE_LEAF) {
-    if (node->content) free(node->content);
-  } else {
-    deleteArray((Array**)&node->content);
+void deleteBNFNode(BNFNode **node)
+{
+  if (*node) {
+    if ((*node)->type == NODE_LEAF) {
+      if ((*node)->content) free((*node)->content);
+    } else {
+      deleteArray((Array**)&(*node)->content);
+    }
+    free(*node);
   }
 }
 
-int expect(SymbolStream *ss, Array *trace, char *str) {
+int expect(SymbolStream *ss, Array *trace, char *str)
+{
   char error[256];
   Symbol *s;
 
@@ -148,8 +149,7 @@ int parsebnfstatement(SymbolStream *ss, BNFNode *basenode, BNFNode *parent, Arra
   BNFNode *subnode    = newBNFNode(basenode, "", NODE_LIST);
   BNFNode *concatnode = NULL;
   Array   *content    = subnode->content;
-  pushnewbnfnode(parent->content, &subnode);
-
+  push(parent->content, &subnode);
   do {
     s = ssgets(ss);
     if (s->eof) {
@@ -159,7 +159,7 @@ int parsebnfstatement(SymbolStream *ss, BNFNode *basenode, BNFNode *parent, Arra
     if (s->comment) continue;
     if (concat) {
       Array *a = subnode->content;
-      concatnode = at(a, a->size - 1);
+      concatnode = *(BNFNode**)at(a, a->size - 1);
       concat = 0;
     } else {
       concatnode = NULL;
@@ -167,27 +167,47 @@ int parsebnfstatement(SymbolStream *ss, BNFNode *basenode, BNFNode *parent, Arra
     if (s->text[0] == '(') {
       BNFNode *node = newBNFNode(basenode, "", NODE_ONE_OF);
       checkbnfnode(node);
-      if (concatnode) pushnewbnfnode(concatnode->content, &node);
-      else            pushnewbnfnode(subnode->content,    &node);
+      if (concatnode) push(concatnode->content, &node);
+      else            push(subnode->content,    &node);
       ret = parsebnfstatement(ss, basenode, node, trace, ")");
       oplast = 0;
     }
     else if (s->text[0] == '[') {
       BNFNode *node = newBNFNode(basenode, "", NODE_ONE_OR_NONE);
       checkbnfnode(node);
-      if (concatnode) pushnewbnfnode(concatnode->content, &node);
-      else            pushnewbnfnode(subnode->content,    &node);
+      if (concatnode) push(concatnode->content, &node);
+      else            push(subnode->content,    &node);
       ret = parsebnfstatement(ss, basenode, node, trace, "]");
+      if (EBNF_TO_BNF) {
+        BNFNode *empty = newBNFNode(basenode, "", NODE_LEAF);
+        node->type = NODE_ONE_OF;
+        push(node->content, &empty);
+      }
       oplast = 0;
     }
     else if (s->text[0] == '{') {
       if (EBNF_TO_BNF) {
-        
+        char name[32];
+        sprintf(name, "rec: %d", basenode->rec);
+        BNFNode *node = newBNFNode(basenode, name, NODE_ONE_OF);
+        checkbnfnode(node);
+        if (concatnode) push(concatnode->content, &node);
+        else            push(subnode->content,    &node);
+        ret = parsebnfstatement(ss, basenode, node, trace, "}");
+        if (((BNFNode*)at(node->content, 0))->type == NODE_ONE_OF) {
+          push(node->content, &node);
+        }
+        s = ssgets(ss);
+        if (s->text[0] != '+') {
+          BNFNode *empty = newBNFNode(basenode, "", NODE_LEAF);
+          push(node->content, &empty);
+          ssungets(ss, s);
+        }
       } else {
         BNFNode *node = newBNFNode(basenode, "", NODE_MANY_OR_NONE);
         checkbnfnode(node);
-        if (concatnode) pushnewbnfnode(concatnode->content, &node);
-        else            pushnewbnfnode(subnode->content,    &node);
+        if (concatnode) push(concatnode->content, &node);
+        else            push(subnode->content,    &node);
         ret = parsebnfstatement(ss, basenode, node, trace, "}");
         s = ssgets(ss);
         if (s->text[0] == '+') {
@@ -207,13 +227,13 @@ int parsebnfstatement(SymbolStream *ss, BNFNode *basenode, BNFNode *parent, Arra
       } else {
         if (content->size == 1) {
           subnode->content = NULL;
-          freebnfnode(pop(parent->content));
+          deleteBNFNode(pop(parent->content));
           push(parent->content, pop(content));
           deleteArray(&content);
         }
         subnode = newBNFNode(basenode, "", NODE_LIST);
         checkbnfnode(subnode);
-        pushnewbnfnode(parent->content, &subnode);
+        push(parent->content, &subnode);
         content = subnode->content;
       }
       oplast = 1;
@@ -228,27 +248,20 @@ int parsebnfstatement(SymbolStream *ss, BNFNode *basenode, BNFNode *parent, Arra
         BNFNode *node = newBNFNode(basenode, "", NODE_CONCAT);
         checkbnfnode(node);
         push(node->content, pop(subnode->content));
-        pushnewbnfnode(subnode->content, &node);
+        push(subnode->content, &node);
         concat = 1;
       }
       oplast = 1;
     }
     else if (s->text[0] == '<') {
-      int new = 0;
       char *name =  parsebnfname(ss, basenode, trace);
       BNFNode *node = getnode(basenode, basenode, name);
       if (!node) {
-        new = 1;
         node = newBNFNode(basenode, name, NODE_ONE_OF);
       }
       checkbnfnode(node);
-      if (concatnode) {
-        if (new) pushnewbnfnode(concatnode->content, &node);
-        else     push(concatnode->content,            node);
-      } else {
-        if (new) pushnewbnfnode(subnode->content, &node);
-        else     push(subnode->content,            node);
-      }
+      if (concat) push(concatnode->content, &node);
+      else        push(subnode->content,    &node);
       expect(ss, trace, ">");
       oplast = 0;
     }
@@ -267,8 +280,8 @@ int parsebnfstatement(SymbolStream *ss, BNFNode *basenode, BNFNode *parent, Arra
         }
         checkbnfnode(node);
         node->content = content;
-      if (concatnode) pushnewbnfnode(concatnode->content, &node);
-      else            pushnewbnfnode(subnode->content,    &node);
+      if (concatnode) push(concatnode->content, &node);
+      else            push(subnode->content,    &node);
         oplast = 0;
       }
     }
@@ -285,10 +298,10 @@ int parsebnfstatement(SymbolStream *ss, BNFNode *basenode, BNFNode *parent, Arra
 
   if (!content->size) {
     printsymbolmessage(WARNING, trace, s, "Empty group ignored");
-    freebnfnode(pop(parent->content));
+    deleteBNFNode(pop(parent->content));
   } else if (content->size == 1) {
     subnode->content = NULL;
-    freebnfnode(pop(parent->content));
+    deleteBNFNode(pop(parent->content));
     push(parent->content, pop(content));
     deleteArray(&content);
   }
@@ -356,18 +369,15 @@ void parsebnfbody(SymbolStream *ss, BNFNode *basenode, Array *trace)
       printsymbolmessage(ERROR, trace, s, error);
       break;
     } else {
-      int new = 0;
       char *name =  parsebnfname(ss, basenode, trace);
       BNFNode *node = getnode(basenode, basenode, name);
       if (!node) {
-        new = 1;
         node = newBNFNode(basenode, name, NODE_ONE_OF);
       }
       checkbnfnode(node);
       expect(ss, trace, ">");
       expect(ss, trace, "::=");
-      if (new) pushnewbnfnode(basenode->content, &node);
-      else     push(basenode->content, node);
+      push(basenode->content, &node);
       if (!parsebnfstatement(ss, basenode, node, trace, "\n")) break;
     }
   }
@@ -395,9 +405,9 @@ void linkbnf(BNFNode *basenode, Array* trace) {
   Array *a = basenode->content;
   BNFNode *n;
   for (int i = 0; i < a->size;) {
-    n = rem(a, 0);
+    n = *(BNFNode**)rem(a, 0);
     if (n != NULL && getnode(basenode, basenode, n->name) == NULL) {
-      push(a, n);
+      push(a, &n);
       i++;
     }
   }
@@ -406,7 +416,7 @@ void linkbnf(BNFNode *basenode, Array* trace) {
   } else if (a->size > 1) {
     printnodemessage(WARNING, trace, basenode->name, "Multiple roots!");
     for (int i = 0; i < a->size; i++) {
-      BNFNode *root = at(a, i);
+      BNFNode *root = *(BNFNode**)at(a, i);
       fprintf(stderr, "    :<%s>\n", root->name);
     }
   }
@@ -440,9 +450,9 @@ BNFNode *parsebnf(char *filename)
 
 void bnfpushunique(Array *a, BNFNode *n) {
   for (int i = 0; i < a->size; i++) {
-    if (((BNFNode*)at(a, i))->name == n->name) return;
+    if ((*(BNFNode**)at(a, i)) == n) return;
   }
-  push(a, n);
+  push(a, &n);
 }
 
 void delbnftree(BNFNode *basenode, BNFNode *node, Array *unique)
@@ -458,7 +468,7 @@ void delbnftree(BNFNode *basenode, BNFNode *node, Array *unique)
   if (node->type != NODE_LEAF) {
     Array *a = node->content;
     for (int i = 0; i < a->size; i++) {
-      delbnftree(basenode, at(a, i), unique);
+      delbnftree(basenode, *(BNFNode**)at(a, i), unique);
     }
   }
   bnfpushunique(unique, node);
@@ -467,12 +477,10 @@ void delbnftree(BNFNode *basenode, BNFNode *node, Array *unique)
 void deleteBNFTree(BNFNode **basenode)
 {
   if (*basenode) {
-    BNFNode *n;
-    Array *unique = newArray(sizeof(BNFNode));
+    Array *unique = newArray(sizeof(BNFNode*));
     delbnftree(*basenode, *basenode, unique);
-    while ((n = pop(unique))) freebnfnode(n);
+    while (unique->size) deleteBNFNode(pop(unique));
     deleteArray(&unique);
-    free(*basenode);
     *basenode = NULL;
   }
 }
