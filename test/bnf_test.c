@@ -1,3 +1,4 @@
+#include <diagnostic.h>
 #include <bnf.h>
 #include <terminal.h>
 
@@ -74,7 +75,9 @@ void printnode(BNFNode *n, char *s, int base, int lvl, int last) {
 
 int main() {
   BNFNode *n = parsebnf("parsing/bnf/test.bnf");
+  CHECK_MEMORY;
   printnode(n, "", 0, 0, 0);
   deleteBNFTree(&n);
+  CHECK_MEMORY;
   return 0;
 }

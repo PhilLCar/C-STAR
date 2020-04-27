@@ -150,24 +150,25 @@ Parser *newParser(char *filename)
 void deleteParser(Parser **parser)
 {
 	if (*parser != NULL) {
-		if ((*parser)->whitespaces == NULL) free((*parser)->whitespaces);
-		if ((*parser)->escapes == NULL) free((*parser)->escapes);
-		if ((*parser)->delimiters == NULL) {
-			for (int i = 0; (*parser)->delimiters[i]; i++) free((*parser)->delimiters[i]);
+		if ((*parser)->whitespaces  != NULL) free((*parser)->whitespaces);
+		if ((*parser)->escapes      != NULL) free((*parser)->escapes);
+		if ((*parser)->delimiters   != NULL) {
+			for (int i = 0; (*parser)->delimiters[i]; i++)   free((*parser)->delimiters[i]);
 			free((*parser)->delimiters);
 		}
-		if ((*parser)->linecom == NULL) {
-			for (int i = 0; (*parser)->linecom[i]; i++) free((*parser)->linecom[i]);
+		if ((*parser)->linecom      != NULL) {
+			for (int i = 0; (*parser)->linecom[i]; i++)      free((*parser)->linecom[i]);
 			free((*parser)->linecom);
 		}
-		if ((*parser)->multicom == NULL) {
-			for (int i = 0; (*parser)->multicom[i]; i++) free((*parser)->multicom[i]);
+		if ((*parser)->multicom     != NULL) {
+			for (int i = 0; (*parser)->multicom[i]; i++)     free((*parser)->multicom[i]);
 			free((*parser)->multicom);
 		}
-		if ((*parser)->breaksymbols == NULL) {
+		if ((*parser)->breaksymbols != NULL) {
 			for (int i = 0; (*parser)->breaksymbols[i]; i++) free((*parser)->breaksymbols[i]);
 			free((*parser)->breaksymbols);
 		}
+    free(*parser);
 		*parser = NULL;
 	}
 }

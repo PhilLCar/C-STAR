@@ -3,6 +3,7 @@
 
 #include <string.h>
 
+#include <diagnostic.h>
 #include <symbol.h>
 #include <terminal.h>
 #include <error.h>

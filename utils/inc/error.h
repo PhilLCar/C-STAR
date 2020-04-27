@@ -5,6 +5,7 @@
 #include <string.h>
 #include <stdlib.h>
 
+#include <diagnostic.h>
 #include <array.h>
 #include <terminal.h>
 #include <symbol.h>

@@ -1,6 +1,7 @@
 #ifndef SYMBOL_PARSING
 #define SYMBOL_PARSING
 
+#include <diagnostic.h>
 #include <generic_parser.h>
 #include <tracked_file.h>
 #include <array.h>

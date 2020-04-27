@@ -4,6 +4,8 @@
 #include <string.h>
 #include <stdlib.h>
 
+#include <diagnostic.h>
+
 typedef struct string {
   char *content;
   int   length;

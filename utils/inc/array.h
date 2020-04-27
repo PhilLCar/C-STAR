@@ -4,6 +4,8 @@
 #include <string.h>
 #include <stdlib.h>
 
+#include <diagnostic.h>
+
 typedef struct array {
   void   *content;
   size_t  element_size;

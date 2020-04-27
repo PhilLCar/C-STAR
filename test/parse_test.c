@@ -16,15 +16,25 @@ int main(void) {
   while (!aboutc[++i].comment);
   while (!aboutc[++i].comment);
   while (!aboutc[++i].comment);
+
+  CHECK_MEMORY;
+
   printsymbolmessage(INFO, trace, &aboutc[i], "This is a test");
   printsuggest("Maybe try (%s) instead?", "this");
+
+  CHECK_MEMORY;
 
   deleteArray(&trace);
   deleteParser(&parser);
   i = 0;
+  int eof;
   do {
-    freesymbol(&aboutc[i]);
-  } while (aboutc[i].eof);
+    eof = aboutc[i].eof;
+    freesymbol(&aboutc[i++]);
+  } while (!eof);
   free(aboutc);
+
+  CHECK_MEMORY;
+
   return 0;
 }

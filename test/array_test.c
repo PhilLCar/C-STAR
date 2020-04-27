@@ -24,7 +24,13 @@ int main() {
 	 ints->element_size,
 	 ints->size,
 	 ints->capacity);
+  
+  CHECK_MEMORY;
+
   deleteArray(&chars);
   deleteArray(&ints);
+  
+  CHECK_MEMORY;
+
   return 0;
 }

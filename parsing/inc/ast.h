@@ -1,6 +1,7 @@
 #ifndef AST_PARSING
 #define AST_PARSING
 
+#include <diagnostic.h>
 #include <bnf.h>
 #include <generic_parser.h>
 #include <symbol.h>

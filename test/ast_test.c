@@ -1,3 +1,4 @@
+#include <diagnostic.h>
 #include <ast.h>
 
 #define BRANCH    "│"
