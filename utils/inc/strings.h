@@ -13,6 +13,7 @@ typedef struct string {
 
 String *newString(char*);
 void    deleteString(String**);
+void    freestring(String*);
 String *concat(String*, String*);
 String *append(String*, char);
 

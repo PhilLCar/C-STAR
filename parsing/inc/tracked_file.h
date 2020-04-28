@@ -5,6 +5,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include <diagnostic.h>
+
 typedef struct trackedFile {
   FILE *fptr;
   char *buffer;

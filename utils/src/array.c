@@ -62,6 +62,11 @@ void push(Array *array, void *data)
 	       array->element_size);
 }
 
+void pushobj(Array *array, void *data) {
+  push(array, data);
+  free(data);
+}
+
 void *pop(Array *array)
 {
   void *index = NULL;
@@ -74,6 +79,15 @@ void *pop(Array *array)
     }
   }
   return index;
+}
+
+int popobj(Array *array, void(*freefunc)(void*)) {
+  void *index = pop(array);
+  if (index != NULL) {
+    freefunc(index);
+    return 1;
+  }
+  return 0;
 }
 
 void *at(Array *array, int index)

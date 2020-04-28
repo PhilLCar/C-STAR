@@ -322,8 +322,7 @@ SymbolStream *ssopen(char *filename, Parser *parser)
 
 void ssclose(SymbolStream *ss)
 {
-  Symbol *s;
-  while ((s = (Symbol*)pop(ss->stack))) freesymbol(s);
+  while (popobj(ss->stack, (F)freesymbol));
   if (ss->tfptr) tfclose(ss->tfptr);
   deleteArray(&ss->stack);
   freesymbol(&ss->symbol);

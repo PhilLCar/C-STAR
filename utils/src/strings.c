@@ -24,6 +24,11 @@ void deleteString(String **s)
   }
 }
 
+void freestring(String *s)
+{
+  free(s->content);
+}
+
 String *concat(String *a, String *b)
 {
   char *n = realloc(a->content, (a->length + b->length + 1) * sizeof(char));

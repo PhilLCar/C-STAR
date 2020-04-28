@@ -22,5 +22,5 @@ size_t  memuse();
 
 #endif
 #else
-#define CHECK_MEM
+#define CHECK_MEMORY
 #endif
