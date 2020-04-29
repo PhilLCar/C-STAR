@@ -16,5 +16,6 @@ void    deleteString(String**);
 void    freestring(String*);
 String *concat(String*, String*);
 String *append(String*, char);
+int     equal(String*, String*);
 
 #endif

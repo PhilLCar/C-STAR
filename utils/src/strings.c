@@ -54,3 +54,8 @@ String *append(String *a, char c)
   }
   return a;
 }
+
+int equal(String *a, String *b)
+{
+  return !strcmp(a->content, b->content);
+}

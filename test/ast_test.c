@@ -15,8 +15,6 @@ char *printstatus(ASTStatus status) {
       return TEXT_WHITE"[N]"FONT_RESET;
     case STATUS_ONGOING:
       return TEXT_MAGENTA"[O]"FONT_RESET;
-    case STATUS_POTENTIAL:
-      return TEXT_BLUE"[p]"FONT_RESET;
     case STATUS_PARTIAL:
       return TEXT_YELLOW"[P]"FONT_RESET;
   }
@@ -45,7 +43,7 @@ void printnode(ASTNode *node, char *tab, int lvl, int last) {
     printf("%s\n", printstatus(node->status));
   }
   for (int i = 0; i < node->subnodes->size; i++) {
-    printnode(at(node->subnodes, i), t, lvl + 1, i == node->subnodes->size - 1);
+    printnode(*(ASTNode**)at(node->subnodes, i), t, lvl + 1, i == node->subnodes->size - 1);
   }
 }
 
@@ -53,6 +51,6 @@ int main()
 {
     ASTNode *n = parseast("csr/test.csr");
     printnode(n, "", 0, 0);
-    deleteASTTree(&n);
+    //deleteASTTree(&n);
     return 0;
 }

@@ -8,12 +8,12 @@
 #include <strings.h>
 #include <array.h>
 
-#define AST_LOCK   0
-#define AST_CLOSE -1
+#define AST_CONCAT ' '
+#define AST_LOCK    0
+#define AST_CLOSE  -1
 
 typedef enum aststatus {
   STATUS_NOSTATUS = 0,
-  STATUS_POTENTIAL,
   STATUS_CONFIRMED,
   STATUS_FAILED,
   STATUS_ONGOING,
@@ -23,6 +23,7 @@ typedef enum aststatus {
 typedef enum asterror {
   ERROR_CONCAT_0MATCH,
   ERROR_CONCAT_MANYMATCH,
+  ERROR_UNIMPLEMENTED
 } ASTError;
 
 typedef struct astnode {

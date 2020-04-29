@@ -1,6 +1,6 @@
 #;; include (parsing/bnf/numbers.bnf)
 
-<add> ::= <oct> { "+" <oct> }+
+<op> ::= <oct> { ("+" | "-") <oct> }+
 <oct> ::=  [ "-" ] ( "0" | "0o" ), <oct-digit-no-zero>, { <oct-digit> }
 <oct-digit-no-zero> ::= '1' |
                         '2' |
