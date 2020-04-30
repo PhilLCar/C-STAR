@@ -49,8 +49,10 @@ void printnode(ASTNode *node, char *tab, int lvl, int last) {
 
 int main()
 {
-    ASTNode *n = parseast("csr/test.csr");
-    printnode(n, "", 0, 0);
-    //deleteASTTree(&n);
-    return 0;
+  CHECK_MEMORY;
+  ASTNode *n = parseast("csr/test.csr");
+  printnode(n, "", 0, 0);
+  deleteASTTree(&n);
+  CHECK_MEMORY;
+  return 0;
 }

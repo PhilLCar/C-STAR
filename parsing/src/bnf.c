@@ -16,7 +16,7 @@ BNFNode *getnode(BNFNode *basenode, BNFNode *node, char *name)
   if (!strcmp(node->name, name)) return node;
   if (node == basenode) {
     basenode->rec++;
-  } else if (node->rec < basenode-> rec) {
+  } else if (node->rec < basenode->rec) {
     node->rec = basenode->rec;
   } else {
     return NULL;
@@ -185,7 +185,7 @@ int parsebnfstatement(SymbolStream *ss, BNFNode *basenode, BNFNode *parent, Arra
     }
     else if (s->text[0] == '{') {
       char name[32] = "";
-      if (EBNF_TO_BNF) sprintf(name, "rec: %d", basenode->rec);
+      if (EBNF_TO_BNF) sprintf(name, REC_NODE_INDICATOR"%d", basenode->rec);
       BNFNode *node = newBNFNode(basenode, name, EBNF_TO_BNF ? NODE_ONE_OF : NODE_MANY_OR_NONE);
       checkbnfnode(node);
       push(content, &node);
@@ -449,7 +449,7 @@ void delbnftree(BNFNode *basenode, BNFNode *node, Array *unique)
   if (node == NULL) return;
   if (node == basenode) {
     basenode->rec++;
-  } else if (node->rec < basenode-> rec) {
+  } else if (node->rec < basenode->rec) {
     node->rec = basenode->rec;
   } else {
     return;

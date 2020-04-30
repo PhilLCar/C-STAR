@@ -98,6 +98,12 @@ void *at(Array *array, int index)
   return NULL;
 }
 
+void *last(Array *array)
+{
+  if (array->size) return (char*)array->content + ((array->size - 1) * array->element_size);
+  return NULL;
+}
+
 void *rem(Array *array, int index)
 {
   void *rem = NULL;

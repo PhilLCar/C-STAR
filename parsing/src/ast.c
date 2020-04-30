@@ -59,7 +59,7 @@ void concatastnode(ASTNode *c) {
   for (int i = 0; i < c->subnodes->size; i++) {
     ASTNode *n = *(ASTNode**)at(c->subnodes, i);
     concat(c->value, newString(n->value->content));
-    deleteASTTree(&n);
+    deleteAST(&n);
   }
   // not legit
   c->subnodes->size = 0;
@@ -67,8 +67,8 @@ void concatastnode(ASTNode *c) {
 
 void astswaparray(ASTNode *super, ASTNode *sub) {
   Array *tmp = sub->subnodes;
-  sub->subnodes = NULL;
-  while (super->subnodes->size) deleteASTTree(pop(super->subnodes));
+  sub->subnodes = newArray(sizeof(ASTNode*));
+  while (super->subnodes->size) deleteAST(pop(super->subnodes));
   deleteArray(&super->subnodes);
   super->subnodes = tmp;
 }
@@ -81,27 +81,46 @@ void upastnode(ASTNode *super, ASTNode *sub) {
   astswaparray(super, sub);
 }
 
-void astkeep(ASTNode *super, int partial) {
-  ASTNode *n, *keep;
+int astkeep(ASTNode *super, int partial) {
+  int ret = 1;
+  ASTNode *n, *keep = NULL;
   for (int i = 0; super->subnodes->size; ) {
     n = *(ASTNode**)pop(super->subnodes);
     if ((!partial || n->status != STATUS_PARTIAL) && n->status != STATUS_CONFIRMED) {
-      deleteASTTree(&n);
+      deleteAST(&n);
     } else {
+      if (keep) deleteAST(&keep);
       keep = n;
       i++;
     };
     if (i == 2) {
       // AMBIGUOUS BNF TREE
-      printf("AMB\n");
+      ret = 0;
       break;
     }
   }
   upastnode(super, keep);
+  return ret;
 }
 
 void asterror(Array *errors, ASTError error) {
   push(errors, &error);
+}
+
+void astcheckrecnode(ASTNode *node) {
+  String   *rec = newString(REC_NODE_INDICATOR);
+  ASTNode **l   = last(node->subnodes);
+  if (l) {
+    if (contains((*l)->name, rec)) {
+      if ((*l)->subnodes->size) {
+        ASTNode *n = *(ASTNode**)pop(node->subnodes);
+        while (n->subnodes->size) push(node->subnodes, rem(n->subnodes, 0));
+        deleteAST(&n);
+      } else {
+        deleteAST(pop(node->subnodes));
+      }
+    }
+  }
 }
 
 Array *newcharast(ASTNode *ast, BNFNode *bnf, Array *reserved, char c) {
@@ -166,8 +185,7 @@ Array *newcharast(ASTNode *ast, BNFNode *bnf, Array *reserved, char c) {
         combine(errors, newcharast(subast, subbnf, reserved, c));
         if (subast->status == STATUS_FAILED) {
           superast->status = STATUS_ONGOING;
-          // TODO CHANGE FOR MORE EFFICIENT POPPING METHOD;
-          deleteASTTree(rem(superast->subnodes, i--));
+          deleteAST(rem(superast->subnodes, i--));
           lim--;
           continue;
         } else if (subast->status == STATUS_PARTIAL) {
@@ -192,7 +210,7 @@ Array *newcharast(ASTNode *ast, BNFNode *bnf, Array *reserved, char c) {
           superast->status = STATUS_CONFIRMED;
           while (superast->subnodes->size) {
             ASTNode *n = *(ASTNode**)pop(superast->subnodes);
-            if (n != ast) deleteASTTree(&n);
+            if (n != ast) deleteAST(&n);
           }
           push(superast->subnodes, &ast);
           ast->status = STATUS_CONFIRMED;
@@ -202,6 +220,7 @@ Array *newcharast(ASTNode *ast, BNFNode *bnf, Array *reserved, char c) {
           if (superast->subnodes->size == 1) {
             upastnode(superast, ast);
           }
+          astcheckrecnode(superast);
           break;
         }
       }
@@ -210,6 +229,7 @@ Array *newcharast(ASTNode *ast, BNFNode *bnf, Array *reserved, char c) {
       }
       if ((c == AST_LOCK || c == AST_CLOSE) && bnf->type == NODE_CONCAT) {
         concatastnode(superast);
+        // CHECK IF CONCAT IS RESERVED
       }
       break;
     case NODE_ONE_OF:
@@ -237,6 +257,7 @@ Array *newcharast(ASTNode *ast, BNFNode *bnf, Array *reserved, char c) {
         astkeep(ast, 1);
       } else if (ast->pos >= size) {
         ast->status = STATUS_FAILED;
+        while(ast->subnodes->size) deleteAST(pop(ast->subnodes));
       }
       break;
   }
@@ -246,10 +267,11 @@ Array *newcharast(ASTNode *ast, BNFNode *bnf, Array *reserved, char c) {
 
 ASTNode *parseast(char *filename)
 {
-  BNFNode      *root     = parsebnf("parsing/bnf/test.bnf");
+  BNFNode      *bnftree  = parsebnf("parsing/bnf/test.bnf");
+  BNFNode      *rootent  = bnfsubnode(bnftree, 0);
   Parser       *parser   = newParser("parsing/prs/csr.prs");
   SymbolStream *ss       = ssopen(filename, parser);
-  ASTNode      *ast      = astfrombnf(bnfsubnode(root, 0));
+  ASTNode      *ast      = astfrombnf(rootent);
   Array        *reserved = newArray(sizeof(char*));
 
   Symbol *s;
@@ -257,27 +279,23 @@ ASTNode *parseast(char *filename)
     int i = 0;
     char c;
 
-    newcharast(ast, bnfsubnode(root, 0), reserved, AST_LOCK);
+    newcharast(ast, rootent, reserved, AST_LOCK);
     while ((c = s->text[i++])) {
-      newcharast(ast, bnfsubnode(root, 0), reserved, c);
+      newcharast(ast, rootent, reserved, c);
     }
   }
-  newcharast(ast, bnfsubnode(root, 0), reserved, AST_CLOSE);
+  newcharast(ast, rootent, reserved, AST_CLOSE);
 
   deleteArray(&reserved);
   ssclose(ss);
   deleteParser(&parser);
-  deleteBNFTree(&root);
+  deleteBNFTree(&bnftree);
   return ast;
 }
 
-void deleteASTTree(ASTNode **node) {
+void deleteAST(ASTNode **node) {
   if (*node) {
-    if ((*node)->subnodes) {
-      for (int i = 0; i < (*node)->subnodes->size; i++) {
-        deleteASTTree(at((*node)->subnodes, i));
-      }
-    }
+    while((*node)->subnodes->size) deleteAST(pop((*node)->subnodes));
     freeastnode(*node);
     free(*node);
     *node = NULL;

@@ -59,3 +59,18 @@ int equal(String *a, String *b)
 {
   return !strcmp(a->content, b->content);
 }
+
+int contains(String *a, String *b)
+{
+  char *acon  = a->content;
+  char *bcon  = b->content;
+  int contain = acon[0] == bcon[0];
+  for (int j = 0; j < a->length - b->length; j++) {
+    contain = acon[j] == bcon[0];
+    for (int i = 1; contain && acon[i + j] && bcon[i]; i++) {
+      contain &= acon[i + j] == bcon[i];
+    }
+    if (contain) break;
+  }
+  return contain;
+}

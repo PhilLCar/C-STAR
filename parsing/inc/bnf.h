@@ -12,6 +12,7 @@
 
 #define INCLUDE_MAX_DEPTH   128
 #define EBNF_TO_BNF         1
+#define REC_NODE_INDICATOR  "rec: "
 
 typedef enum bnftype {
   NODE_ROOT = 0,

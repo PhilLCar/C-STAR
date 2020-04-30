@@ -24,6 +24,7 @@ void  *pop(Array*);
 int    popobj(Array*, void(*)(void*));
 void  *at(Array*, int);
 void  *rem(Array*, int);
+void  *last(Array*);
 void   set(Array*, int, void*);
 void   combine(Array*, Array*);
 #endif
