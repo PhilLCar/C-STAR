@@ -1,5 +1,6 @@
 #include <stdio.h>
 
+#include <diagnostic.h>
 #include <array.h>
 
 int main() {

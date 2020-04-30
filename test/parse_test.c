@@ -1,3 +1,6 @@
+#include <stdio.h>
+
+#include <diagnostic.h>
 #include <symbol.h>
 #include <error.h>
 

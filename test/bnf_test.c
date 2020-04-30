@@ -1,3 +1,5 @@
+#include <stdio.h>
+
 #include <diagnostic.h>
 #include <bnf.h>
 #include <terminal.h>
