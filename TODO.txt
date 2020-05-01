@@ -1,0 +1,4 @@
+-erreur bnf whitespace
+-bnf raw nodes
+-ast create Error struct, replace ASTerror by ASTErrorType
+- lire le script à Thériault

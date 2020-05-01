@@ -14,27 +14,36 @@
 
 typedef enum aststatus {
   STATUS_NOSTATUS = 0,
+  STATUS_ONGOING,
   STATUS_CONFIRMED,
   STATUS_FAILED,
-  STATUS_ONGOING,
-  STATUS_PARTIAL
+  STATUS_PARTIAL,
 } ASTStatus;
 
-typedef enum asterror {
+typedef enum asterrortype {
   ERROR_CONCAT_0MATCH,
   ERROR_CONCAT_MANYMATCH,
-  ERROR_UNIMPLEMENTED
+  ERROR_UNIMPLEMENTED,
+  WARNING_AMBIGUOUS
+} ASTErrorType;
+
+typedef struct asterror {
+  ASTErrorType  errno;
+  BNFNode      *bnfref;
 } ASTError;
 
 typedef struct astnode {
-  String    *name;
-  Array     *subnodes;
-  String    *value;
-  ASTStatus  status;
-  int        pos;
+  String         *name;
+  struct astnode *parent;
+  BNFNode        *ref;
+  Array          *subnodes;
+  String         *value;
+  ASTStatus       status;
+  int             pos;
+  int             partial;
 } ASTNode;
 
 ASTNode *parseast(char*);
-void     deleteASTTree(ASTNode**);
+void     deleteAST(ASTNode**);
 
 #endif

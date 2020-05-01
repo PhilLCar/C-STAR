@@ -260,23 +260,19 @@ int parsebnfstatement(SymbolStream *ss, BNFNode *basenode, BNFNode *parent, Arra
       oplast = 0;
     }
     else if (s->string) {
-      if (!s->text[0]) {
-        printsymbolmessage(WARNING, trace, s, "Empty string ignored");
-      } else {
-        BNFNode *node = NULL;
-        char *value = malloc((strlen(s->text) + 1) * sizeof(char));
-        sprintf(value, "%s", s->text);
-        node = newBNFNode(basenode, "", NODE_LEAF);
-        if (!strcmp(s->open, "\"")) {
-          if (strcmp(s->close, "\"")) printsymbolmessage(ERROR, trace, s, "Expected closing '"FONT_BOLD"\""FONT_RESET"'!");
-        } else if (!strcmp(s->open, "'")) {
-          if (strcmp(s->close, "\'")) printsymbolmessage(ERROR, trace, s, "Expected closing '"FONT_BOLD"'"FONT_RESET"'!");
-        }
-        checkbnfnode(node);
-        node->content = value;
-        push(content, &node);
-        oplast = 0;
+      BNFNode *node = NULL;
+      char *value = s->text[0] ? malloc((strlen(s->text) + 1) * sizeof(char)) : NULL;
+      if (value) sprintf(value, "%s", s->text);
+      node = newBNFNode(basenode, "", NODE_LEAF);
+      if (!strcmp(s->open, "\"")) {
+        if (strcmp(s->close, "\"")) printsymbolmessage(ERROR, trace, s, "Expected closing '"FONT_BOLD"\""FONT_RESET"'!");
+      } else if (!strcmp(s->open, "'")) {
+        if (strcmp(s->close, "\'")) printsymbolmessage(ERROR, trace, s, "Expected closing '"FONT_BOLD"'"FONT_RESET"'!");
       }
+      checkbnfnode(node);
+      node->content = value;
+      push(content, &node);
+      oplast = 0;
     }
     else if (!strcmp(s->text, stop)) {
       continue;
