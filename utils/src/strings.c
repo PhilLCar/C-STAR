@@ -64,13 +64,14 @@ int contains(String *a, String *b)
 {
   char *acon  = a->content;
   char *bcon  = b->content;
-  int contain = acon[0] == bcon[0];
-  for (int j = 0; j < a->length - b->length; j++) {
-    contain = acon[j] == bcon[0];
-    for (int i = 1; contain && acon[i + j] && bcon[i]; i++) {
-      contain &= acon[i + j] == bcon[i];
+  int   match = 0;
+
+  for (int j = 0; j <= a->length - b->length; j++) {
+    match = acon[j] == bcon[0];
+    for (int i = 1; match && i < b->length; i++) {
+      match &= acon[i + j] == bcon[i];
     }
-    if (contain) break;
+    if (match) break;
   }
-  return contain;
+  return match;
 }

@@ -55,17 +55,11 @@ void freeastnode(ASTNode *node) {
 }
 
 void astconcatnode(ASTNode *c) {
-  /// TODO: Only add child of type CONCAT
-  for (int i = 0; i < c->subnodes->size; i++) {
-    astconcatnode(astsubnode(c, i));
-  }
-  for (int i = 0; i < c->subnodes->size; i++) {
-    ASTNode *n = *(ASTNode**)at(c->subnodes, i);
+  while(c->subnodes->size) {
+    ASTNode *n = *(ASTNode**)rem(c->subnodes, 0);
     concat(c->value, newString(n->value->content));
     deleteAST(&n);
   }
-  // not legit
-  c->subnodes->size = 0;
 }
 
 void astupnode(ASTNode *super, ASTNode *sub) {
@@ -88,19 +82,21 @@ void asterror(Array *errors, ASTErrorType errno, BNFNode *bnf) {
 }
 
 void astcheckrecnode(ASTNode *node) {
-  String   *rec = newString(REC_NODE_INDICATOR);
-  ASTNode **l   = last(node->subnodes);
-  if (l) {
-    if (contains((*l)->name, rec)) {
-      if ((*l)->subnodes->size) {
-        ASTNode *n = *(ASTNode**)pop(node->subnodes);
-        while (n->subnodes->size) push(node->subnodes, rem(n->subnodes, 0));
+  // Initializing a string each time can be optimized out
+  String *rec = newString(REC_NODE_INDICATOR);
+  for (int i = 0; i < node->subnodes->size; i++) {
+    ASTNode *n = astsubnode(node, i);
+    if (contains(n->name, rec)) {
+      if (n->subnodes->size) {
+        rem(node->subnodes, i--);
+        while (n->subnodes->size) insert(node->subnodes, i + 1, pop(n->subnodes));
         deleteAST(&n);
       } else {
-        deleteAST(pop(node->subnodes));
+        deleteAST(rem(node->subnodes, i--));
       }
     }
   }
+  deleteString(&rec);
 }
 
 void astnewchar(Array *errors, ASTNode *ast, BNFNode *bnf, Array *reserved, int concatmode, char c) {
@@ -181,20 +177,20 @@ void astnewchar(Array *errors, ASTNode *ast, BNFNode *bnf, Array *reserved, int 
           if (++ast->pos == size) {
             ast->status = STATUS_CONFIRMED;
             last = ast;
-            if (bnf->type == NODE_CONCAT) {
-              //concat node
-            }
           } else if (c == AST_CLOSE || c == AST_LOCK) i--;
         }
       }
       if (last) {
-        astcheckrecnode(last);
         if (last->subnodes->size == 1) {
           astupnode(last, astsubnode(last, 0));
+        } else {
+          astcheckrecnode(last);
+          if (bnf->type == NODE_CONCAT) astconcatnode(last);
         }
         if (superast->subnodes->size == 1) {
           astupnode(superast, last);
           superast->status = STATUS_CONFIRMED;
+          break;
         } else {
           superast->status = STATUS_PARTIAL;
         }
@@ -230,7 +226,7 @@ void astnewchar(Array *errors, ASTNode *ast, BNFNode *bnf, Array *reserved, int 
         superast->status = STATUS_PARTIAL;
         ast->status      = STATUS_ONGOING;
         last->status     = STATUS_FAILED;
-        concat(nast->name, newString(ast->name->content));
+        if (!nast->name->length) concat(nast->name, newString(ast->name->content));
         push(superast->subnodes, &nast);
         ast->pos++;
       } else if (ast->status == STATUS_PARTIAL) {
@@ -240,7 +236,7 @@ void astnewchar(Array *errors, ASTNode *ast, BNFNode *bnf, Array *reserved, int 
           ASTNode *partial = astsubnode(last, i);
           if (partial->status == STATUS_CONFIRMED) {
             rem(last->subnodes, i);
-            concat(partial->name, newString(ast->name->content));
+            if (!partial->name->length) concat(partial->name, newString(ast->name->content));
             push(superast->subnodes, &partial);
             break;
           }

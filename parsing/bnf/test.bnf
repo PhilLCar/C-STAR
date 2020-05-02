@@ -4,7 +4,7 @@
 <oct> ::=  [ "-" ] ( "0" | "0o" ), <oct-digit-no-zero>, { <oct-digit> }
 <oct-digit-no-zero> ::= '1' |
                         '2' |
-                        '1b' |
+                        '3' |
                         '4' |
                         '5' |
                         '6' |

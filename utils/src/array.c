@@ -142,3 +142,28 @@ void combine(Array* a, Array *b)
   }
   deleteArray(&b);
 }
+
+void insert(Array *array, int index, void *data) {
+  if (array->size >= array->capacity) {
+    void *prevloc = NULL;
+    if ((char*)data >= (char*)array->content && 
+        (char*)data <  (char*)array->content + (array->element_size * array->size))
+    { // array is copying itself, update pointer
+      prevloc = array->content;
+    }
+    if (!resize(array, array->capacity * 2)) return;
+    if (prevloc) {
+      data = (char*)data + ((long)array->content - (long)prevloc);
+    }
+  }
+  // Array is copying the moving part
+  if ((char*)data >= (char*)array->content + index       * array->element_size &&
+      (char*)data <  (char*)array->content + array->size * array->element_size) {
+    data = (char*)data + array->element_size;
+  }
+  memcpy((char*)array->content + (index + 1) * array->element_size, 
+         (char*)array->content +  index      * array->element_size,
+         (array->size++        -  index    ) * array->element_size);
+  memcpy((char*)array->content +  index      * array->element_size, 
+         (char*)data,                          array->element_size);
+}

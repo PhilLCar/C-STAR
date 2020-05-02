@@ -28,4 +28,5 @@ void  *last(Array*);
 void   set(Array*, int, void*);
 void   clear(Array*);
 void   combine(Array*, Array*);
+void   insert(Array*, int, void*);
 #endif

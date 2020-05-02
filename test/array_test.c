@@ -14,17 +14,26 @@ int main() {
   push(ints, &i1);
   push(ints, &i2);
   push(ints, &i3);
-  int i4 = *(int*)pop(ints);
+
   printf("Chars[2]:  %c, element: %ld, size: %d, capacity: %d\n",
-	 ((char*)chars->content)[1],
-	 chars->element_size,
-	 chars->size,
-	 chars->capacity);
+	       ((char*)chars->content)[1],
+	       chars->element_size,
+	       chars->size,
+	       chars->capacity);
+  for (int i = 0; i < chars->size; i++) {
+    printf("\t%d -> %c\n", i, *(char*)at(chars, i));
+  }
+
+  int i4 = *(int*)rem(ints, 1);
+  insert(ints, 0, &i4);
   printf("Ints [3]: %d, element: %ld, size: %d, capacity: %d\n",
-	 i4,
-	 ints->element_size,
-	 ints->size,
-	 ints->capacity);
+	       i4,
+	       ints->element_size,
+	       ints->size,
+	       ints->capacity);
+  for (int i = 0; i < ints->size; i++) {
+    printf("\t%d -> %d\n", i, *(int*)at(ints, i));
+  }
   
   CHECK_MEMORY;
 
