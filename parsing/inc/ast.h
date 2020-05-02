@@ -17,7 +17,7 @@ typedef enum aststatus {
   STATUS_ONGOING,
   STATUS_CONFIRMED,
   STATUS_FAILED,
-  STATUS_PARTIAL,
+  STATUS_PARTIAL
 } ASTStatus;
 
 typedef enum asterrortype {
@@ -34,13 +34,11 @@ typedef struct asterror {
 
 typedef struct astnode {
   String         *name;
-  struct astnode *parent;
   BNFNode        *ref;
   Array          *subnodes;
   String         *value;
   ASTStatus       status;
   int             pos;
-  int             partial;
 } ASTNode;
 
 ASTNode *parseast(char*);

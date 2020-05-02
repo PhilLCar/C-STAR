@@ -127,6 +127,11 @@ void set(Array *array, int index, void *value)
   }
 }
 
+void clear(Array *array)
+{
+  array->size = 0;
+}
+
 void combine(Array* a, Array *b)
 {
   void *elem;
