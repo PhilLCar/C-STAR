@@ -19,16 +19,14 @@ char *printstatus(ASTStatus status) {
       return TEXT_MAGENTA"[O]"FONT_RESET;
     case STATUS_PARTIAL:
       return TEXT_YELLOW"[P]"FONT_RESET;
+    case STATUS_REC:
+      return TEXT_CYAN"[R]"FONT_RESET;
   }
   return "[U]";
 }
 
 char *printmod(ASTNode *n) {
-  if (n->mod) {
-    return FONT_BOLD""TEXT_MAGENTA" {M}"FONT_RESET;
-  } else {
-    return "";
-  }
+  return "";
 }
 
 void printnode(ASTNode *node, char *tab, int lvl, int last) {

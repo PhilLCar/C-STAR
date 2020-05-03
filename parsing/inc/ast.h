@@ -17,7 +17,8 @@ typedef enum aststatus {
   STATUS_ONGOING,
   STATUS_CONFIRMED,
   STATUS_FAILED,
-  STATUS_PARTIAL
+  STATUS_PARTIAL,
+  STATUS_REC
 } ASTStatus;
 
 typedef enum asterrortype {
@@ -46,7 +47,6 @@ typedef struct astnode {
   ASTStatus       status;
   int             pos;
   int             rec;
-  int             mod;
 } ASTNode;
 
 ASTNode *parseast(char*);

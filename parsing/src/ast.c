@@ -14,7 +14,6 @@ ASTNode *newASTNode(ASTNode *ast, BNFNode *bnf)
     new->status   = STATUS_NOSTATUS;
     new->pos      = 0;
     new->rec      = 0;
-    new->mod      = 0;
     if (ast) push(ast->subnodes, &new);
   }
   return new;
@@ -31,7 +30,6 @@ ASTNode *duplicateAST(ASTNode *ast)
     new->status   = ast->status;
     new->pos      = ast->pos;
     new->rec      = ast->rec;
-    new->mod      = ast->mod;
     if (new->subnodes) {
       for (int i = 0; i < ast->subnodes->size; i++) {
         ASTNode *n = duplicateAST(astsubnode(ast, i));
@@ -84,21 +82,6 @@ void asterror(Array *errors, ASTErrorType errno, BNFNode *bnf) {
   error.errno  = errno;
   error.bnfref = bnf;
   push(errors, &error);
-}
-
-void astcheckrecnode(ASTNode *node) {
-  for (int i = 0; i < node->subnodes->size; i++) {
-    ASTNode *n = astsubnode(node, i);
-    if (n->ref->type == NODE_REC) {
-      if (n->subnodes->size) {
-        astcheckrecnode(n);
-        set(node->subnodes, i, pop(n->subnodes));
-        deleteAST(&n);
-      } else {
-        deleteAST(rem(node->subnodes, i--));
-      }
-    }
-  }
 }
 
 void astnewchar(Array *errors, ASTNode *ast, BNFNode *bnf, Array *reserved, ASTFlags flags, char c) {
@@ -157,61 +140,58 @@ void astnewchar(Array *errors, ASTNode *ast, BNFNode *bnf, Array *reserved, ASTF
           deleteAST(rem(superast->subnodes, i--)); lim--;
         } else if (subast->status == STATUS_PARTIAL) {
           ASTNode *nast = newASTNode(superast, bnf);
+          nast->rec = ast->rec;
+          nast->pos = ast->pos;
           for (int j = 0; j < ast->pos + ast->rec; j++) {
             ASTNode *confirmed = duplicateAST(astsubnode(ast, j));
             push(nast->subnodes, &confirmed);
           }
           for (int j = 0; j < subast->subnodes->size; j++) {
             ASTNode *partial = astsubnode(subast, j);
-            if (partial->status == STATUS_CONFIRMED) {
+            if (partial->status == STATUS_CONFIRMED || partial->status == STATUS_REC) {
               rem(subast->subnodes, j);
               push(nast->subnodes, &partial);
+              if (partial->status == STATUS_REC) nast->rec++;
+              else                               nast->pos++;
               break;
             }
           }
-          nast->rec = ast->rec;
-          if ((nast->pos = ast->pos + 1) == size) {
+          if (nast->pos == size) {
             nast->status = STATUS_CONFIRMED;
+            save = nast;
+          } else if (flags & MODE_REC && nast->pos == size - 1) {
+            nast->status = STATUS_REC;
             save = nast;
           } else if (c == AST_CLOSE || c == AST_LOCK) {
             lim++;
           }
         } else if (subast->status == STATUS_CONFIRMED) {
+          if (flags & MODE_REC && !subast->value->length) {
+            pop(ast->subnodes);
+            ast->rec--;
+          }
           if (++ast->pos == size) {
             ast->status = STATUS_CONFIRMED;
+            save = ast;
+          } else if (flags & MODE_REC && ast->pos == size - 1) {
+            ast->status = STATUS_REC;
             save = ast;
           } else if (c == AST_CLOSE || c == AST_LOCK) { 
             i--;
           }
-        } else if (subast->mod) {
-          ASTNode *rec       = astsubnode(subast, 0);
-          ASTNode *superlist = astsubnode(rec, 0);
-          ASTNode *list      = astsubnode(superlist, 0);
-          if (superlist->subnodes->size == 1) {
-            int l = list->subnodes->size;
-            ASTNode *n = *(ASTNode**)pop(ast->subnodes);
-            while (list->subnodes->size) {
-              insert(ast->subnodes, ast->pos + ast->rec++, rem(list->subnodes, 0));
-            }
-            deleteAST(&n);
-            if (l > 1) ast->rec--;
-          }
-        }
-        if ((flags & MODE_REC) && ast->pos == size - 1 && superast->subnodes->size == 1) {
-          ast->mod      = 1;
-          superast->mod = 1;
+        } else if (subast->status == STATUS_REC) {
+          ast->rec++;
         }
       }
       if (save) {
-        astcheckrecnode(save);
         if (save->subnodes->size == 1) {
-          //astupnode(save, astsubnode(save, 0));
+          astupnode(save, astsubnode(save, 0));
         } else if (bnf->type == NODE_CONCAT) {
-          astconcatnode(save);
+          //astconcatnode(save);
         }
         if (superast->subnodes->size == 1) {
           astupnode(superast, save);
-          superast->status = STATUS_CONFIRMED;
+          superast->status = ast->status;
           break;
         } else {
           superast->status = STATUS_PARTIAL;
@@ -238,12 +218,12 @@ void astnewchar(Array *errors, ASTNode *ast, BNFNode *bnf, Array *reserved, ASTF
           astnewchar(errors, subast, subbnf, reserved, f, c);
           if (subast->status == STATUS_CONFIRMED)    { ast->status = STATUS_CONFIRMED; save = subast; }
           else if (subast->status == STATUS_PARTIAL) { ast->status = STATUS_PARTIAL;   save = subast; }
+          else if (subast->status == STATUS_REC)     { ast->status = STATUS_REC;       save = subast; }
           else if (subast->status == STATUS_FAILED)  { ast->pos++;                                    }
-          if (bnf->type == NODE_REC) superast->mod |= ast->mod |= subast->mod;
         }
       }
-      if (ast->status == STATUS_CONFIRMED && ast->pos == size - 1) {
-        superast->status = STATUS_CONFIRMED;
+      if ((ast->status == STATUS_CONFIRMED && ast->pos == size - 1) || ast->status == STATUS_REC) {
+        superast->status = ast->status;
         astupnode(superast, save);
         break;
       } else if (ast->status == STATUS_CONFIRMED) {
@@ -261,7 +241,7 @@ void astnewchar(Array *errors, ASTNode *ast, BNFNode *bnf, Array *reserved, ASTF
         superast->status = STATUS_PARTIAL;
         for (int i = 0; i < save->subnodes->size; i++) {
           ASTNode *partial = astsubnode(save, i);
-          if (partial->status == STATUS_CONFIRMED) {
+          if (partial->status == STATUS_CONFIRMED || partial->status == STATUS_REC) {
             rem(save->subnodes, i);
             if (!partial->name->length) {
               partial->ref = ast->ref;
@@ -299,7 +279,7 @@ ASTNode *parseast(char *filename)
       astnewchar(errors, ast, rootent, reserved, 0, c);
     }
   }
-  //astnewchar(errors, ast, rootent, reserved, 0, AST_CLOSE);
+  astnewchar(errors, ast, rootent, reserved, 0, AST_LOCK);
 
   deleteArray(&errors);
   deleteArray(&reserved);
