@@ -54,6 +54,12 @@ void printnode(BNFNode *n, char *s, int base, int lvl, int last) {
       printnode(*(BNFNode**)at(n->content, i), t, base, lvl + 1, i == (((Array*)n->content)->size - 1));
     }
     break;
+  case NODE_REC:
+    printf(TEXT_CYAN"[R] %s\n"FONT_RESET, n->name);
+    for (int i = 0; i < ((Array*)n->content)->size && p; i++) {
+      printnode(*(BNFNode**)at(n->content, i), t, base, lvl + 1, i == (((Array*)n->content)->size - 1));
+    }
+    break;
   case NODE_ONE_OR_NONE:
     printf(TEXT_GREEN"[X]\n"FONT_RESET);
     for (int i = 0; i < ((Array*)n->content)->size && p; i++) {

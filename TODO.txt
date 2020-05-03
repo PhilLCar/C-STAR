@@ -1,4 +1,5 @@
 -erreur bnf whitespace
 -bnf raw nodes
--ast create Error struct, replace ASTerror by ASTErrorType
+-AST_LOCK fail on started nodes
+-ASTError for each node
 - lire le script à Thériault

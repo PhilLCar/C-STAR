@@ -186,7 +186,7 @@ int parsebnfstatement(SymbolStream *ss, BNFNode *basenode, BNFNode *parent, Arra
     else if (s->text[0] == '{') {
       char name[32] = "";
       if (EBNF_TO_BNF) sprintf(name, REC_NODE_INDICATOR"%d", basenode->rec);
-      BNFNode *node = newBNFNode(basenode, name, EBNF_TO_BNF ? NODE_ONE_OF : NODE_MANY_OR_NONE);
+      BNFNode *node = newBNFNode(basenode, name, EBNF_TO_BNF ? NODE_REC : NODE_MANY_OR_NONE);
       checkbnfnode(node);
       push(content, &node);
       ret = parsebnfstatement(ss, basenode, node, trace, "}");

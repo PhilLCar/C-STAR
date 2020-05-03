@@ -27,6 +27,12 @@ typedef enum asterrortype {
   WARNING_AMBIGUOUS
 } ASTErrorType;
 
+typedef enum astflags {
+  MODE_NONE   = 0,
+  MODE_CONCAT = 1,
+  MODE_REC    = 2
+} ASTFlags;
+
 typedef struct asterror {
   ASTErrorType  errno;
   BNFNode      *bnfref;
@@ -39,6 +45,8 @@ typedef struct astnode {
   String         *value;
   ASTStatus       status;
   int             pos;
+  int             rec;
+  int             mod;
 } ASTNode;
 
 ASTNode *parseast(char*);

@@ -23,6 +23,14 @@ char *printstatus(ASTStatus status) {
   return "[U]";
 }
 
+char *printmod(ASTNode *n) {
+  if (n->mod) {
+    return FONT_BOLD""TEXT_MAGENTA" {M}"FONT_RESET;
+  } else {
+    return "";
+  }
+}
+
 void printnode(ASTNode *node, char *tab, int lvl, int last) {
   char t[256] = "";
   if (lvl) {
@@ -35,14 +43,14 @@ void printnode(ASTNode *node, char *tab, int lvl, int last) {
     }
   }
   if (node->name->content[0] && node->value->content[0]) {
-    printf("%s "TEXT_BLUE""FONT_BOLD"(%s: "FONT_RESET, printstatus(node->status), node->name->content);
+    printf("%s%s "TEXT_BLUE""FONT_BOLD"(%s: "FONT_RESET, printstatus(node->status), printmod(node), node->name->content);
     printf(TEXT_GREEN""FONT_BOLD"\"%s\""TEXT_BLUE")\n"FONT_RESET, node->value->content);
   } else if (node->name->content[0]) {
-    printf("%s "TEXT_BLUE""FONT_BOLD"(%s)\n"FONT_RESET, printstatus(node->status), node->name->content);
+    printf("%s%s "TEXT_BLUE""FONT_BOLD"(%s)\n"FONT_RESET, printstatus(node->status), printmod(node), node->name->content);
   } else if (node->value->content[0]) {
-    printf("%s "TEXT_GREEN""FONT_BOLD"\"%s\"\n"FONT_RESET, printstatus(node->status), node->value->content);
+    printf("%s%s "TEXT_GREEN""FONT_BOLD"\"%s\"\n"FONT_RESET, printstatus(node->status), printmod(node), node->value->content);
   } else {
-    printf("%s\n", printstatus(node->status));
+    printf("%s%s\n", printstatus(node->status), printmod(node));
   }
   for (int i = 0; i < node->subnodes->size; i++) {
     printnode(*(ASTNode**)at(node->subnodes, i), t, lvl + 1, i == node->subnodes->size - 1);
