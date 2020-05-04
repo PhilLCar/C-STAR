@@ -128,7 +128,7 @@ void astnewchar(Array *errors, ASTNode *ast, BNFNode *bnf, Array *reserved, ASTF
       if (!ast->subnodes->size) ast = newASTNode(superast, bnf);
       superast->status = STATUS_ONGOING;
       for (int i = 0, lim = superast->subnodes->size; i < lim; i++) {
-        ast = astsubnode(superast, i);
+        ast         = astsubnode(superast, i);
         ast->status = STATUS_ONGOING;
         //////////////////////////////////////////////////
         subast = astsubnode(ast, ast->pos + ast->rec);
@@ -150,56 +150,36 @@ void astnewchar(Array *errors, ASTNode *ast, BNFNode *bnf, Array *reserved, ASTF
             ASTNode *partial = astsubnode(subast, j);
             if (partial->status == STATUS_CONFIRMED || partial->status == STATUS_REC) {
               rem(subast->subnodes, j);
-              push(nast->subnodes, &partial);
+              if (partial->status == STATUS_CONFIRMED && partial->ref->type == NODE_REC) nast->rec--;
+              else                                                    push(nast->subnodes, &partial);
               if (partial->status == STATUS_REC) nast->rec++;
               else                               nast->pos++;
               break;
             }
           }
-          if (nast->pos == size) {
-            nast->status = STATUS_CONFIRMED;
-            save = nast;
-          } else if (flags & MODE_REC && nast->pos == size - 1) {
-            nast->status = STATUS_REC;
-            save = nast;
-          } else if (c == AST_CLOSE || c == AST_LOCK) {
-            lim++;
-          }
+          if (nast->pos == size)                              { nast->status = STATUS_CONFIRMED; save = nast; }
+          else if (flags & MODE_REC && nast->pos == size - 1) { nast->status = STATUS_REC;       save = nast; }
+          else if (c == AST_CLOSE || c == AST_LOCK)           {                                        lim++; }
         } else if (subast->status == STATUS_CONFIRMED) {
-          if (flags & MODE_REC && !subast->value->length) {
-            pop(ast->subnodes);
+          if (subast->status == STATUS_CONFIRMED && subast->ref->type == NODE_REC) {
             ast->rec--;
+            pop(ast->subnodes);
           }
-          if (++ast->pos == size) {
-            ast->status = STATUS_CONFIRMED;
-            save = ast;
-          } else if (flags & MODE_REC && ast->pos == size - 1) {
-            ast->status = STATUS_REC;
-            save = ast;
-          } else if (c == AST_CLOSE || c == AST_LOCK) { 
-            i--;
-          }
-        } else if (subast->status == STATUS_REC) {
-          ast->rec++;
-        }
+          if (++ast->pos == size)                            { ast->status = STATUS_CONFIRMED; save = ast; }
+          else if (flags & MODE_REC && ast->pos == size - 1) { ast->status = STATUS_REC;       save = ast; }
+          else if (c == AST_CLOSE || c == AST_LOCK)          {                                        i--; }
+        } else if (subast->status == STATUS_REC)             {                                 ast->rec++; }
       }
       if (save) {
-        if (save->subnodes->size == 1) {
-          astupnode(save, astsubnode(save, 0));
-        } else if (bnf->type == NODE_CONCAT) {
-          //astconcatnode(save);
-        }
+        if (save->subnodes->size == 1)     astupnode(save, astsubnode(save, 0));
+        else if (bnf->type == NODE_CONCAT) astconcatnode(save);
         if (superast->subnodes->size == 1) {
           astupnode(superast, save);
           superast->status = ast->status;
           break;
-        } else {
-          superast->status = STATUS_PARTIAL;
-        }
+        } else superast->status = STATUS_PARTIAL;
       }
-      if (!superast->subnodes->size) {
-        superast->status = STATUS_FAILED;
-      }
+      if (!superast->subnodes->size) superast->status = STATUS_FAILED;
       break;
     case NODE_REC:
     case NODE_ONE_OF:
