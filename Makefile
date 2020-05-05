@@ -21,8 +21,14 @@ PARSING=$(OBJECTS)/symbol.o         \
 
 test: parse-test array-test bnf-test ast-test
 
+debug: parse-debug array-debug bnf-debug ast-debug
+
 %-test: $(BINARIES)/%_test
 	@./$<
+
+%-debug: 
+	@rm $(BINARIES)/$*_test
+	@make debug=1 mem=1 $(BINARIES)/$*_test
 
 $(BINARIES)/%: $(OBJECTS)/%.o $(UTILS) $(PARSING)
 	@gcc $(C-FLAGS) $^ -o $@

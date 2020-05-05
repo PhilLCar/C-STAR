@@ -92,7 +92,7 @@ void astnewchar(Array *errors, ASTNode *ast, BNFNode *bnf, Array *reserved, ASTF
   int      size    = 0;
   int      f       = 0;
   int      nrec    = flags >> 3;
-  int      rec     = !(nrec <= bnf->rec);
+  int      rec     = !(bnf->rec <= nrec);
   char    *content = bnf->content;
   if (bnf->type != NODE_LEAF) size = ((Array*)bnf->content)->size;
   bnf->rec = nrec + 1;
@@ -200,7 +200,14 @@ void astnewchar(Array *errors, ASTNode *ast, BNFNode *bnf, Array *reserved, ASTF
     case NODE_REC:
     case NODE_ONE_OF:
       superast = ast;
-      //if (ast && rec) ast->status = STATUS_FAILED;
+      if (ast && rec && bnf->type != NODE_REC) {
+        printf("%s\n", bnf->name);
+        if (c == AST_LOCK && c == AST_CLOSE) {
+          ast->status = STATUS_FAILED;
+        } else {
+          ast->status = STATUS_FAILED;
+        }
+      }
       if (ast && ast->status == STATUS_FAILED) break;
       if (ast && ast->status == STATUS_CONFIRMED && (c == AST_CLOSE || c == AST_LOCK)) break;
       if (!ast->subnodes->size) ast = newASTNode(superast, bnf);
@@ -256,7 +263,7 @@ void astnewchar(Array *errors, ASTNode *ast, BNFNode *bnf, Array *reserved, ASTF
       }
       break;
   }
-  bnf->rec--;
+  --bnf->rec;
 }
 
 ASTNode *parseast(char *filename)
@@ -279,6 +286,7 @@ ASTNode *parseast(char *filename)
     if (s->text[0] == '\n') continue;
 
     astnewchar(errors, ast, rootent, reserved, rootent->rec << 3, AST_LOCK);
+    //break;
     while ((c = s->text[i++])) {
       astnewchar(errors, ast, rootent, reserved, rootent->rec << 3, c);
     }
@@ -287,7 +295,7 @@ ASTNode *parseast(char *filename)
       break;
     }
   }
-  astnewchar(errors, ast, rootent, reserved, rootent->rec << 3, AST_CLOSE);
+  //astnewchar(errors, ast, rootent, reserved, rootent->rec << 3, AST_CLOSE);
 
   deleteArray(&trace);
   deleteArray(&errors);
