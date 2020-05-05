@@ -5,9 +5,19 @@ C-FLAGS =-Wall
 ifdef mem
 	C-FLAGS += -DMEMORY_WATCH
 endif
+ifdef debug
+	C-FLAGS += -DDEBUG -g
+endif
 
-UTILS  =$(OBJECTS)/error.o $(OBJECTS)/array.o $(OBJECTS)/strings.o $(OBJECTS)/diagnostic.o
-PARSING=$(OBJECTS)/symbol.o $(OBJECTS)/generic_parser.o $(OBJECTS)/tracked_file.o $(OBJECTS)/bnf.o $(OBJECTS)/ast.o
+UTILS  =$(OBJECTS)/error.o   \
+        $(OBJECTS)/array.o   \
+		$(OBJECTS)/strings.o \
+		$(OBJECTS)/diagnostic.o
+PARSING=$(OBJECTS)/symbol.o         \
+        $(OBJECTS)/generic_parser.o \
+		$(OBJECTS)/tracked_file.o   \
+		$(OBJECTS)/bnf.o            \
+		$(OBJECTS)/ast.o
 
 test: parse-test array-test bnf-test ast-test
 

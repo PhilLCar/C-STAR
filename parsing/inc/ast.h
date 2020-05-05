@@ -32,7 +32,8 @@ typedef enum astflags {
   MODE_NONE    = 0,
   MODE_CONCAT  = 1,
   MODE_REC     = 2,
-  MODE_STARTED = 4
+  MODE_STARTED = 4,
+  MODE_NREC    = ~7
 } ASTFlags;
 
 typedef struct asterror {

@@ -1,5 +1,4 @@
 -erreur bnf whitespace
 -bnf raw nodes
--AST_LOCK fail on started nodes
 -ASTError for each node
 - lire le script à Thériault

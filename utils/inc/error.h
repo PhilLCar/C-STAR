@@ -13,10 +13,10 @@
 #define CONTEXT_LENGTH 35
 
 typedef enum messagetype {
-  INFO = 0,
-  DEBUG,
-  WARNING,
-  ERROR
+  ERRLVL_INFO = 0,
+  ERRLVL_DEBUG,
+  ERRLVL_WARNING,
+  ERRLVL_ERROR
 } MessageType;
 
 void printnodemessage(MessageType, Array*, char*, char*);

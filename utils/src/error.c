@@ -71,16 +71,16 @@ void printtrace(Array *trace) {
 
 void printmessagetype(MessageType type) {
   switch (type) {
-  case INFO:
+  case ERRLVL_INFO:
     fprintf(stderr, TEXT_GREEN""FONT_BOLD"INFO: "FONT_RESET);
     break;
-  case DEBUG:
+  case ERRLVL_DEBUG:
     fprintf(stderr, TEXT_BLUE""FONT_BOLD"DEBUG: "FONT_RESET);
     break;
-  case WARNING:
+  case ERRLVL_WARNING:
     fprintf(stderr, TEXT_YELLOW""FONT_BOLD"WARNING: "FONT_RESET);
     break;
-  case ERROR:
+  case ERRLVL_ERROR:
     fprintf(stderr, TEXT_RED""FONT_BOLD"ERROR: "FONT_RESET);
     break;
   }
@@ -113,16 +113,16 @@ void printcontext(MessageType type, Symbol *symbol, char *filename) {
   
   for (int i = 0; context[0][i]; i++) fprintf(stderr, " ");
   switch (type) {
-  case INFO:
+  case ERRLVL_INFO:
     for (int i = 0; symbol->text[i]; i++) fprintf(stderr, ".");
     break;
-  case DEBUG:
+  case ERRLVL_DEBUG:
     for (int i = 0; symbol->text[i]; i++) fprintf(stderr, "-");
     break;
-  case WARNING:
+  case ERRLVL_WARNING:
     for (int i = 0; symbol->text[i]; i++) fprintf(stderr, "~");
     break;
-  case ERROR:
+  case ERRLVL_ERROR:
     for (int i = 0; symbol->text[i]; i++) fprintf(stderr, "^");
     break;
   }

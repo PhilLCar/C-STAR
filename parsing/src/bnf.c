@@ -5,7 +5,7 @@ BNFNode *parsebnfnode(char*, Parser*, BNFNode*, Array*, Array*);
 void checkbnfnode(BNFNode *node)
 {
   if (!node) {
-    printmessage(ERROR, "Memory allocation failed!");
+    printmessage(ERRLVL_ERROR, "Memory allocation failed!");
     exit(1);
   }
 }
@@ -36,11 +36,11 @@ BNFNode *newBNFNode(BNFNode *basenode, char *name, BNFType type)
   BNFNode *node = NULL;
   if (!basenode) {
     if (type != NODE_ROOT) {
-      printmessage(ERROR, "A non-root node was created with no parent!");
+      printmessage(ERRLVL_ERROR, "A non-root node was created with no parent!");
       exit(1);
     }
   } else if (getnode(basenode, basenode, name)) {
-    printmessage(ERROR, "Cannot add two nodes of the same name to the tree!");
+    printmessage(ERRLVL_ERROR, "Cannot add two nodes of the same name to the tree!");
   }
   node     = malloc(sizeof(BNFNode));
   char  *n = malloc((strlen(name) + 1) * sizeof(char));
@@ -88,7 +88,7 @@ int expect(SymbolStream *ss, Array *trace, char *str)
     }
     if (junk) {
       sprintf(error, "Junk after '"FONT_BOLD"%s"FONT_RESET"'", t->text);
-      printsymbolmessage(ERROR, trace, t, error);
+      printsymbolmessage(ERRLVL_ERROR, trace, t, error);
     }
     deleteSymbol(&t);
   }
@@ -96,7 +96,7 @@ int expect(SymbolStream *ss, Array *trace, char *str)
     s = ssgets(ss);
     if (strcmp(s->text, str)) {
       sprintf(error, "Expected '"FONT_BOLD"%s"FONT_RESET"', got '"FONT_BOLD"%s"FONT_RESET"' instead!", str, s->text);
-      printsymbolmessage(ERROR, trace, s, error);
+      printsymbolmessage(ERRLVL_ERROR, trace, s, error);
       exit(1);
     }
   }
@@ -123,19 +123,19 @@ char *parsebnfname(SymbolStream *ss, BNFNode *basenode, Array *trace)
 
   s = ssgets(ss);
   if (s->eof) {
-    printsymbolmessage(ERROR, trace, t, "Expected node name, reached end of file!");
+    printsymbolmessage(ERRLVL_ERROR, trace, t, "Expected node name, reached end of file!");
     exit(1);
   }
   if (!strcmp(s->text, "\n")) {
-    printsymbolmessage(ERROR, trace, t, "Expected node name, reached new line!");
+    printsymbolmessage(ERRLVL_ERROR, trace, t, "Expected node name, reached new line!");
     exit(1);
   }
   if (s->string || s->comment || isoperator(s)) {
-    printsymbolmessage(ERROR, trace, s, "Bad format for node name!");
+    printsymbolmessage(ERRLVL_ERROR, trace, s, "Bad format for node name!");
     exit(1);
   }
   if (!strcmp(s->text, basenode->name)) {
-    printsymbolmessage(ERROR, trace, s, "Cannot use that name! (Reserved for root node)");
+    printsymbolmessage(ERRLVL_ERROR, trace, s, "Cannot use that name! (Reserved for root node)");
     exit(1);
   }
   deleteSymbol(&t);
@@ -215,9 +215,9 @@ int parsebnfstatement(SymbolStream *ss, BNFNode *basenode, BNFNode *parent, Arra
     }
     else if (s->text[0] == '|') {
       if (!content->size) {
-        printsymbolmessage(WARNING, trace, s, "Empty group ignored");
+        printsymbolmessage(ERRLVL_WARNING, trace, s, "Empty group ignored");
       } else if (content != subnode->content) {
-        printsymbolmessage(ERROR, trace, s, "Unexpected operator!");
+        printsymbolmessage(ERRLVL_ERROR, trace, s, "Unexpected operator!");
         ret = 0;
       } else {
         if (content->size == 1) {
@@ -235,9 +235,9 @@ int parsebnfstatement(SymbolStream *ss, BNFNode *basenode, BNFNode *parent, Arra
     }
     else if (s->text[0] == ',') {
       if (!content->size) {
-        printsymbolmessage(WARNING, trace, s, "Empty group ignored");
+        printsymbolmessage(ERRLVL_WARNING, trace, s, "Empty group ignored");
       } else if (content != subnode->content) {
-        printsymbolmessage(ERROR, trace, s, "Unexpected operator!");
+        printsymbolmessage(ERRLVL_ERROR, trace, s, "Unexpected operator!");
         ret = 0;
       } else {
         BNFNode *node = newBNFNode(basenode, "", NODE_CONCAT);
@@ -265,9 +265,9 @@ int parsebnfstatement(SymbolStream *ss, BNFNode *basenode, BNFNode *parent, Arra
       if (value) sprintf(value, "%s", s->text);
       node = newBNFNode(basenode, "", NODE_LEAF);
       if (!strcmp(s->open, "\"")) {
-        if (strcmp(s->close, "\"")) printsymbolmessage(ERROR, trace, s, "Expected closing '"FONT_BOLD"\""FONT_RESET"'!");
+        if (strcmp(s->close, "\"")) printsymbolmessage(ERRLVL_ERROR, trace, s, "Expected closing '"FONT_BOLD"\""FONT_RESET"'!");
       } else if (!strcmp(s->open, "'")) {
-        if (strcmp(s->close, "\'")) printsymbolmessage(ERROR, trace, s, "Expected closing '"FONT_BOLD"'"FONT_RESET"'!");
+        if (strcmp(s->close, "\'")) printsymbolmessage(ERRLVL_ERROR, trace, s, "Expected closing '"FONT_BOLD"'"FONT_RESET"'!");
       }
       checkbnfnode(node);
       node->content = value;
@@ -280,13 +280,13 @@ int parsebnfstatement(SymbolStream *ss, BNFNode *basenode, BNFNode *parent, Arra
     else {
       char error[256];
       sprintf(error, "Unexpected symbol '"FONT_BOLD"%s"FONT_RESET"'!", s->text);
-      printsymbolmessage(ERROR, trace, s, error);
+      printsymbolmessage(ERRLVL_ERROR, trace, s, error);
       ret = 0;
     }
   } while(ret && (strcmp(s->text, stop) || (stop[0] == '\n' && oplast)));
 
   if (!content->size) {
-    printsymbolmessage(WARNING, trace, s, "Empty group ignored");
+    printsymbolmessage(ERRLVL_WARNING, trace, s, "Empty group ignored");
     deleteBNFNode(pop(parent->content));
   } else if (content->size == 1) {
     subnode->content = NULL;
@@ -300,7 +300,7 @@ int parsebnfstatement(SymbolStream *ss, BNFNode *basenode, BNFNode *parent, Arra
 void parsebnfincludes(Parser *parser, SymbolStream *ss, BNFNode *basenode, Array *trace, Array *includes) {
   Symbol *s = NULL;
   if (trace->size > INCLUDE_MAX_DEPTH) {
-    printfilemessage(ERROR, trace, "Maximum include depth reached, check for recursive includes");
+    printfilemessage(ERRLVL_ERROR, trace, "Maximum include depth reached, check for recursive includes");
     exit(1);
   }
   while ((s = ssgets(ss))) {
@@ -311,11 +311,11 @@ void parsebnfincludes(Parser *parser, SymbolStream *ss, BNFNode *basenode, Array
     String *a = newString("");
     while ((s = ssgets(ss))) {
       if (!strcmp(s->text, "\n")) {
-        printsymbolmessage(ERROR, trace, n, "Expected closing parenthesis, reached newline instead");
+        printsymbolmessage(ERRLVL_ERROR, trace, n, "Expected closing parenthesis, reached newline instead");
         break;
       }
       if (s->eof) {
-        printsymbolmessage(ERROR, trace, n, "Expected closing parenthesis, reached end of file instead");
+        printsymbolmessage(ERRLVL_ERROR, trace, n, "Expected closing parenthesis, reached end of file instead");
         break;
       }
       if (!strcmp(s->text, ")")) {
@@ -335,7 +335,7 @@ void parsebnfincludes(Parser *parser, SymbolStream *ss, BNFNode *basenode, Array
       String *str = newString(a->content);
       pushobj(includes, str);
     } else {
-      printsymbolmessage(ERROR, trace, n, "Expected file name inbetween parentheses");
+      printsymbolmessage(ERRLVL_ERROR, trace, n, "Expected file name inbetween parentheses");
     }
     deleteString(&a);
     deleteSymbol(&n);
@@ -354,7 +354,7 @@ void parsebnfbody(SymbolStream *ss, BNFNode *basenode, Array *trace)
     if (strcmp(s->text, "<")) {
       char error[256];
       sprintf(error, "Expected '"FONT_BOLD"<"FONT_RESET"', got '"FONT_BOLD"%s"FONT_RESET"' instead!", s->text);
-      printsymbolmessage(ERROR, trace, s, error);
+      printsymbolmessage(ERRLVL_ERROR, trace, s, error);
       break;
     } else {
       char *name =  parsebnfname(ss, basenode, trace);
@@ -377,7 +377,7 @@ BNFNode *parsebnfnode(char *filename, Parser *parser, BNFNode *basenode, Array *
   push(trace, &filename);
 
   if (!ss) {
-    printfilemessage(ERROR, trace, "Could not open file!");
+    printfilemessage(ERRLVL_ERROR, trace, "Could not open file!");
     exit(1);
   }
 
@@ -400,9 +400,9 @@ void linkbnf(BNFNode *basenode, Array* trace) {
     }
   }
   if (a->size == 0) {
-    printnodemessage(WARNING, trace, basenode->name, "Node is empty!");
+    printnodemessage(ERRLVL_WARNING, trace, basenode->name, "Node is empty!");
   } else if (a->size > 1) {
-    printnodemessage(WARNING, trace, basenode->name, "Multiple roots!");
+    printnodemessage(ERRLVL_WARNING, trace, basenode->name, "Multiple roots!");
     for (int i = 0; i < a->size; i++) {
       BNFNode *root = *(BNFNode**)at(a, i);
       fprintf(stderr, "    :<%s>\n", root->name);

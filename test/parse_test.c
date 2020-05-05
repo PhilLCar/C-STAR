@@ -22,7 +22,7 @@ int main(void) {
 
   CHECK_MEMORY;
 
-  printsymbolmessage(INFO, trace, &aboutc[i], "This is a test");
+  printsymbolmessage(ERRLVL_INFO, trace, &aboutc[i], "This is a test");
   printsuggest("Maybe try (%s) instead?", "this");
 
   CHECK_MEMORY;

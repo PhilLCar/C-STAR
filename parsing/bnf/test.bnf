@@ -1,12 +1,7 @@
 #;; include (parsing/bnf/numbers.bnf)
 
-<op> ::= <oct> { ("+" | "-") <oct> }+ "E"
-<oct> ::=  [ "-" ] ( "0" | "0o" ), <oct-digit-no-zero>, { <oct-digit> }
-<oct-digit-no-zero> ::= '1' |
-                        '2' |
-                        '3' |
-                        '4' |
-                        '5' |
-                        '6' |
-                        '7'
-<oct-digit> ::= <oct-digit-no-zero> | '0'
+<operation> ::= <constant> <operator> <constant> 
+<operation> ::= <operation> <operator> <constant>
+<operator>  ::= "+" | "-"
+<constant>  ::= "a", {"b"}, [ <spec> ]
+<spec>      ::= "c"
