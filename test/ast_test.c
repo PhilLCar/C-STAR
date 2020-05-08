@@ -21,6 +21,8 @@ char *printstatus(ASTStatus status) {
       return TEXT_YELLOW"[P]"FONT_RESET;
     case STATUS_REC:
       return TEXT_CYAN"[R]"FONT_RESET;
+    case STATUS_SKIP:
+      return TEXT_BLUE"[S]"FONT_RESET;
   }
   return "[U]";
 }

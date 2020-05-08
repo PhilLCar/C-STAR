@@ -34,6 +34,10 @@ int main() {
   for (int i = 0; i < ints->size; i++) {
     printf("\t%d -> %d\n", i, *(int*)at(ints, i));
   }
+
+  printf("92?: %d\n", in(ints, &i4));
+  i4 = 33;
+  printf("33?: %d\n", in(ints, &i4));
   
   CHECK_MEMORY;
 

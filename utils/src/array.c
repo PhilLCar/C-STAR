@@ -143,7 +143,8 @@ void combine(Array* a, Array *b)
   deleteArray(&b);
 }
 
-void insert(Array *array, int index, void *data) {
+void insert(Array *array, int index, void *data)
+{
   if (array->size >= array->capacity) {
     void *prevloc = NULL;
     if ((char*)data >= (char*)array->content && 
@@ -166,4 +167,29 @@ void insert(Array *array, int index, void *data) {
          (array->size++        -  index    ) * array->element_size);
   memcpy((char*)array->content +  index      * array->element_size, 
          (char*)data,                          array->element_size);
+}
+
+void *in(Array *array, void *data)
+{
+  void *contains = NULL;
+  for (int i = 0; i < array->size; i++) {
+    void *tmp = (char*)array->content + i * array->element_size;
+    if(!memcmp((char*)data, tmp, array->element_size)) {
+      contains = tmp;
+      break;
+    }
+  }
+  return contains;
+}
+
+int indexof(Array *array, void *data)
+{
+  int index = -1;
+  for (int i = 0; i < array->size; i++) {
+    if(!memcmp((char*)data, (char*)array->content + i * array->element_size, array->element_size)) {
+      index = i;
+      break;
+    }
+  }
+  return index;
 }

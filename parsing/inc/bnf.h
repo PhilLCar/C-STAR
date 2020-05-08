@@ -31,6 +31,7 @@ typedef struct bnfnode {
   BNFType  type;
   void    *content;
   int      rec;
+  Array   *refs;
 } BNFNode;
 
 BNFNode *parsebnf(char*);

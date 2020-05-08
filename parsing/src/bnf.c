@@ -52,6 +52,7 @@ BNFNode *newBNFNode(BNFNode *basenode, char *name, BNFType type)
     node->type    = type;
     node->content = a;
     node->rec     = 0;
+    node->refs    = newArray(sizeof(void*));
   } else {
     if (node) free(node);
     if (n)    free(n);
@@ -69,6 +70,7 @@ void deleteBNFNode(BNFNode **node)
     } else {
       deleteArray((Array**)&(*node)->content);
     }
+    deleteArray(&(*node)->refs);
     free(*node);
   }
 }

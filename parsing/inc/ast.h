@@ -18,7 +18,8 @@ typedef enum aststatus {
   STATUS_CONFIRMED,
   STATUS_FAILED,
   STATUS_PARTIAL,
-  STATUS_REC
+  STATUS_REC,
+  STATUS_SKIP
 } ASTStatus;
 
 typedef enum asterrortype {
@@ -29,11 +30,12 @@ typedef enum asterrortype {
 } ASTErrorType;
 
 typedef enum astflags {
-  MODE_NONE    = 0,
-  MODE_CONCAT  = 1,
-  MODE_REC     = 2,
-  MODE_STARTED = 4,
-  MODE_NREC    = ~7
+  ASTFLAGS_NONE     = 0,
+  ASTFLAGS_CONCAT   = 1,
+  ASTFLAGS_REC      = 2,
+  ASTFLAGS_STARTED  = 4,
+  ASTFLAGS_NOREC    = 8,
+  ASTFLAGS_FRONT    = 16
 } ASTFlags;
 
 typedef struct asterror {

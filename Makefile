@@ -27,7 +27,7 @@ debug: parse-debug array-debug bnf-debug ast-debug
 	@./$<
 
 %-debug: 
-	@rm $(BINARIES)/$*_test
+	@rm -f $(BINARIES)/$*_test
 	@make debug=1 mem=1 $(BINARIES)/$*_test
 
 $(BINARIES)/%: $(OBJECTS)/%.o $(UTILS) $(PARSING)
