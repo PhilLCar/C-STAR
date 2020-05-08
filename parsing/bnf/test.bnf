@@ -1,7 +1,5 @@
-#;; include (parsing/bnf/numbers.bnf)
+;; include (parsing/bnf/numbers.bnf)
 
-#<operation> ::= <constant> <operator> <constant> 
-#<operation> ::= <operation> <operator> <constant>
-#<operator>  ::= "+" | "-"
-<constant>  ::= "a", {"b"}, [ <spec> ]
-<spec>      ::= "c"
+<operation> ::= <constant> <operator> <constant> 
+<operation> ::= <constant> <operator> <operation>
+<operator>  ::= "+" | "-"

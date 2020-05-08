@@ -7,7 +7,7 @@ ASTNode *newASTNode(ASTNode *ast, BNFNode *bnf)
 {
   ASTNode *new = malloc(sizeof(ASTNode));
   if (new) {
-    new->name     = newString(bnf->name);
+    new->name     = newString(bnf ? bnf->name : "");
     new->ref      = bnf;
     new->subnodes = newArray(sizeof(ASTNode*));
     new->value    = newString("");
@@ -44,6 +44,10 @@ ASTNode *astsubnode(ASTNode *ast, int index) {
   ASTNode **ret = (ASTNode**)at(ast->subnodes, index);
   if (ret) return *ret;
   return NULL;
+}
+
+int astempty(ASTNode *ast) {
+  return !ast->subnodes->size && !ast->value->length;
 }
 
 BNFNode *bnfsubnode(BNFNode *bnf, int index) {
@@ -125,13 +129,21 @@ void astnewchar(Array *errors, ASTNode *ast, BNFNode *bnf, Array *reserved, ASTF
       break;
     case NODE_CONCAT:
     case NODE_LIST:
+    //////////////////////////////// LIST HEADER /////////////////////////////////////////
       superast = ast;
-      if (superast->status == STATUS_FAILED || superast->status == STATUS_CONFIRMED) break;
+      if (superast->status == STATUS_FAILED) break;
       if (superast->status == STATUS_NOSTATUS) superast->status = STATUS_ONGOING;
-      if (!superast->subnodes->size) ast = newASTNode(superast, bnf);
+      if (superast->status == STATUS_CONFIRMED) {
+        if (c == AST_LOCK || c == AST_CLOSE) break;
+        else { 
+          while (superast->subnodes->size) deleteAST(pop(superast->subnodes));
+          superast->status = STATUS_FAILED;
+        }
+      }
+      if (!superast->subnodes->size) newASTNode(superast, bnf);
       if (bnf->type == NODE_CONCAT) {
-        if (c == AST_LOCK || c == AST_CLOSE) { if (superast->pos) superast->pos++; }
-        else if (!superast->pos)                                  superast->pos++;
+        if (c == AST_LOCK)       { if (superast->pos) superast->pos++; }
+        else if (!superast->pos) {                    superast->pos++; }
       }
       for (int i = 0, lim = superast->subnodes->size; i < lim; i++) {
         ast = astsubnode(superast, i);
@@ -140,11 +152,11 @@ void astnewchar(Array *errors, ASTNode *ast, BNFNode *bnf, Array *reserved, ASTF
           else { deleteAST(rem(superast->subnodes, i--)); lim--; }
         }
         ast->status = STATUS_ONGOING;
-        //////////////////////////////////////////////////
+        ///////////////////////////// LIST BODY ////////////////////////////////////////////
         for (char nc = c; ast->pos < size;) {
           subast = astsubnode(ast, ast->pos + ast->rec);
           subbnf = bnfsubnode(bnf, ast->pos);
-          if (!subast) subast = newASTNode(ast, subbnf);
+          if (!subast) subast = newASTNode(ast, NULL);
           f |= (flags & ~ASTFLAGS_REC) | (bnf->type == NODE_CONCAT ? ASTFLAGS_CONCAT : 0);
           f |= superast->pos > 1 ? ASTFLAGS_STARTED : 0;
           f |= !ast->pos ? ASTFLAGS_FRONT : 0;
@@ -152,8 +164,9 @@ void astnewchar(Array *errors, ASTNode *ast, BNFNode *bnf, Array *reserved, ASTF
           if (subast->status == STATUS_FAILED) {
             deleteAST(rem(superast->subnodes, i--)); lim--;
           } else if (subast->status == STATUS_PARTIAL) {
-            subast->status = STATUS_ONGOING;
             ASTNode *nast = newASTNode(superast, bnf);
+            subast->status = STATUS_ONGOING; // STEAL PARTIAL AWAY
+            nast->status   = STATUS_ONGOING;
             nast->rec = ast->rec;
             nast->pos = ast->pos;
             for (int j = 0; j < ast->pos + ast->rec; j++) {
@@ -165,7 +178,7 @@ void astnewchar(Array *errors, ASTNode *ast, BNFNode *bnf, Array *reserved, ASTF
               int      status  = partial->status;
               if (status == STATUS_CONFIRMED || status == STATUS_REC) {
                 rem(subast->subnodes, j);
-                if (status == STATUS_CONFIRMED && partial->ref->type == NODE_REC) {
+                if (status == STATUS_CONFIRMED && astempty(partial)) {
                   deleteAST(&partial);
                   nast->rec--;
                 } else { push(nast->subnodes, &partial); }
@@ -178,8 +191,9 @@ void astnewchar(Array *errors, ASTNode *ast, BNFNode *bnf, Array *reserved, ASTF
             else if (flags & ASTFLAGS_REC && 
                      nast->pos == size - 1)              { nast->status = STATUS_REC;       save = nast; }
             else if (c == AST_CLOSE || c == AST_LOCK)    {                                        lim++; }
+            else                                         { nc = AST_LOCK; ast = nast;          continue; }
           } else if (subast->status == STATUS_CONFIRMED) {
-            if (subast->status == STATUS_CONFIRMED && subast->ref->type == NODE_REC) {
+            if (astempty(subast)) {
               ast->rec--;
               deleteAST(pop(ast->subnodes));
             }
@@ -192,18 +206,16 @@ void astnewchar(Array *errors, ASTNode *ast, BNFNode *bnf, Array *reserved, ASTF
             ++ast->rec;
             if (c == AST_CLOSE || c == AST_LOCK)         {                                     continue; }
             else                                         { nc = AST_LOCK;                      continue; }
-          } else if (subast->status == STATUS_SKIP) 
-          {
+          } else if (subast->status == STATUS_SKIP)  {
             ASTNode *nast = newASTNode(superast, bnf);
             push(nast->subnodes, pop(subast->subnodes));
-            push(ast->subnodes,  pop(subast->subnodes));
-            deleteAST(rem(ast->subnodes, 0));
-            ++ast->pos;
-            continue;
+            lim++;
+            subast->status = STATUS_NOSTATUS;
           }
           break;
         }
       }
+      /////////////////////////// LIST FOOTER ///////////////////////////////////////////
       if (save) {
         if (save->subnodes->size == 1)     astupnode(save, astsubnode(save, 0));
         else if (bnf->type == NODE_CONCAT) astconcatnode(save);
@@ -215,37 +227,34 @@ void astnewchar(Array *errors, ASTNode *ast, BNFNode *bnf, Array *reserved, ASTF
       }
       if (!superast->subnodes->size) superast->status = STATUS_FAILED;
       break;
+      ///////////////////////////////////////////////////////////////////////////////////
     case NODE_REC:
     case NODE_ONE_OF:
+    /////////////////////////////// ONE OF HEADER ///////////////////////////////////////
       superast = ast;
       if (bnf->refs->size > 1 && flags & ASTFLAGS_FRONT) {
         // SPECIAL CASE OF LEFTMOST DERIVATION (when the recursive element is the first position)
-        ASTNode *ref = *(ASTNode**)at(bnf->refs, 0);
-        if (ref->pos < bnf->refs->size) {
-          if (c == AST_CLOSE) { superast->status = STATUS_FAILED; break; }
-          if (ref->status == STATUS_PARTIAL) {
-            printf("ok: %d\n", bnf->refs->size);
-            ref->status      = STATUS_ONGOING;
-            ref->pos         = bnf->refs->size;
-            ASTNode *partial = *(ASTNode**)pop(ref->subnodes);
-            ASTNode *dup     = duplicateAST(ref);
-            push(superast->subnodes, &partial);
-            push(superast->subnodes, &dup);
-            superast->status = STATUS_SKIP;
-          }
-          break;
+        ASTNode *recroot = *(ASTNode**)at(bnf->refs, 0);
+        if (c == AST_CLOSE) { superast->status = STATUS_FAILED; break; }
+        if (recroot->status == STATUS_PARTIAL && c == AST_LOCK) {
+          recroot->status  = STATUS_ONGOING;
+          recroot->pos     = bnf->refs->size;
+          ASTNode *partial = *(ASTNode**)pop(recroot->subnodes);
+          push(superast->subnodes, &partial);
+          superast->status = STATUS_SKIP;
         }
+        break;
       }
       if (superast->status == STATUS_FAILED || superast->status == STATUS_CONFIRMED) break;
       if (superast->status == STATUS_NOSTATUS) superast->status = STATUS_ONGOING;
       if (!superast->subnodes->size) ast = newASTNode(superast, bnf);
       else                           ast = astsubnode(superast, 0);
       ast->status = STATUS_ONGOING;
-      //////////////////////////////////////////////////
+      ///////////////////////////// ONE OF BODY //////////////////////////////////////////
       for (int i = 0; i < size; i++) {
         subast = astsubnode(ast, i);
         subbnf = bnfsubnode(bnf, i);
-        if (!subast) subast = newASTNode(ast, subbnf);
+        if (!subast) subast = newASTNode(ast, NULL);
         if (subast->status != STATUS_FAILED) {
           f |= (flags & ~ASTFLAGS_REC) | (bnf->type == NODE_REC ? ASTFLAGS_REC : 0);
           astnewchar(errors, subast, subbnf, reserved, f, c);
@@ -257,18 +266,21 @@ void astnewchar(Array *errors, ASTNode *ast, BNFNode *bnf, Array *reserved, ASTF
       }
       if ((ast->status == STATUS_CONFIRMED && ast->pos == size - 1) || ast->status == STATUS_REC) {
         superast->status = ast->status;
-        astupnode(superast, save);
+        astupnode(ast,     save); // for the name
+        astupnode(superast, ast);
         break;
       } else if (ast->status == STATUS_CONFIRMED) {
+        ASTNode *nast    = newASTNode(NULL, NULL);
         superast->status = STATUS_PARTIAL;
-        ASTNode *nast = newASTNode(NULL, bnf);
-        nast->status  = STATUS_FAILED;
+        ast->status      = STATUS_ONGOING;
+        nast->status     = STATUS_FAILED;
         set(ast->subnodes, indexof(ast->subnodes, &save), &nast);
+        if (superast->subnodes->size > 1) deleteAST(pop(superast->subnodes));
         push(superast->subnodes, &save);
         ast->pos++;
       } else if (ast->status == STATUS_PARTIAL) {
         superast->status = STATUS_PARTIAL;
-        ast->status      = STATUS_ONGOING;
+        ast->status      = STATUS_ONGOING; // STEAL PARTIAL AWAY
         save->status     = STATUS_ONGOING;
         for (int i = 0; i < save->subnodes->size; i++) {
           ASTNode *partial = astsubnode(save, i);
@@ -278,6 +290,7 @@ void astnewchar(Array *errors, ASTNode *ast, BNFNode *bnf, Array *reserved, ASTF
               partial->ref = ast->ref;
               concat(partial->name, newString(ast->name->content));
             }
+            if (superast->subnodes->size > 1) deleteAST(pop(superast->subnodes));
             push(superast->subnodes, &partial);
             break;
           }
@@ -303,7 +316,7 @@ ASTNode *parseast(char *filename)
   BNFNode      *rootent  = bnfsubnode(bnftree, 0);
   Parser       *parser   = newParser("parsing/prs/csr.prs");
   SymbolStream *ss       = ssopen(filename, parser);
-  ASTNode      *ast      = newASTNode(NULL, rootent);
+  ASTNode      *ast      = newASTNode(NULL, NULL);
   Array        *reserved = newArray(sizeof(char*));
   Array        *errors   = newArray(sizeof(ASTError));
   Array        *trace    = newArray(sizeof(char*));
@@ -317,8 +330,6 @@ ASTNode *parseast(char *filename)
     if (s->text[0] == '\n') continue;
 
     astnewchar(errors, ast, rootent, reserved, ASTFLAGS_NONE, AST_LOCK);
-    astnewchar(errors, ast, rootent, reserved, ASTFLAGS_NONE, AST_LOCK);
-    astnewchar(errors, ast, rootent, reserved, ASTFLAGS_NONE, AST_LOCK);
     while ((c = s->text[i++])) {
       astnewchar(errors, ast, rootent, reserved, ASTFLAGS_NONE, c);
     }
@@ -327,7 +338,7 @@ ASTNode *parseast(char *filename)
       break;
     }
   }
-  //astnewchar(errors, ast, rootent, reserved, ASTFLAGS_NONE, AST_LOCK);
+  //astnewchar(errors, ast, rootent, reserved, ASTFLAGS_NONE, AST_CLOSE);
 
   deleteArray(&trace);
   deleteArray(&errors);
