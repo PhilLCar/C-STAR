@@ -338,7 +338,7 @@ ASTNode *parseast(char *filename)
       break;
     }
   }
-  astnewchar(errors, ast, rootent, reserved, ASTFLAGS_NONE, AST_CLOSE);
+  //astnewchar(errors, ast, rootent, reserved, ASTFLAGS_NONE, AST_CLOSE);
 
   deleteArray(&trace);
   deleteArray(&errors);

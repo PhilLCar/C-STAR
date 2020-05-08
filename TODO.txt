@@ -6,3 +6,4 @@
 - Fixed leftmost recursion
 - fix concat problems when not all options are identify
 - fix name trickling problems
+- BNF Error when undefined node

@@ -4,7 +4,8 @@
 
 <bin-decimal> ::= ('0b' | '0B'), <bin-digit>, { <bin-digit> }, '.', { <bin-digit> }
 <oct-decimal> ::= ( '0o' | '0O' | '0' ), <oct-digit>, { <oct-digit> }, '.', { <oct-digit> }
-<dec-decimal> ::= [ <dec-digit-no-zero>, { <dec-digit> } ], '.', { <dec-digit> }
+<dec-decimal> ::= { <dec-digit> }+, '.', { <dec-digit> }
+<dec-decimal> ::= { <dec-digit> }, '.', { <dec-digit> }+
 <hex-decimal> ::= ('0x' | '0X'), <hex-digit>, { <hex-digit> }, '.', { <hex-digit> }
 
 <decimal-spec> ::= 'f' | 'F' | 'm' | 'M'

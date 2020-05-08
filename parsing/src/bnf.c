@@ -192,7 +192,6 @@ int parsebnfstatement(SymbolStream *ss, BNFNode *basenode, BNFNode *parent, Arra
       checkbnfnode(node);
       push(content, &node);
       ret = parsebnfstatement(ss, basenode, node, trace, "}");
-      s = ssgets(ss);
       if (EBNF_TO_BNF) {
         BNFNode *list  = newBNFNode(basenode, "", NODE_LIST);
         BNFNode *empty = newBNFNode(basenode, "", NODE_LEAF);
@@ -202,6 +201,8 @@ int parsebnfstatement(SymbolStream *ss, BNFNode *basenode, BNFNode *parent, Arra
         push(node->content, &list);
         push(node->content, &empty);
       }
+      Symbol *t = newSymbol(s);
+      s = ssgets(ss);
       if (s->text[0] == '+') {
         if (EBNF_TO_BNF) {
           BNFNode *n = *(BNFNode**)pop(content);
@@ -212,6 +213,9 @@ int parsebnfstatement(SymbolStream *ss, BNFNode *basenode, BNFNode *parent, Arra
         }
       } else {
         ssungets(ss, s);
+        ssungets(ss, t);
+        s = ssgets(ss);
+        deleteSymbol(&t);
       }
       oplast = 0;
     }

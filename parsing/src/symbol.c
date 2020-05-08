@@ -332,14 +332,10 @@ void ssclose(SymbolStream *ss)
 Symbol *ssgets(SymbolStream *ss)
 {
   Symbol *s = &ss->symbol;
+  freesymbol(s);
   if (ss->stack->size) {
-    Symbol *t = pop(ss->stack);
-    if (t->text != s->text) {
-      freesymbol(s);
-      memcpy(s, t, sizeof(Symbol));
-    }
+    *s = *(Symbol*)pop(ss->stack);
   } else {
-    freesymbol(s);
     if (!nextsymbol(ss->tfptr, ss->parser, s)) {
       return NULL;
     }
@@ -349,8 +345,9 @@ Symbol *ssgets(SymbolStream *ss)
 
 void ssungets(SymbolStream *ss, Symbol *s)
 {
-
-  push(ss->stack, s);
+  Symbol *t = newSymbol(s);
+  push(ss->stack, t);
+  free(t);
 }
 
 Symbol *newSymbol(Symbol *s)
