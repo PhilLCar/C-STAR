@@ -217,8 +217,8 @@ int parsebnfstatement(SymbolStream *ss, BNFNode *basenode, BNFNode *parent, Arra
         ssungets(ss, s);
         ssungets(ss, t);
         s = ssgets(ss);
-        deleteSymbol(&t);
       }
+      deleteSymbol(&t);
       oplast = 0;
     }
     else if (s->text[0] == '|') {
