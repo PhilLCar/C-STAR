@@ -206,8 +206,10 @@ int parsebnfstatement(SymbolStream *ss, BNFNode *basenode, BNFNode *parent, Arra
       if (s->text[0] == '+') {
         if (EBNF_TO_BNF) {
           BNFNode *n = *(BNFNode**)pop(content);
-          push(content, at((*(BNFNode**)at(node->content, 0))->content, 0));
-          push(content, &n);
+          BNFNode *l = newBNFNode(basenode, "", NODE_LIST);
+          push(l->content, at((*(BNFNode**)at(node->content, 0))->content, 0));
+          push(l->content, &n);
+          push(content, &l);
         } else {
           node->type = NODE_MANY_OR_ONE;
         }
