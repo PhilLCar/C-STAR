@@ -1,11 +1,11 @@
 ;; include (parsing/bnf/digits.bnf)
 
-<decimal> ::= (<bin-decimal> | <oct-decimal> | <dec-decimal> | <hex-decimal>), [ <decimal-spec> ]
+<decimal> ::= (<bin-decimal> | <oct-decimal> | <dec-decimal> | <hex-decimal>)
 
-<bin-decimal> ::= ('0b' | '0B'), <bin-digit>, { <bin-digit> }, '.', { <bin-digit> }
-<oct-decimal> ::= ( '0o' | '0O' ), <oct-digit>, { <oct-digit> }, '.', { <oct-digit> }
-<dec-decimal> ::= { <dec-digit> }+, '.', { <dec-digit> }
-<dec-decimal> ::= { <dec-digit> }, '.', { <dec-digit> }+
-<hex-decimal> ::= ('0x' | '0X'), <hex-digit>, { <hex-digit> }, '.', { <hex-digit> }
+<bin-decimal> ::= ('0b' | '0B'), <bin-digit>, { <bin-digit> }, '.', { <bin-digit> }, [ <decimal-spec> ]
+<oct-decimal> ::= ( '0o' | '0O' ), <oct-digit>, { <oct-digit> }, '.', { <oct-digit> }, [ <decimal-spec> ]
+<dec-decimal> ::= { <dec-digit> }+, '.', { <dec-digit> }, [ <decimal-spec> ]
+<dec-decimal> ::= '.', { <dec-digit> }+, [ <decimal-spec> ]
+<hex-decimal> ::= ('0x' | '0X'), <hex-digit>, { <hex-digit> }, '.', { <hex-digit> }, [ <decimal-spec> ]
 
 <decimal-spec> ::= 'f' | 'F' | 'm' | 'M'

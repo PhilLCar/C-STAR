@@ -61,5 +61,8 @@ string32
 file
 class
 operator
+true
+false
+null
 
 == EOF ==

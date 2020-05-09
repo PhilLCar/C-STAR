@@ -175,10 +175,11 @@ int nextsymbol(TrackedFile *tf, Parser *parser, Symbol *symbol)
         }
         if (dec || (c >= '0' && c <= '9')) {
           symbol->type = SYMBOL_NUMBER;
+          pos = tf->position;
           if (!extend(&buf, &buf_size, &buf_cap, c)) goto next_fail;
           continue;
         }
-      } else if (symbol->type == SYMBOL_NUMBER && type == NONE) {
+      } else if (symbol->type == SYMBOL_NUMBER && (type == NONE || (type == BREAK && c == '.'))) {
         if (!extend(&buf, &buf_size, &buf_cap, c)) goto next_fail;
         continue;
       }

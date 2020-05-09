@@ -1,0 +1,8 @@
+;; include (parsing/bnf/integers.bnf)
+;; include (parsing/bnf/decimals.bnf)
+
+# RAW TYPES FORMAT
+# For now, only numbers have a specific format;
+# string and variables will be taken as-is...
+<raw-types> ::= <number> #| <string> | <variable>
+<number>    ::= <integer> | <decimal>

@@ -1,11 +1,11 @@
 ;; include (parsing/bnf/digits.bnf)
 
-<integer> ::= (<bin-integer> | <oct-integer> | <dec-integer> | <hex-integer>), [ <integer-spec> ]
+<integer> ::= (<bin-integer> | <oct-integer> | <dec-integer> | <hex-integer>)
 
-<bin-integer> ::= ('0b' | '0B'), <bin-digit>, { <bin-digit> }
-<oct-integer> ::= ( '0o' | '0O' | '0' ), <oct-digit>, { <oct-digit> }
-<dec-integer> ::= <dec-digit-no-zero>, { <dec-digit> }
-<hex-integer> ::= ('0x' | '0X'), <hex-digit>, { <hex-digit> }
+<bin-integer> ::= ('0b' | '0B'), <bin-digit>, { <bin-digit> }, [ <integer-spec> ]
+<oct-integer> ::= ( '0o' | '0O' | '0' ), <oct-digit>, { <oct-digit> }, [ <integer-spec> ]
+<dec-integer> ::= <dec-digit-no-zero>, { <dec-digit> }, [ <integer-spec> ]
+<hex-integer> ::= ('0x' | '0X'), <hex-digit>, { <hex-digit> }, [ <integer-spec> ]
 
 <integer-spec> ::= 'u' | 'ui' | 'i' | 'us' | 's' | 'ub' | 'b' |
                    'U' | 'UI' | 'I' | 'US' | 'S' | 'UB' | 'B'

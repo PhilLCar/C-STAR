@@ -390,7 +390,7 @@ BNFNode* verifybnftree(BNFNode *basenode, BNFNode *node)
       basenode->rec++;
     } else if (node->rec < basenode->rec) {
       node->rec = basenode->rec;
-    }
+    } else return def;
     if (node->type == NODE_ONE_OF && node->name[0] && !node->def) {
       def = node;
     } else if (node->type != NODE_LEAF && node->type != NODE_RAW) {

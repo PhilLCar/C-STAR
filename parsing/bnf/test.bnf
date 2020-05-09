@@ -1,5 +1,3 @@
-#;; include (parsing/bnf/numbers.bnf)
-
-<operation> ::= <raw: number> <operator> <raw: number> 
-<operation> ::= <operation> <operator> <raw: number>
-<operator>  ::= "+" | "-"
+<operation> ::= <raw: number> #<operator> <raw: number>
+#<operation> ::= <operation>   <operator> <raw: number>
+#<operator>  ::= "+" | "-"
