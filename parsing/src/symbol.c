@@ -1,6 +1,6 @@
 #include <symbol.h>
 
-enum symboltype {
+enum type {
   NONE = 0,
   DELIM,
   LINECOM,
@@ -49,8 +49,7 @@ int nextsymbol(TrackedFile *tf, Parser *parser, Symbol *symbol)
   symbol->open    = NULL;
   symbol->close   = NULL;
   symbol->line    = -1;
-  symbol->string  = 0;
-  symbol->comment = 0;
+  symbol->type    = SYMBOL_NONE;
   symbol->eof     = 1;
 
   if (buf != NULL) {
@@ -60,7 +59,7 @@ int nextsymbol(TrackedFile *tf, Parser *parser, Symbol *symbol)
       symbol->eof = 0;
       int cmp, tmp, ws = 0;
       //////////////////////////////////////// NEW-LINE ////////////////////////////////////////
-      if (c == '\n' && !symbol->comment) {
+      if (c == '\n' && symbol->type != SYMBOL_COMMENT) {
         if (buf_size) {
           tfungetc(tf, c);
         } else {
@@ -76,7 +75,7 @@ int nextsymbol(TrackedFile *tf, Parser *parser, Symbol *symbol)
           break;
         }
       }
-      if (ws && !symbol->comment) {
+      if (ws && symbol->type != SYMBOL_COMMENT) {
         c = tfgetc(tf);
         switch (c) {
           case 'n':
@@ -96,7 +95,7 @@ int nextsymbol(TrackedFile *tf, Parser *parser, Symbol *symbol)
         continue;
       }
       //////////////////////////////////////// STRING STOP ////////////////////////////////////////
-      if (symbol->string) {
+      if (symbol->type == SYMBOL_STRING) {
         if ((cmp = strcmps(tf->buffer, symbol->close))) {
           close = 1;
           for (int i = 1; i < cmp; i++) tfgetc(tf);
@@ -105,7 +104,7 @@ int nextsymbol(TrackedFile *tf, Parser *parser, Symbol *symbol)
         continue;
       }
       //////////////////////////////////////// COM STOP ////////////////////////////////////////
-      if (symbol->comment) {
+      if (symbol->type == SYMBOL_COMMENT) {
         if (!symbol->close && c == '\n') {
           tfungetc(tf, c);
           break;
@@ -172,7 +171,7 @@ int nextsymbol(TrackedFile *tf, Parser *parser, Symbol *symbol)
           tfungetc(tf, c);
           break;
         } else {
-          symbol->string = 1;
+          symbol->type   = SYMBOL_STRING;
           symbol->line   = tf->line;
           symbol->open   = malloc((parser->lookahead + 1) * sizeof(char));
           symbol->close  = malloc((parser->lookahead + 1) * sizeof(char));
@@ -195,7 +194,7 @@ int nextsymbol(TrackedFile *tf, Parser *parser, Symbol *symbol)
           tfungetc(tf, c);
           break;
         } else {
-          symbol->comment = 1;
+          symbol->type    = SYMBOL_COMMENT;
           symbol->open    = malloc((parser->lookahead + 1) * sizeof(char));
           if (symbol->open != NULL) {
             memcpy(symbol->open,  parser->linecom[tmp], ws + 1);
@@ -215,8 +214,8 @@ int nextsymbol(TrackedFile *tf, Parser *parser, Symbol *symbol)
           tfungetc(tf, c);
           break;
         } else {
-          symbol->comment = 1;
-          symbol->line   = tf->line;
+          symbol->type    = SYMBOL_COMMENT;
+          symbol->line    = tf->line;
           symbol->open    = malloc((parser->lookahead + 1) * sizeof(char));
           symbol->close   = malloc((parser->lookahead + 1) * sizeof(char));
           if (symbol->open != NULL && symbol->close != NULL) {
@@ -255,7 +254,10 @@ int nextsymbol(TrackedFile *tf, Parser *parser, Symbol *symbol)
         return 0;
       }
     }
-    if (!close && (symbol->string || (symbol->comment && symbol->close))) symbol->close[0] = 0;
+    if (!close && (symbol->type == SYMBOL_STRING ||
+                  (symbol->type == SYMBOL_COMMENT && symbol->close))) {
+      symbol->close[0] = 0;
+    }
     symbol->text = buf;
     if (symbol->line < 0) symbol->line = tf->line;
     symbol->position = pos;

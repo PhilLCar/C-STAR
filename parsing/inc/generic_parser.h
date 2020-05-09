@@ -15,6 +15,7 @@ typedef struct parser {
   char  **linecom;
   char  **multicom;
   char  **breaksymbols;
+  char  **reserved;
   int     lookahead;
 } Parser;
 

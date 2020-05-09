@@ -106,12 +106,15 @@ Parser *newParser(char *filename)
 		parser->multicom     = readline(fptr);
 		emptyline(fptr); // Breaksymbols
 		parser->breaksymbols = readline(fptr);
+		emptyline(fptr); // Reserved
+		parser->reserved     = readline(fptr);
 		if (parser->whitespaces  == NULL ||
 			parser->escapes      == NULL ||
 			parser->delimiters   == NULL ||
 			parser->linecom      == NULL ||
 			parser->multicom     == NULL ||
-			parser->breaksymbols == NULL)
+			parser->breaksymbols == NULL ||
+			parser->reserved     == NULL)
 		{
 			deleteParser(&parser);
 		}
@@ -167,6 +170,10 @@ void deleteParser(Parser **parser)
 		if ((*parser)->breaksymbols != NULL) {
 			for (int i = 0; (*parser)->breaksymbols[i]; i++) free((*parser)->breaksymbols[i]);
 			free((*parser)->breaksymbols);
+		}
+		if ((*parser)->reserved     != NULL) {
+			for (int i = 0; (*parser)->reserved[i]; i++)     free((*parser)->reserved[i]);
+			free((*parser)->reserved);
 		}
     free(*parser);
 		*parser = NULL;

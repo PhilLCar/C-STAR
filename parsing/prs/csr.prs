@@ -21,5 +21,45 @@
 *
 /
 =
+&
+(
+)
+{
+}
+[
+]
+
+== Reserved ==
+if
+else
+for
+while
+do
+meta
+in
+each
+switch
+const
+var
+unsigned
+byte
+short
+int
+long
+integer
+mini
+float
+double
+decimal
+bool
+char
+utf16
+utf32
+string
+string16
+string32
+file
+class
+operator
 
 == EOF ==

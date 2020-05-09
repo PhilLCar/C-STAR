@@ -16,9 +16,9 @@ int main(void) {
   
   push(trace, &file);
   int i = -1;
-  while (!aboutc[++i].comment);
-  while (!aboutc[++i].comment);
-  while (!aboutc[++i].comment);
+  while (aboutc[++i].type != SYMBOL_COMMENT);
+  while (aboutc[++i].type != SYMBOL_COMMENT);
+  while (aboutc[++i].type != SYMBOL_COMMENT);
 
   CHECK_MEMORY;
 

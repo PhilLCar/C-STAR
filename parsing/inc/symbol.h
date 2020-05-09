@@ -6,15 +6,23 @@
 #include <tracked_file.h>
 #include <array.h>
 
+typedef enum symboltype {
+  SYMBOL_NONE,
+  SYMBOL_STRING,
+  SYMBOL_COMMENT,
+  SYMBOL_NUMBER,
+  SYMBOL_VARIABLE,
+  SYMBOL_OPERATOR
+} SymbolType;
+
 typedef struct symbol {
-  char *text;
-  char *open;
-  char *close;
-  int   line;
-  int   position;
-  int   string;
-  int   comment;
-  int   eof;
+  char       *text;
+  char       *open;
+  char       *close;
+  int         line;
+  int         position;
+  SymbolType  type;
+  int         eof;
 } Symbol;
 
 typedef struct symbolstream {

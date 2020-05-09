@@ -1,9 +1,16 @@
 <const-type> ::= "const" <type>
-<type> ::= ( "var" | <integer=type> | <decimal-type> | <character-type> | <string-type> ) [ <dimension> ]
+<type> ::= ( "var" | <integer=type>   | 
+                     <decimal-type>   | 
+                     <character-type> | 
+                     <string-type>    | 
+                     <boolean-type>   |
+                     <file-type> ) [ <dimension> ]
 <integer-type> ::= ([ "unsigned" ] ( "byte" | "short" | "int" | "long" )) | "integer"
 <decimal-type> ::= "mini" | "float" | "double" | "decimal"
+<boolean-type> ::= "bool"
 <character-type> ::= "char" | "utf16" | "utf32"
 <string-type> ::= "string" | "string16" | "string32"
+<file-type> ::= "file"
 <dimension> ::= ( "*" | "&" | <array-type> | <list-type> | <dict-type>) [ <dimension> ]
 <list-type> ::= "(" [ <const-expr> ] ")"
 <array-type> ::= "[" [ <const-expr> ] { "," <const-expr> } "]"

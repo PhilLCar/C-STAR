@@ -106,18 +106,6 @@ int expect(SymbolStream *ss, Array *trace, char *str)
   return 1;
 }
 
-int isoperator(Symbol *s) {
-  if (!strcmp(s->text, "{")) return 1;
-  if (!strcmp(s->text, "[")) return 1;
-  if (!strcmp(s->text, "(")) return 1;
-  if (!strcmp(s->text, "|")) return 1;
-  if (!strcmp(s->text, "}")) return 1;
-  if (!strcmp(s->text, "]")) return 1;
-  if (!strcmp(s->text, ")")) return 1;
-  if (!strcmp(s->text, ",")) return 1;
-  return 0;
-}
-
 char *parsebnfname(SymbolStream *ss, BNFNode *basenode, Array *trace)
 {
   Symbol *s = &ss->symbol;
@@ -132,7 +120,7 @@ char *parsebnfname(SymbolStream *ss, BNFNode *basenode, Array *trace)
     printsymbolmessage(ERRLVL_ERROR, trace, t, "Expected node name, reached new line!");
     exit(1);
   }
-  if (s->string || s->comment || isoperator(s)) {
+  if (s->type == SYMBOL_STRING || s->type == SYMBOL_COMMENT || s->type == SYMBOL_OPERATOR) {
     printsymbolmessage(ERRLVL_ERROR, trace, s, "Bad format for node name!");
     exit(1);
   }
@@ -159,7 +147,7 @@ int parsebnfstatement(SymbolStream *ss, BNFNode *basenode, BNFNode *parent, Arra
       ret = 0;
       break;
     }
-    if (s->comment) continue;
+    if (s->type == SYMBOL_COMMENT) continue;
     if (concat) {
       content = (*(BNFNode**)at(content, content->size - 1))->content;
       concat = 0;
@@ -267,7 +255,7 @@ int parsebnfstatement(SymbolStream *ss, BNFNode *basenode, BNFNode *parent, Arra
       expect(ss, trace, ">");
       oplast = 0;
     }
-    else if (s->string) {
+    else if (s->type == SYMBOL_STRING) {
       BNFNode *node = NULL;
       char *value = s->text[0] ? malloc((strlen(s->text) + 1) * sizeof(char)) : NULL;
       if (value) sprintf(value, "%s", s->text);
@@ -358,7 +346,7 @@ void parsebnfbody(SymbolStream *ss, BNFNode *basenode, Array *trace)
   while ((s = ssgets(ss))) {
     if (s->eof) break;
     if (!strcmp(s->text, "\n")) continue;
-    if (s->comment)             continue;
+    if (s->type == SYMBOL_COMMENT)             continue;
     if (strcmp(s->text, "<")) {
       char error[256];
       sprintf(error, "Expected '"FONT_BOLD"<"FONT_RESET"', got '"FONT_BOLD"%s"FONT_RESET"' instead!", s->text);
