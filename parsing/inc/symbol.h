@@ -12,7 +12,8 @@ typedef enum symboltype {
   SYMBOL_COMMENT,
   SYMBOL_NUMBER,
   SYMBOL_VARIABLE,
-  SYMBOL_OPERATOR
+  SYMBOL_OPERATOR,
+  SYMBOL_RESERVED
 } SymbolType;
 
 typedef struct symbol {

@@ -31,7 +31,11 @@
 ;;
 ,
 +
+:
 
 == Reserved ==
+number
+string
+variable
 
 == EOF ==

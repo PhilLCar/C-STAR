@@ -36,6 +36,9 @@ void printnode(BNFNode *n, char *s, int base, int lvl, int last) {
   case NODE_LEAF:
     printf("\"%s\"\n", (char*)n->content);
     break;
+  case NODE_RAW:
+    printf(FONT_BOLD""TEXT_YELLOW"%s\n"FONT_RESET, (char*)n->name);
+    break;
   case NODE_LIST:
     printf(TEXT_YELLOW"[:]\n"FONT_RESET);
     for (int i = 0; i < ((Array*)n->content)->size && p; i++) {

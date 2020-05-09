@@ -8,7 +8,6 @@
 #include <strings.h>
 #include <array.h>
 
-#define AST_CONCAT ' '
 #define AST_LOCK    0
 #define AST_CLOSE  -1
 

@@ -1,9 +1,3 @@
--erreur bnf whitespace
--bnf raw nodes
--symbol stream, identify reserved keywords, variables, symbols and numbers
 -ASTError for each node
 - lire le script à Thériault
-- Fixed leftmost recursion
-- fix concat problems when not all options are identify
-- fix name trickling problems
 - BNF Error when undefined node

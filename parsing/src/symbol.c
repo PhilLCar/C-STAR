@@ -1,6 +1,6 @@
 #include <symbol.h>
 
-enum type {
+enum {
   NONE = 0,
   DELIM,
   LINECOM,
@@ -68,34 +68,34 @@ int nextsymbol(TrackedFile *tf, Parser *parser, Symbol *symbol)
         }
         break;
       }
-      //////////////////////////////////////// ESCAPE ////////////////////////////////////////
-      for (int i = 0; parser->escapes[i]; i++) {
-        if (c == parser->escapes[i]) {
-          ws = 1;
-          break;
-        }
-      }
-      if (ws && symbol->type != SYMBOL_COMMENT) {
-        c = tfgetc(tf);
-        switch (c) {
-          case 'n':
-            c = '\n';
-            break;
-          case 't':
-            c = '\t';
-            break;
-          case 'r':
-            c = '\r';
-            break;
-          case '0':
-            c = '\0';
-            break;
-        }
-        if (!extend(&buf, &buf_size, &buf_cap, c)) goto next_fail;
-        continue;
-      }
       //////////////////////////////////////// STRING STOP ////////////////////////////////////////
       if (symbol->type == SYMBOL_STRING) {
+        //////////////////////////////////////// ESCAPE ////////////////////////////////////////
+        for (int i = 0; parser->escapes[i]; i++) {
+          if (c == parser->escapes[i]) {
+            ws = 1;
+            break;
+          }
+        }
+        if (ws) {
+          c = tfgetc(tf);
+          switch (c) {
+            case 'n':
+              c = '\n';
+              break;
+            case 't':
+              c = '\t';
+              break;
+            case 'r':
+              c = '\r';
+              break;
+            case '0':
+              c = '\0';
+              break;
+          }
+          if (!extend(&buf, &buf_size, &buf_cap, c)) goto next_fail;
+          continue;
+        }
         if ((cmp = strcmps(tf->buffer, symbol->close))) {
           close = 1;
           for (int i = 1; i < cmp; i++) tfgetc(tf);
@@ -165,6 +165,24 @@ int nextsymbol(TrackedFile *tf, Parser *parser, Symbol *symbol)
           }
         }
       }
+      //////////////////////////////////////// NUMBERS ////////////////////////////////////////
+      if (!buf_size) {
+        int dec = 0;
+        if (c == '.') {
+          char t = tfgetc(tf);
+          if (t >= '0' && t <= '9') dec = 1;
+          tfungetc(tf, t);
+        }
+        if (dec || (c >= '0' && c <= '9')) {
+          symbol->type = SYMBOL_NUMBER;
+          if (!extend(&buf, &buf_size, &buf_cap, c)) goto next_fail;
+          continue;
+        }
+      } else if (symbol->type == SYMBOL_NUMBER && type == NONE) {
+        if (!extend(&buf, &buf_size, &buf_cap, c)) goto next_fail;
+        continue;
+      }
+      //////////////////////////////////////////////////////////////////////////////////////////
       // delim
       if (ws && type == DELIM) {
         if (buf_size) {
@@ -236,7 +254,8 @@ int nextsymbol(TrackedFile *tf, Parser *parser, Symbol *symbol)
         if (buf_size) {
           tfungetc(tf, c);
         } else {
-          pos = tf->position;
+          symbol->type = SYMBOL_OPERATOR;
+          pos          = tf->position;
           for (int i = 1;; i++) {
             if (!extend(&buf, &buf_size, &buf_cap, c)) goto next_fail;
             if (i == ws) break;
@@ -246,7 +265,10 @@ int nextsymbol(TrackedFile *tf, Parser *parser, Symbol *symbol)
         break;
       }
       //////////////////////////////////////// SYMBOL ////////////////////////////////////////
-      if (!buf_size) pos = tf->position;
+      if (!buf_size) {
+        symbol->type = SYMBOL_VARIABLE;
+        pos          = tf->position;
+      }
       if (!extend(&buf, &buf_size, &buf_cap, c)) {
       next_fail:
         freesymbol(symbol);
@@ -259,6 +281,12 @@ int nextsymbol(TrackedFile *tf, Parser *parser, Symbol *symbol)
       symbol->close[0] = 0;
     }
     symbol->text = buf;
+    for (int i = 0; parser->reserved[i]; i++) {
+      if (!strcmp(buf, parser->reserved[i])) {
+        symbol->type = SYMBOL_RESERVED;
+        break;
+      }
+    }
     if (symbol->line < 0) symbol->line = tf->line;
     symbol->position = pos;
     new = 1;

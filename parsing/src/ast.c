@@ -101,6 +101,7 @@ void astnewchar(Array *errors, ASTNode *ast, BNFNode *bnf, Array *reserved, ASTF
 
   switch (bnf->type) {
     case NODE_ROOT:
+    case NODE_RAW:
     case NODE_MANY_OR_NONE:
     case NODE_MANY_OR_ONE:
     case NODE_ONE_OR_NONE:
