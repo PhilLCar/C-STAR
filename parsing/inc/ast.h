@@ -9,7 +9,6 @@
 #include <array.h>
 
 #define AST_LOCK    0
-#define AST_CLOSE  -1
 
 typedef enum aststatus {
   STATUS_NOSTATUS = 0,
