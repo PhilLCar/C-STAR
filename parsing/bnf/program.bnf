@@ -1,11 +1,10 @@
 ;; include (parsing/bnf/types.bnf)
-;; include (parsing/bnf/constants.bnf)
 
 <program> ::= { <statement> }
 
 <statement> ::= <line> | <func-assoc> | <special-blocks> | <class-decl> | <operator-assoc>
 
-<line> ::= ( <expression> | <declaration> ) [ ";" ]
+<line> ::= ( <expression> | <declaration> ) ";"
 
 <expression> ::= ( <unary> <expression> ) |
                  ( <expression> <binary> <expression> ) |

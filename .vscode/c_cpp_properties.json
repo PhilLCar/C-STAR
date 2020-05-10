@@ -4,7 +4,8 @@
             "name": "Linux",
             "includePath": [
                 "${workspaceFolder}/parsing/inc",
-                "${workspaceFolder}/utils/inc"
+                "${workspaceFolder}/utils/inc",
+                "${workspaceFolder}/cisor/inc"
             ],
             "defines": [],
             "compilerPath": "/usr/bin/gcc",
