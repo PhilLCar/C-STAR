@@ -1,0 +1,106 @@
+{
+	"$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+	"name": "BNF",
+	"patterns": [
+		{
+			"include": "#keywords"
+		},
+		{
+			"include": "#strings"
+		},
+		{
+			"include": "#singles"
+		},
+		{
+			"include": "#includes"
+		},
+		{
+			"include": "#commentblocks"
+		},
+		{
+			"include": "#comments"
+		},
+		{
+			"include": "#nodes"
+		}
+	],
+	"repository": {
+		"keywords": {
+			"patterns": [{
+				"name": "keyword.operator.bnf",
+				"match": "(\\+|,|\\||::=|\\{|\\}|\\[|\\]|\\(|\\))"
+			}]
+		},
+		"strings": {
+			"name": "string.quoted.double.bnf",
+			"begin": "\"",
+			"end": "\"",
+			"patterns": [
+				{
+					"name": "constant.character.escape.bnf",
+					"match": "\\\\."
+				}
+			]
+		},
+		"singles": {
+			"name": "string.quoted.single.bnf",
+			"begin": "'",
+			"end": "'",
+			"patterns": [
+				{
+					"name": "constant.character.escape.bnf",
+					"match": "\\\\."
+				}
+			]
+		},
+		"includes": {
+			"patterns": [{
+				"match": "^\\s*(;;\\s*include)\\s*(\\(.*\\))",
+				"captures": {
+					"1": { "name": "keyword.control.preprocessor.bnf" },
+					"2": { "name": "string.quoted.single.include.bnf" }
+				}
+			}]
+		},
+		"commentblocks": {
+			"name": "comment.block.bnf",
+			"begin": "/\\*",
+			"end": "\\*/"
+		},
+		"comments": {
+			"patterns": [{
+				"name": "comment.line.double-slash.bnf",
+				"match": "//.*"
+			},
+			{
+				"name": "comment.line.other.bnf",
+				"match": "#.*"
+			},
+			{
+				"name": "comment.line.other.bnf",
+				"match": ";[^;].*"
+			}]
+		},
+		"nodes": {
+			"patterns": [{
+				"match": "^\\s*(<)(.*?)(>)",
+				"captures": {
+					"1": { "name": "keyword.operator.bnf" },
+					"2": { "name": "entity.name.type.bnf" },
+					"3": { "name": "keyword.operator.bnf" }
+				}
+			},
+			{
+				"match": "(<)\\s*((raw\\s*)(:))?(.*?)(>)",
+				"captures": {
+					"1": { "name": "keyword.operator.bnf" },
+					"3": { "name": "constant.language.raw.bnf" },
+					"4": { "name": "keyword.operator.bnf" },
+					"5": { "name": "storage.type.class.bnf" },
+					"6": { "name": "keyword.operator.bnf" }
+				}
+			}]
+		}
+	},
+	"scopeName": "source.bnf"
+}

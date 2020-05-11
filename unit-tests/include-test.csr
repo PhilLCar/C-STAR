@@ -1,3 +1,5 @@
 #include <include-test>
 
-print(a + b)
+/// TEST: This will test inclusion
+
+print(ALPHA + BETA)

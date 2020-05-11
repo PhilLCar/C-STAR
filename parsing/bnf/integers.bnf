@@ -1,4 +1,4 @@
-;; include (parsing/bnf/digits.bnf)
+;;include (parsing/bnf/digits.bnf)
 
 <integer> ::= (<bin-integer> | <oct-integer> | <dec-integer> | <hex-integer>)
 
@@ -7,5 +7,5 @@
 <dec-integer> ::= <dec-digit-no-zero>, { <dec-digit> }, [ <integer-spec> ]
 <hex-integer> ::= ('0x' | '0X'), <hex-digit>, { <hex-digit> }, [ <integer-spec> ]
 
-<integer-spec> ::= 'u' | 'ui' | 'i' | 'us' | 's' | 'ub' | 'b' |
-                   'U' | 'UI' | 'I' | 'US' | 'S' | 'UB' | 'B'
+<integer-spec> ::= 'u' | 'ui' | 'i' | 'us' | 's' | 'ub' | 'sb' |
+                   'U' | 'UI' | 'I' | 'US' | 'S' | 'UB' | 'SB'

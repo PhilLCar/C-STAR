@@ -6,7 +6,22 @@
 			"include": "#keywords"
 		},
 		{
+			"include": "#constants"
+		},
+		{
 			"include": "#strings"
+		},
+		{
+			"include": "#includes"
+		},
+		{
+			"include": "#commentblocks"
+		},
+		{
+			"include": "#comments"
+		},
+		{
+			"include": "#supports"
 		}
 	],
 	"repository": {
@@ -14,6 +29,42 @@
 			"patterns": [{
 				"name": "keyword.control.csr",
 				"match": "\\b(if|while|for|return)\\b"
+			},
+			{
+				"name": "keyword.control.preprocessor.csr",
+				"match": "^\\s*(#define|#ifdef|#ifndef|#endif)\\b"
+			},
+			{
+				"name": "keyword.operator.csr",
+				"match": "(\\+|\\-|\\*|&|~|\\||\\^)"
+			},
+			{
+				"match": "[^/](/)[^/]",
+				"captures": {
+					"1": { "name": "keyword.operator.csr" }
+				}
+			}]
+		},
+		"constants": {
+			"patterns": [{
+				"name": "constant.numeric.decint.csr",
+				"match": "\\b[0-9]+(u|ui|i|us|s|ub|sb|U|UI|I|US|S|UB|SB)?\\b"
+			},
+			{
+				"name": "constant.numeric.binint.csr",
+				"match": "\\b(0b|0B)[0-1]+(u|ui|i|us|s|ub|sb|U|UI|I|US|S|UB|SB)?\\b"
+			},
+			{
+				"name": "constant.numeric.octint.csr",
+				"match": "\\b(0o|0O)[0-7]+(u|ui|i|us|s|ub|sb|U|UI|I|US|S|UB|SB)?\\b"
+			},
+			{
+				"name": "constant.numeric.hexint.csr",
+				"match": "\\b(0x|0X)[0-9a-fA-F]+(u|ui|i|us|s|ub|sb|U|UI|I|US|S|UB|SB)?\\b"
+			},
+			{
+				"name": "constant.language.csr",
+				"match": "\\b(true|false|null)\\b"
 			}]
 		},
 		"strings": {
@@ -24,6 +75,41 @@
 				{
 					"name": "constant.character.escape.csr",
 					"match": "\\\\."
+				}
+			]
+		},
+		"includes": {
+			"patterns": [{
+				"match": "^\\s*(#include)\\s*(<.*>)",
+				"captures": {
+					"1": { "name": "keyword.control.preprocessor.csr" },
+					"2": { "name": "string.quoted.double.include.csr" }
+				}
+			}]
+		},
+		"commentblocks": {
+			"name": "comment.block.csr",
+			"begin": "/\\*",
+			"end": "\\*/"
+		},
+		"comments": {
+			"patterns": [{
+				"name": "comment.line.double-slash.csr",
+				"match": "//[^/].*"
+			},
+			{
+				"name": "comment.line.triple.csr",
+				"match": "///(.*?:)?.*",
+				"captures": {
+					"1" : { "name": "storage.type.class.cominstr.csr"}
+				}
+			}]
+		},
+		"supports": {
+			"patterns": [
+				{
+					"name": "support.function.csr",
+					"match": "\\b(print|malloc|realloc|free|memcpy|memcmp|strcpy|strcmp)\\b"
 				}
 			]
 		}

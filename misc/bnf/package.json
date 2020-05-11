@@ -1,0 +1,25 @@
+{
+    "name": "bnf",
+    "displayName": "BNF",
+    "description": "Language support for BNF",
+    "version": "0.0.1",
+    "engines": {
+        "vscode": "^1.45.0"
+    },
+    "categories": [
+        "Programming Languages"
+    ],
+    "contributes": {
+        "languages": [{
+            "id": "bnf",
+            "aliases": ["BNF"],
+            "extensions": [".bnf"],
+            "configuration": "./language-configuration.json"
+        }],
+        "grammars": [{
+            "language": "bnf",
+            "scopeName": "source.bnf",
+            "path": "./syntaxes/bnf.tmLanguage.json"
+        }]
+    }
+}

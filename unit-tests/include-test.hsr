@@ -1,2 +1,2 @@
-#define a 3
-#define b 4
+#define ALPHA 3
+#define BETA  0b101

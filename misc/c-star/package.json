@@ -20,6 +20,11 @@
             "language": "csr",
             "scopeName": "source.csr",
             "path": "./syntaxes/csr.tmLanguage.json"
+        }],
+        "iconThemes": [{
+            "id": "csr-icon",
+            "label": "C-STAR",
+            "path": "./fileicons/csr-icon-theme.json"
         }]
     }
 }
