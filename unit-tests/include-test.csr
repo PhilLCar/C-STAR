@@ -1,5 +1,1 @@
-#include <include-test>
-
-/// TEST: This will test inclusion
-
-print(ALPHA + BETA)
+#include "unit-tests/include-test"

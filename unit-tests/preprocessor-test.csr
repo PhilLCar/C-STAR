@@ -1,0 +1,5 @@
+#include "preprocessor-test"
+
+/// TEST: This will test inclusion
+
+print(ALPHA + BETA)

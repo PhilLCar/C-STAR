@@ -1,0 +1,3 @@
+<statement> ::= <value> | <operation>
+<value>     ::= <raw: variable> | <raw: number> | <raw: string>
+<operation> ::= <statement> <operator> <value>

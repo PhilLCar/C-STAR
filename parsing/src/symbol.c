@@ -123,8 +123,11 @@ int nextsymbol(TrackedFile *tf, Parser *parser, Symbol *symbol)
         }
       }
       if (ws) {
-        if (buf_size) break;
-        else          continue;
+        if (buf_size) {
+          tfungetc(tf, c);
+          break;
+        }
+        else continue;
       }
       //////////////////////////////////////// DELIMITERS ////////////////////////////////////////
       for (int i = 0; parser->delimiters[i]; i += 2) {

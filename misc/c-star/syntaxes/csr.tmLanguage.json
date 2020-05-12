@@ -28,15 +28,15 @@
 		"keywords": {
 			"patterns": [{
 				"name": "keyword.control.csr",
-				"match": "\\b(if|while|for|return)\\b"
+				"match": "\\b(if|while|for|return|else|do|break|switch|case|default)\\b"
 			},
 			{
 				"name": "keyword.control.preprocessor.csr",
-				"match": "^\\s*(#define|#ifdef|#ifndef|#endif)\\b"
+				"match": "^\\s*(#define|#ifdef|#ifndef|#if|#elif|#else|#error|#warning|#pragma|#endif|#undef)\\b"
 			},
 			{
 				"name": "keyword.operator.csr",
-				"match": "(\\+|\\-|\\*|&|~|\\||\\^)"
+				"match": "(\\+|\\-|\\*|&|~|\\||\\^|=)"
 			},
 			{
 				"match": "[^/](/)[^/]",
@@ -80,10 +80,11 @@
 		},
 		"includes": {
 			"patterns": [{
-				"match": "^\\s*(#include)\\s*(<.*>)",
+				"match": "^\\s*(#include)\\s*((<.*?>)|(\".*?\"))",
 				"captures": {
 					"1": { "name": "keyword.control.preprocessor.csr" },
-					"2": { "name": "string.quoted.double.include.csr" }
+					"3": { "name": "string.quoted.double.include.csr" },
+					"4": { "name": "string.quoted.double.include.csr" }
 				}
 			}]
 		},
@@ -106,10 +107,15 @@
 			}]
 		},
 		"supports": {
-			"patterns": [
-				{
+			"patterns": [{
 					"name": "support.function.csr",
 					"match": "\\b(print|malloc|realloc|free|memcpy|memcmp|strcpy|strcmp)\\b"
+				},
+				{
+					"match": "\\s*#.*?(defined|push|pop)",
+					"captures": {
+						"1": { "name": "support.function.preprocessorcsr" }
+					}
 				}
 			]
 		}
