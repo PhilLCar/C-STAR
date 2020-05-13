@@ -193,8 +193,9 @@ void astnewchar(ASTNode *ast, BNFNode *bnf, ASTFlags flags, char c)
             for (int j = 0; j < subast->subnodes->size; j++) {
               ASTNode *partial = astsubnode(subast, j);
               int      status  = partial->status;
-              if (status == STATUS_CONFIRMED || status == STATUS_REC) {
-                rem(subast->subnodes, j);
+              if (status == STATUS_CONFIRMED || status == STATUS_REC) {     
+                if (!subast->rec) rem(subast->subnodes, j);
+                else partial = duplicateAST(partial);
                 if (status == STATUS_CONFIRMED && astempty(partial)) {
                   deleteAST(&partial);
                   nast->rec--;
@@ -247,6 +248,7 @@ void astnewchar(ASTNode *ast, BNFNode *bnf, ASTFlags flags, char c)
       if (bnf->refs->size > 1 && flags & ASTFLAGS_FRONT) {
         // SPECIAL CASE OF LEFTMOST DERIVATION (when the recursive element is the first position)
         ASTNode *recroot = *(ASTNode**)at(bnf->refs, 0);
+        recroot->rec = 1;
         if (flags & ASTFLAGS_END) { superast->status = STATUS_FAILED; break; }
         if (recroot->status == STATUS_PARTIAL && c == AST_LOCK) {
           recroot->status  = STATUS_ONGOING;
@@ -302,7 +304,8 @@ void astnewchar(ASTNode *ast, BNFNode *bnf, ASTFlags flags, char c)
         for (int i = 0; i < save->subnodes->size; i++) {
           ASTNode *partial = astsubnode(save, i);
           if (partial->status == STATUS_CONFIRMED || partial->status == STATUS_REC) {
-            rem(save->subnodes, i);
+            if (!save->rec) rem(save->subnodes, i);
+            else partial = duplicateAST(partial);
             if (!partial->name->length && bnf->type != NODE_ANON) {
               partial->ref = ast->ref;
               concat(partial->name, newString(ast->name->content));
@@ -441,7 +444,8 @@ void astnewsymbol(ASTNode *ast, BNFNode *bnf, BNFNode *raw, ASTFlags flags, Symb
               ASTNode *partial = astsubnode(subast, j);
               int      status  = partial->status;
               if (status == STATUS_CONFIRMED || status == STATUS_REC) {
-                rem(subast->subnodes, j);
+                if (!subast->rec) rem(subast->subnodes, j);
+                else partial = duplicateAST(partial);
                 if (status == STATUS_CONFIRMED && astempty(partial)) {
                   deleteAST(&partial);
                   nast->rec--;
@@ -486,9 +490,10 @@ void astnewsymbol(ASTNode *ast, BNFNode *bnf, BNFNode *raw, ASTFlags flags, Symb
       superast = ast;
       if (bnf->refs->size > 1 && flags & ASTFLAGS_FRONT) {
         // SPECIAL CASE OF LEFTMOST DERIVATION (when the recursive element is the first position)
-        ASTNode *recroot = *(ASTNode**)at(bnf->refs, 0);
+        ASTNode *recroot = *(ASTNode**)at(bnf->refs, bnf->refs->size - 2);
+        recroot->rec = 1;
         if (flags & ASTFLAGS_END) { superast->status = STATUS_FAILED; break; }
-        if (recroot->status == STATUS_PARTIAL && !s) {
+        if (recroot->subnodes->size > 1 && !s) {
           recroot->status  = STATUS_ONGOING;
           recroot->pos     = bnf->refs->size;
           ASTNode *partial = *(ASTNode**)pop(recroot->subnodes);
@@ -542,7 +547,8 @@ void astnewsymbol(ASTNode *ast, BNFNode *bnf, BNFNode *raw, ASTFlags flags, Symb
         for (int i = 0; i < save->subnodes->size; i++) {
           ASTNode *partial = astsubnode(save, i);
           if (partial->status == STATUS_CONFIRMED || partial->status == STATUS_REC) {
-            rem(save->subnodes, i);
+            if (!save->rec) rem(save->subnodes, i);
+            else partial = duplicateAST(partial);
             if (!partial->name->length && bnf->type != NODE_ANON) {
               partial->ref = ast->ref;
               concat(partial->name, newString(ast->name->content));
@@ -579,9 +585,7 @@ ASTNode *parseast(char *filename)
   push(trace, &filename);
 
   Symbol *s;
-  int i = 0;
   while (!(s = ssgets(ss))->eof) {
-    i ++;
     if (s->text[0] == '\n') continue;
     astnewsymbol(ast, rootent, rawent, ASTFLAGS_NONE, NULL);
     astnewsymbol(ast, rootent, rawent, ASTFLAGS_NONE, s);
@@ -589,7 +593,6 @@ ASTNode *parseast(char *filename)
       printsymbolmessage(ERRLVL_ERROR, trace, s, "Unexpected symbol!");
       break;
     }
-    if (i > 0) break;
   }
   //astnewsymbol(ast, rootent, rawent, ASTFLAGS_END, NULL);
 

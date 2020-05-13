@@ -1,10 +1,10 @@
-<operation6> ::= <operation6> <operator6> <value> | <operation5>
-<operation5> ::= <operation5> <operator5> <value> | <operation4>
-<operation4> ::= <operation4> <operator4> <value> | <operation3>
-<operation3> ::= <operation3> <operator3> <value> | <operation2>
-<operation2> ::= <operation2> <operator2> <value> | <operation1>
-<operation1> ::= <operation1> <operator1> <value> | <operation0>
-<operation0> ::= <operator0> <value>              | <value>
+<operation6> ::= <operation6> <operator6> <operation5> | <operation5>
+<operation5> ::= <operation5> <operator5> <operation4> | <operation4>
+<operation4> ::= <operation4> <operator4> <operation3> | <operation3>
+<operation3> ::= <operation3> <operator3> <operation2> | <operation2>
+<operation2> ::= <operation2> <operator2> <operation1> | <operation1>
+<operation1> ::= <operation1> <operator1> <operation0> | <operation0>
+<operation0> ::= <operator0> <value> | <value>
 <value>      ::= <raw: variable> | <raw: number> | <raw: string> | <function> | <operation>
 <function>   ::= <raw: variable> "(" <operation6> ")"
 <operation>  ::= "(" <operation6> ")"
