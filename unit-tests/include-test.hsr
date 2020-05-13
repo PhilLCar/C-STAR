@@ -1,3 +1,9 @@
+#define TRUE "test"
+// test
+#ifdef TEST
 if (true) {
-  print("true");
+  print(TRUE);
 } else print("false");
+#else
+print("test undef");
+#endif

@@ -47,6 +47,7 @@ String *append(String *a, char c)
 {
   char *n = realloc(a->content, (a->length + 2) * sizeof(char));
   if (n) {
+    a->content              = n;
     a->content[a->length]   = c;
     a->content[++a->length] = 0;
   } else {

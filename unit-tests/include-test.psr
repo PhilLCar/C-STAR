@@ -1,3 +1,4 @@
+// test
 if (true) {
-  print(true);
-} else print(false);
+  print("test");
+} else print("false");

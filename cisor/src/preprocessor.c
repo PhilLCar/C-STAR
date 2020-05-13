@@ -62,6 +62,8 @@ int preprocessfile(char *filename, Array *incpath, Array *trace, PPEnv *ppenv, i
   char         *ext     = fileext(filename);
   //int           cmode   = 0;
   int           valid   = 1;
+  int           control = 0;
+  int           ignore  = 0;
 
   if (!ss && search && filename[0] != '/') {
     for (int i = 0; i < incpath->size; i++) {
@@ -89,7 +91,8 @@ int preprocessfile(char *filename, Array *incpath, Array *trace, PPEnv *ppenv, i
   }
 
   while (valid && !(s = ppconsume(ss, ppenv->output))->eof) {
-    if (!strcmp(s->text, "#include")) {
+    /////////////////////////////////////////////////////////////////////////////////////
+    if (!strcmp(s->text, "#include") && !ignore) {
       char fnwext[INCLUDE_MAX_FILE_LENGTH];
       s = ssgets(ss);
       if (s->type == SYMBOL_STRING) {
@@ -136,32 +139,166 @@ int preprocessfile(char *filename, Array *incpath, Array *trace, PPEnv *ppenv, i
           valid = 0;
         }
       }
-    } else if (!strcmp(s->text, "#define")) {
-
-    } else if (!strcmp(s->text, "#undef")) {
-
+    /////////////////////////////////////////////////////////////////////////////////////
+    } else if (!strcmp(s->text, "#define") && !ignore) {
+      Macro   m;
+      char    c;
+      String *str = newString("");
+      s = ssgets(ss);
+      m.name = malloc(strlen(s->text) + 1);
+      sprintf(m.name, "%s", s->text);
+      if (tfgetc(ss->tfptr) != '\n') {
+        while ((c = tfgetc(ss->tfptr)) != EOF && c != '\n') {
+          append(str, c);
+        }
+      }
+      m.value = str->content;
+      str->content = NULL;
+      deleteString(&str);
+      push(ppenv->env, &m);
+    /////////////////////////////////////////////////////////////////////////////////////
+    } else if (!strcmp(s->text, "#undef") && !ignore) {
+      s = ssgets(ss);
+      if (s->eof || !strcmp(s->text, "\n")) {
+        printsymbolmessage(ERRLVL_ERROR, trace, s, "Expected a macro to undefine, got nothing");
+        valid = 0;
+      }
+      if (valid) {
+        int undef = 0;
+        for (int i = 0; i < ppenv->env->size; i++) {
+          Macro *m = at(ppenv->env, i);
+          if (!strcmp(s->text, m->name)) {
+            undef = 1;
+            rem(ppenv->env, i);
+            break;
+          }
+        }
+        if (!undef) {
+          sprintf(error, "'%s' is not defined...", s->text);
+          printsymbolmessage(ERRLVL_WARNING, trace, s, error);
+        }
+        s = ssgets(ss);
+        if (s->text[0] && s->text[0] != '\n') {
+          sprintf(error, "Expected 'newline' got '%s' instead!", s->text);
+          printsymbolmessage(ERRLVL_ERROR, trace, s, error);
+          valid = 0;
+        }
+      }
+    /////////////////////////////////////////////////////////////////////////////////////
     } else if (!strcmp(s->text, "#ifdef")) {
-
+      s = ssgets(ss);
+      if (s->eof || !strcmp(s->text, "\n")) {
+        printsymbolmessage(ERRLVL_ERROR, trace, s, "Expected a macro to verify, got nothing");
+        valid = 0;
+      }
+      if (valid) {
+        int def = 0;
+        for (int i = 0; i < ppenv->env->size; i++) {
+          Macro *m = at(ppenv->env, i);
+          if (!strcmp(s->text, m->name)) {
+            def = 1;
+            break;
+          }
+        }
+        if (def) {
+          control++;
+        }
+        s = ssgets(ss);
+        if (s->text[0] && s->text[0] != '\n') {
+          sprintf(error, "Expected 'newline' got '%s' instead!", s->text);
+          printsymbolmessage(ERRLVL_ERROR, trace, s, error);
+          valid = 0;
+        }
+      }
+    /////////////////////////////////////////////////////////////////////////////////////
     } else if (!strcmp(s->text, "#ifndef")) {
-
+      s = ssgets(ss);
+      if (s->eof || !strcmp(s->text, "\n")) {
+        printsymbolmessage(ERRLVL_ERROR, trace, s, "Expected a macro to verify, got nothing");
+        valid = 0;
+      }
+      if (valid) {
+        int undef = 1;
+        for (int i = 0; i < ppenv->env->size; i++) {
+          Macro *m = at(ppenv->env, i);
+          if (!strcmp(s->text, m->name)) {
+            undef = 0;
+            break;
+          }
+        }
+        if (undef) {
+          control++;
+        }
+        s = ssgets(ss);
+        if (s->text[0] && s->text[0] != '\n') {
+          sprintf(error, "Expected 'newline' got '%s' instead!", s->text);
+          printsymbolmessage(ERRLVL_ERROR, trace, s, error);
+          valid = 0;
+        }
+      }
+    /////////////////////////////////////////////////////////////////////////////////////
+    } else if (!strcmp(s->text, "#if")) {
+      
+    /////////////////////////////////////////////////////////////////////////////////////
     } else if (!strcmp(s->text, "#elif")) {
 
+    /////////////////////////////////////////////////////////////////////////////////////
     } else if (!strcmp(s->text, "#else")) {
 
+    /////////////////////////////////////////////////////////////////////////////////////
     } else if (!strcmp(s->text, "#endif")) {
 
-    } else if (!strcmp(s->text, "#warning")) {
-
-    } else if (!strcmp(s->text, "#error")) {
-
-    } else if (!strcmp(s->text, "#pragma")) {
-
-    } else {
+    /////////////////////////////////////////////////////////////////////////////////////
+    } else if (!strcmp(s->text, "#warning") && !ignore) {
+      String *str = newString("");
+      char    c;
+      if (tfgetc(ss->tfptr) != '\n') {
+        while ((c = tfgetc(ss->tfptr)) != EOF && c != '\n') {
+          append(str, c);
+        }
+      }
+      printsymbolmessage(ERRLVL_WARNING, trace, s, str->content);
+      deleteString(&str);
+    /////////////////////////////////////////////////////////////////////////////////////
+    } else if (!strcmp(s->text, "#error") && !ignore) {
+      String *str = newString("");
+      char    c;
+      if (tfgetc(ss->tfptr) != '\n') {
+        while ((c = tfgetc(ss->tfptr)) != EOF && c != '\n') {
+          append(str, c);
+        }
+      }
+      printsymbolmessage(ERRLVL_ERROR, trace, s, str->content);
+      deleteString(&str);
+      valid = 0;
+    /////////////////////////////////////////////////////////////////////////////////////
+    } else if (!strcmp(s->text, "#pragma") && !ignore) {
+      // UNIMPLEMENTED
+    /////////////////////////////////////////////////////////////////////////////////////
+    } else if (!ignore) {
       while (!s->eof && s->text[0] != '\n') {
-        for (int i = 0; s->text[i]; i++) fputc(s->text[i], ppenv->output);
+        int expanded = 0;
+        if (s->open) for (int i = 0; s->open[i]; i++)   fputc(s->open[i],  ppenv->output);
+        else {
+          for (int i = 0; i < ppenv->env->size; i++) {
+            Macro *m   = at(ppenv->env, i);
+            int    len = strlen(m->value);
+            if (!strcmp(s->text, m->name)) {
+              expanded = 1;
+              for (int j = 0; j < len; j++)             fputc(m->value[j], ppenv->output);
+              break;
+            }
+          }
+        }
+        if (!expanded) for (int i = 0; s->text[i]; i++) fputc(s->text[i],  ppenv->output);
+        if (s->close) for (int i = 0; s->close[i]; i++) fputc(s->close[i], ppenv->output);
         s = ppconsume(ss, ppenv->output);
       }
       fputc('\n', ppenv->output);
+    } else {
+      char c;
+      while ((c = tfgetc(ss->tfptr)) != '#' && c != EOF);
+      tfungetc(ss->tfptr, '#');
     }
   }
 
@@ -184,7 +321,8 @@ void preprocess(char *filename, Array *incpath)
   Parser       *parser   = newParser("parsing/prs/csr.prs");
   FILE         *output   = fopen(ppfile,   "w+");
   FILE         *metadata = fopen(metafile, "w+");
-  Array        *env      = newArray(sizeof(PPVar));
+  Array        *env      = newArray(sizeof(Macro));
+  Array        *stack    = newArray(sizeof(int));
   Array        *trace    = newArray(sizeof(char*));
   PPEnv         ppenv;
 
@@ -192,6 +330,7 @@ void preprocess(char *filename, Array *incpath)
   ppenv.metadata   = metadata;
   ppenv.parser     = parser;
   ppenv.env        = env;
+  ppenv.stack      = stack;
 
   preprocessfile(filename, incpath, trace, &ppenv, 0);
 
@@ -199,5 +338,6 @@ void preprocess(char *filename, Array *incpath)
   if (output)   fclose(output);
   if (metadata) fclose(metadata);
   if (env)      deleteArray(&env);
+  if (stack)    deleteArray(&stack);
   if (trace)    deleteArray(&trace);
 }

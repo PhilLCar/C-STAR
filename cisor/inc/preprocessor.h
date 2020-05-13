@@ -6,20 +6,22 @@
 #include <array.h>
 #include <diagnostic.h>
 #include <error.h>
+#include <strings.h>
 
 #define INCLUDE_MAX_DEPTH        128
 #define INCLUDE_MAX_FILE_LENGTH 1024
 
-typedef struct ppvar {
+typedef struct macro {
   char *name;
   char *value;
-} PPVar;
+} Macro;
 
 typedef struct ppenv {
   FILE   *output;
   FILE   *metadata;
   Parser *parser;
   Array  *env;
+  Array  *stack;
 } PPEnv;
 
 void preprocess(char*, Array*);
