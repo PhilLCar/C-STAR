@@ -252,9 +252,26 @@ int preprocessfile(char *filename, Array *incpath, Array *trace, PPEnv *ppenv, i
       }
     /////////////////////////////////////////////////////////////////////////////////////
     } else if (!strcmp(s->text, "#if")) {
-      BNFNode *pptree  = parsebnf("parsing/bnf/preprocessor.bnf");
-      BNFNode *rawtree = parsebnf("parsing/bnf/raw.bnf");
       ASTNode *ast     = newASTNode(NULL, NULL);
+      while (!(s = ssgets(ss))->eof) {
+        if (s->text[0] == '\n') break;
+        if (s->text[0] == '\\') {
+          s = ssgets(ss);
+          if (s->text[0] != '\n') {
+            valid = 0;
+            break;
+          }
+          continue;
+        }
+        astnewsymbol(ast, ppenv->tree, ppenv->raw, ASTFLAGS_NONE, s);
+        if (ast->status == STATUS_FAILED) {
+          printsymbolmessage(ERRLVL_ERROR, trace, s, "Badely formatted expression!");
+          valid = 0;
+          break;
+        }
+      }
+      printf("%d\n", ast->subnodes->size);
+      deleteAST(&ast);
     /////////////////////////////////////////////////////////////////////////////////////
     } else if (!strcmp(s->text, "#elif")) {
 
@@ -331,6 +348,8 @@ void preprocess(char *filename, Array *incpath)
   FILE         *metadata = fopen(metafile, "w+");
   Array        *env      = newArray(sizeof(Macro));
   Array        *stack    = newArray(sizeof(int));
+  BNFNode      *tree     = parsebnf("parsing/bnf/preprocessor.bnf");
+  BNFNode      *raw      = parsebnf("parsing/bnf/raw.bnf");
   Array        *trace    = newArray(sizeof(char*));
   PPEnv         ppenv;
 
@@ -339,6 +358,8 @@ void preprocess(char *filename, Array *incpath)
   ppenv.parser     = parser;
   ppenv.env        = env;
   ppenv.stack      = stack;
+  ppenv.tree       = *(BNFNode**)at(tree->content, 0);
+  ppenv.raw        = *(BNFNode**)at(raw->content,  0);
 
   preprocessfile(filename, incpath, trace, &ppenv, 0);
 
@@ -347,5 +368,7 @@ void preprocess(char *filename, Array *incpath)
   if (metadata) fclose(metadata);
   if (env)      deleteArray(&env);
   if (stack)    deleteArray(&stack);
+  if (tree)     deleteBNFTree(&tree);
+  if (raw)      deleteBNFTree(&raw);
   if (trace)    deleteArray(&trace);
 }

@@ -83,18 +83,20 @@
 		},
 		"nodes": {
 			"patterns": [{
-				"match": "^\\s*(<)(.*?)(>)",
+				"match": "^\\s*(<)\\s*((raw|anon)\\s*(:))?\\s*(.*?)\\s*(>)",
 				"captures": {
 					"1": { "name": "keyword.operator.bnf" },
-					"2": { "name": "entity.name.type.bnf" },
-					"3": { "name": "keyword.operator.bnf" }
+					"3": { "name": "constant.language.bnf" },
+					"4": { "name": "keyword.operator.bnf" },
+					"5": { "name": "entity.name.type.bnf" },
+					"6": { "name": "keyword.operator.bnf" }
 				}
 			},
 			{
-				"match": "(<)\\s*((raw\\s*)(:))?(.*?)(>)",
+				"match": "(<)\\s*((raw|anon)\\s*(:))?\\s*(.*?)\\s*(>)",
 				"captures": {
 					"1": { "name": "keyword.operator.bnf" },
-					"3": { "name": "constant.language.raw.bnf" },
+					"3": { "name": "constant.language.bnf" },
 					"4": { "name": "keyword.operator.bnf" },
 					"5": { "name": "storage.type.class.bnf" },
 					"6": { "name": "keyword.operator.bnf" }

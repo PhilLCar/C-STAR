@@ -19,11 +19,13 @@ typedef struct macro {
 } Macro;
 
 typedef struct ppenv {
-  FILE   *output;
-  FILE   *metadata;
-  Parser *parser;
-  Array  *env;
-  Array  *stack;
+  FILE    *output;
+  FILE    *metadata;
+  Parser  *parser;
+  Array   *env;
+  Array   *stack;
+  BNFNode *tree;
+  BNFNode *raw;
 } PPEnv;
 
 void preprocess(char*, Array*);

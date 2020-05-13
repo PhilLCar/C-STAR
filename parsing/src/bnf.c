@@ -137,6 +137,18 @@ BNFNode *parsebnfname(SymbolStream *ss, BNFNode *basenode, Array *trace)
         printsymbolmessage(ERRLVL_ERROR, trace, s, "Invalid raw type!");
       }
     }
+  } else if (!strcmp(s->text, "anon")) {
+    if (expect(ss, trace, ":")) {
+      s = ssgets(ss);
+      if (s->type == SYMBOL_VARIABLE) {
+        node = getnode(basenode, basenode, s->text);
+        if (!node) {
+          node = newBNFNode(basenode, s->text, NODE_ANON);
+        }
+      } else {
+        printsymbolmessage(ERRLVL_ERROR, trace, s, "Invalid anonymous node!");
+      }
+    }
   } else {
     node = getnode(basenode, basenode, s->text);
     if (!node) {

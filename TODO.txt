@@ -1,4 +1,2 @@
 -ASTError for each node
 - lire le script à Thériault
-- BNF Error when undefined node
-- Redesign astnewchar to have the same architecture as astnewsymbol

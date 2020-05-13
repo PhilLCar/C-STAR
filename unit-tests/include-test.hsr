@@ -1,6 +1,6 @@
 #define TRUE "test"
 // test
-#ifdef TEST
+#if 0b101 == 7 ^ (1 + 1)
 if (true) {
   print(TRUE);
 } else print("false");

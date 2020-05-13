@@ -52,6 +52,7 @@ typedef struct astnode {
   int             rec;
 } ASTNode;
 
+ASTNode *newASTNode(ASTNode*, BNFNode*);
 void     astnewsymbol(ASTNode*, BNFNode*, BNFNode*, ASTFlags, Symbol*);
 ASTNode *parseast(char*);
 void     deleteAST(ASTNode**);

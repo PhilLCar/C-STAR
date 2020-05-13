@@ -241,6 +241,7 @@ void astnewchar(ASTNode *ast, BNFNode *bnf, ASTFlags flags, char c)
       ///////////////////////////////////////////////////////////////////////////////////
     case NODE_REC:
     case NODE_ONE_OF:
+    case NODE_ANON:
     /////////////////////////////// ONE OF HEADER ///////////////////////////////////////
       superast = ast;
       if (bnf->refs->size > 1 && flags & ASTFLAGS_FRONT) {
@@ -278,8 +279,12 @@ void astnewchar(ASTNode *ast, BNFNode *bnf, ASTFlags flags, char c)
       if (c != AST_LOCK && superast->subnodes->size > 1) deleteAST(pop(superast->subnodes));
       if ((ast->status == STATUS_CONFIRMED && ast->pos == size - 1) || ast->status == STATUS_REC) {
         superast->status = ast->status;
-        astupnode(ast,     save); // for the name
-        astupnode(superast, ast);
+        if (bnf->type == NODE_ANON) {
+          astupnode(superast, save);
+        } else {
+          astupnode(ast,     save); // for the name
+          astupnode(superast, ast);
+        }
         break;
       } else if (ast->status == STATUS_CONFIRMED) {
         ASTNode *nast    = newASTNode(NULL, NULL);
@@ -287,7 +292,7 @@ void astnewchar(ASTNode *ast, BNFNode *bnf, ASTFlags flags, char c)
         ast->status      = STATUS_ONGOING;
         nast->status     = STATUS_FAILED;
         set(ast->subnodes, indexof(ast->subnodes, &save), &nast);
-        if (!save->name->length) concat(save->name, newString(ast->name->content));
+        if (!save->name->length && bnf->type != NODE_ANON) concat(save->name, newString(ast->name->content));
         push(superast->subnodes, &save);
         ast->pos++;
       } else if (ast->status == STATUS_PARTIAL) {
@@ -298,7 +303,7 @@ void astnewchar(ASTNode *ast, BNFNode *bnf, ASTFlags flags, char c)
           ASTNode *partial = astsubnode(save, i);
           if (partial->status == STATUS_CONFIRMED || partial->status == STATUS_REC) {
             rem(save->subnodes, i);
-            if (!partial->name->length) {
+            if (!partial->name->length && bnf->type != NODE_ANON) {
               partial->ref = ast->ref;
               concat(partial->name, newString(ast->name->content));
             }
@@ -476,6 +481,7 @@ void astnewsymbol(ASTNode *ast, BNFNode *bnf, BNFNode *raw, ASTFlags flags, Symb
       ///////////////////////////////////////////////////////////////////////////////////
     case NODE_REC:
     case NODE_ONE_OF:
+    case NODE_ANON:
     /////////////////////////////// ONE OF HEADER ///////////////////////////////////////
       superast = ast;
       if (bnf->refs->size > 1 && flags & ASTFLAGS_FRONT) {
@@ -513,8 +519,12 @@ void astnewsymbol(ASTNode *ast, BNFNode *bnf, BNFNode *raw, ASTFlags flags, Symb
       if (s && superast->subnodes->size > 1) deleteAST(pop(superast->subnodes));
       if ((ast->status == STATUS_CONFIRMED && ast->pos == size - 1) || ast->status == STATUS_REC) {
         superast->status = ast->status;
-        astupnode(ast,     save); // for the name
-        astupnode(superast, ast);
+        if (bnf->type == NODE_ANON) {
+          astupnode(superast, save);
+        } else {
+          astupnode(ast,     save); // for the name
+          astupnode(superast, ast);
+        }
         break;
       } else if (ast->status == STATUS_CONFIRMED) {
         ASTNode *nast    = newASTNode(NULL, NULL);
@@ -522,7 +532,7 @@ void astnewsymbol(ASTNode *ast, BNFNode *bnf, BNFNode *raw, ASTFlags flags, Symb
         ast->status      = STATUS_ONGOING;
         nast->status     = STATUS_FAILED;
         set(ast->subnodes, indexof(ast->subnodes, &save), &nast);
-        if (!save->name->length) concat(save->name, newString(ast->name->content));
+        if (!save->name->length && bnf->type != NODE_ANON) concat(save->name, newString(ast->name->content));
         push(superast->subnodes, &save);
         ast->pos++;
       } else if (ast->status == STATUS_PARTIAL) {
@@ -533,7 +543,7 @@ void astnewsymbol(ASTNode *ast, BNFNode *bnf, BNFNode *raw, ASTFlags flags, Symb
           ASTNode *partial = astsubnode(save, i);
           if (partial->status == STATUS_CONFIRMED || partial->status == STATUS_REC) {
             rem(save->subnodes, i);
-            if (!partial->name->length) {
+            if (!partial->name->length && bnf->type != NODE_ANON) {
               partial->ref = ast->ref;
               concat(partial->name, newString(ast->name->content));
             }
@@ -558,7 +568,7 @@ void astnewsymbol(ASTNode *ast, BNFNode *bnf, BNFNode *raw, ASTFlags flags, Symb
 
 ASTNode *parseast(char *filename)
 {
-  BNFNode      *bnftree  = parsebnf("parsing/bnf/test.bnf");
+  BNFNode      *bnftree  = parsebnf("parsing/bnf/preprocessor.bnf");
   BNFNode      *rawtree  = parsebnf("parsing/bnf/raw.bnf");
   BNFNode      *rootent  = bnfsubnode(bnftree, 0);
   BNFNode      *rawent   = bnfsubnode(rawtree, 0);
@@ -569,7 +579,9 @@ ASTNode *parseast(char *filename)
   push(trace, &filename);
 
   Symbol *s;
+  int i = 0;
   while (!(s = ssgets(ss))->eof) {
+    i ++;
     if (s->text[0] == '\n') continue;
     astnewsymbol(ast, rootent, rawent, ASTFLAGS_NONE, NULL);
     astnewsymbol(ast, rootent, rawent, ASTFLAGS_NONE, s);
@@ -577,8 +589,9 @@ ASTNode *parseast(char *filename)
       printsymbolmessage(ERRLVL_ERROR, trace, s, "Unexpected symbol!");
       break;
     }
+    if (i > 0) break;
   }
-  astnewsymbol(ast, rootent, rawent, ASTFLAGS_END, NULL);
+  //astnewsymbol(ast, rootent, rawent, ASTFLAGS_END, NULL);
 
   deleteArray(&trace);
   ssclose(ss);

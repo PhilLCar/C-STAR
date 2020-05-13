@@ -2,3 +2,5 @@
 if (true) {
   print("test");
 } else print("false");
+
+print("test undef");

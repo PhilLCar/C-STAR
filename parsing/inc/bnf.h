@@ -20,6 +20,7 @@ typedef enum bnftype {
   NODE_CONCAT,
   NODE_LIST,
   NODE_REC,
+  NODE_ANON,
   NODE_ONE_OF,
   NODE_ONE_OR_NONE,
   NODE_MANY_OR_NONE,

@@ -51,6 +51,12 @@ void printnode(BNFNode *n, char *s, int base, int lvl, int last) {
       printnode(*(BNFNode**)at(n->content, i), t, base, lvl + 1, i == (((Array*)n->content)->size - 1));
     }
     break;
+  case NODE_ANON:
+    printf(TEXT_BLUE""FONT_BOLD"[A] %s\n"FONT_RESET, n->name);
+    for (int i = 0; i < ((Array*)n->content)->size && p; i++) {
+      printnode(*(BNFNode**)at(n->content, i), t, base, lvl + 1, i == (((Array*)n->content)->size - 1));
+    }
+    break;
   case NODE_ONE_OF:
     printf(TEXT_MAGENTA""FONT_BOLD"[O] %s\n"FONT_RESET, n->name);
     for (int i = 0; i < ((Array*)n->content)->size && p; i++) {
