@@ -1,3 +1,16 @@
-<statement> ::= <value> | <operation>
+<statement> ::= <value> | <operation> | <function>
 <value>     ::= <raw: variable> | <raw: number> | <raw: string>
 <operation> ::= <statement> <operator> <value>
+<operation> ::= "(" <statement> <operator> <value> ")"
+<function>  ::= <raw: variable> "(" <statement> ")"
+<operator>  ::= "+"  |
+                "-"  |
+                "*"  |
+                "/"  |
+                "~"  |
+                "&"  |
+                "|"  |
+                "^"  |
+                "||" |
+                "&&" |
+                "=="

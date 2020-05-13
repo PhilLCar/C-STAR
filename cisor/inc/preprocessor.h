@@ -4,9 +4,11 @@
 #include <generic_parser.h>
 #include <symbol.h>
 #include <array.h>
-#include <diagnostic.h>
 #include <error.h>
 #include <strings.h>
+#include <bnf.h>
+#include <ast.h>
+#include <diagnostic.h>
 
 #define INCLUDE_MAX_DEPTH        128
 #define INCLUDE_MAX_FILE_LENGTH 1024

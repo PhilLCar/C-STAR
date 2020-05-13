@@ -169,7 +169,31 @@ int parsebnfstatement(SymbolStream *ss, BNFNode *basenode, BNFNode *parent, Arra
     } else {
       content = subnode->content;
     } //////////////////////////////////////////////////////////////////////////////////////////
-    if (s->text[0] == '(') {
+    if (s->type == SYMBOL_STRING) {
+      char a, b;
+      for (int i = 0; (a = ss->parser->whitespaces[i]); i++) {
+        for (int j = 0; (b = s->text[j]); j++) {
+          if (a == b) {
+            printsymbolmessage(ERRLVL_ERROR, trace, s, "A leaf element cannot contain a whitespace!");
+            ret = 0;
+            break;
+          }
+        }
+      }
+      BNFNode *node = NULL;
+      char *value = s->text[0] ? malloc((strlen(s->text) + 1) * sizeof(char)) : NULL;
+      if (value) sprintf(value, "%s", s->text);
+      node = newBNFNode(basenode, "", NODE_LEAF);
+      if (!strcmp(s->open, "\"")) {
+        if (strcmp(s->close, "\"")) printsymbolmessage(ERRLVL_ERROR, trace, s, "Expected closing '"FONT_BOLD"\""FONT_RESET"'!");
+      } else if (!strcmp(s->open, "'")) {
+        if (strcmp(s->close, "\'")) printsymbolmessage(ERRLVL_ERROR, trace, s, "Expected closing '"FONT_BOLD"'"FONT_RESET"'!");
+      }
+      node->content = value;
+      push(content, &node);
+      oplast = 0;
+    } //////////////////////////////////////////////////////////////////////////////////////////
+    else if (s->text[0] == '(') {
       BNFNode *node = newBNFNode(basenode, "", NODE_ONE_OF);
       push(content, &node);
       ret = parsebnfstatement(ss, basenode, node, trace, ")");
@@ -260,30 +284,6 @@ int parsebnfstatement(SymbolStream *ss, BNFNode *basenode, BNFNode *parent, Arra
         push(content, &node);
         if (!expect(ss, trace, ">")) ret = 0;
       } else ret = 0;
-      oplast = 0;
-    } //////////////////////////////////////////////////////////////////////////////////////////
-    else if (s->type == SYMBOL_STRING) {
-      char a, b;
-      for (int i = 0; (a = ss->parser->whitespaces[i]); i++) {
-        for (int j = 0; (b = s->text[j]); j++) {
-          if (a == b) {
-            printsymbolmessage(ERRLVL_ERROR, trace, s, "A leaf element cannot contain a whitespace!");
-            ret = 0;
-            break;
-          }
-        }
-      }
-      BNFNode *node = NULL;
-      char *value = s->text[0] ? malloc((strlen(s->text) + 1) * sizeof(char)) : NULL;
-      if (value) sprintf(value, "%s", s->text);
-      node = newBNFNode(basenode, "", NODE_LEAF);
-      if (!strcmp(s->open, "\"")) {
-        if (strcmp(s->close, "\"")) printsymbolmessage(ERRLVL_ERROR, trace, s, "Expected closing '"FONT_BOLD"\""FONT_RESET"'!");
-      } else if (!strcmp(s->open, "'")) {
-        if (strcmp(s->close, "\'")) printsymbolmessage(ERRLVL_ERROR, trace, s, "Expected closing '"FONT_BOLD"'"FONT_RESET"'!");
-      }
-      node->content = value;
-      push(content, &node);
       oplast = 0;
     } //////////////////////////////////////////////////////////////////////////////////////////
     else if (!(strcmp(s->text, stop) || (stop[0] == '\n' && oplast))) {
@@ -428,9 +428,9 @@ void linkbnf(BNFNode *basenode, Array* trace) {
   Array *a = basenode->content;
   BNFNode *n;
   for (int i = 0; i < a->size;) {
-    n = *(BNFNode**)rem(a, 0);
+    n = *(BNFNode**)pop(a);
     if (n != NULL && getnode(basenode, basenode, n->name) == NULL) {
-      push(a, &n);
+      insert(a, 0, &n);
       i++;
     }
   }

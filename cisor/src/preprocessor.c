@@ -49,6 +49,24 @@ Symbol *ppconsume(SymbolStream *ss, FILE *output) {
   return ssgets(ss);
 }
 
+Symbol *ppread(SymbolStream *ss, String *str) {
+  char c;
+  Symbol *s = NULL;
+  if (tfgetc(ss->tfptr) != '\n') {
+    while ((c = tfgetc(ss->tfptr)) != EOF && c != '\n') {
+      if (c == '\\') {
+        s = ssgets(ss);
+        if (s->text[0] != '\n') {
+          break;
+        }
+        s = NULL;
+      }
+      append(str, c);
+    }
+  }
+  return s;
+}
+
 int preprocessfile(char *filename, Array *incpath, Array *trace, PPEnv *ppenv, int search)
 {
   if (trace->size >= INCLUDE_MAX_DEPTH) {
@@ -142,16 +160,12 @@ int preprocessfile(char *filename, Array *incpath, Array *trace, PPEnv *ppenv, i
     /////////////////////////////////////////////////////////////////////////////////////
     } else if (!strcmp(s->text, "#define") && !ignore) {
       Macro   m;
-      char    c;
       String *str = newString("");
       s = ssgets(ss);
       m.name = malloc(strlen(s->text) + 1);
       sprintf(m.name, "%s", s->text);
-      if (tfgetc(ss->tfptr) != '\n') {
-        while ((c = tfgetc(ss->tfptr)) != EOF && c != '\n') {
-          append(str, c);
-        }
-      }
+      s = ppread(ss, str);
+      if (s) printsymbolmessage(ERRLVL_ERROR, trace, s, "Unexpected character '\\'!");
       m.value = str->content;
       str->content = NULL;
       deleteString(&str);
@@ -238,7 +252,9 @@ int preprocessfile(char *filename, Array *incpath, Array *trace, PPEnv *ppenv, i
       }
     /////////////////////////////////////////////////////////////////////////////////////
     } else if (!strcmp(s->text, "#if")) {
-      
+      BNFNode *pptree  = parsebnf("parsing/bnf/preprocessor.bnf");
+      BNFNode *rawtree = parsebnf("parsing/bnf/raw.bnf");
+      ASTNode *ast     = newASTNode(NULL, NULL);
     /////////////////////////////////////////////////////////////////////////////////////
     } else if (!strcmp(s->text, "#elif")) {
 
@@ -251,24 +267,16 @@ int preprocessfile(char *filename, Array *incpath, Array *trace, PPEnv *ppenv, i
     /////////////////////////////////////////////////////////////////////////////////////
     } else if (!strcmp(s->text, "#warning") && !ignore) {
       String *str = newString("");
-      char    c;
-      if (tfgetc(ss->tfptr) != '\n') {
-        while ((c = tfgetc(ss->tfptr)) != EOF && c != '\n') {
-          append(str, c);
-        }
-      }
-      printsymbolmessage(ERRLVL_WARNING, trace, s, str->content);
+      s = ppread(ss, str);
+      if (s) printsymbolmessage(ERRLVL_ERROR, trace, s, "Unexpected character '\\'!");
+      else printsymbolmessage(ERRLVL_WARNING, trace, s, str->content);
       deleteString(&str);
     /////////////////////////////////////////////////////////////////////////////////////
     } else if (!strcmp(s->text, "#error") && !ignore) {
       String *str = newString("");
-      char    c;
-      if (tfgetc(ss->tfptr) != '\n') {
-        while ((c = tfgetc(ss->tfptr)) != EOF && c != '\n') {
-          append(str, c);
-        }
-      }
-      printsymbolmessage(ERRLVL_ERROR, trace, s, str->content);
+      s = ppread(ss, str);
+      if (s) printsymbolmessage(ERRLVL_ERROR, trace, s, "Unexpected character '\\'!");
+      else printsymbolmessage(ERRLVL_ERROR, trace, s, str->content);
       deleteString(&str);
       valid = 0;
     /////////////////////////////////////////////////////////////////////////////////////
