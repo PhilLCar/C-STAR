@@ -174,6 +174,7 @@ void astnewchar(ASTNode *ast, BNFNode *bnf, ASTFlags flags, char c)
           subast = astsubnode(ast, ast->pos + ast->rec);
           subbnf = bnfsubnode(bnf, ast->pos);
           if (!subast) subast = newASTNode(ast, NULL);
+          f  = 0;
           f |= (flags & ~ASTFLAGS_REC) | (bnf->type == NODE_CONCAT ? ASTFLAGS_CONCAT : 0);
           f |= superast->pos > 1 ? ASTFLAGS_STARTED : 0;
           f |= !ast->pos ? ASTFLAGS_FRONT : 0;
@@ -247,7 +248,7 @@ void astnewchar(ASTNode *ast, BNFNode *bnf, ASTFlags flags, char c)
       superast = ast;
       if (bnf->refs->size > 1 && flags & ASTFLAGS_FRONT) {
         // SPECIAL CASE OF LEFTMOST DERIVATION (when the recursive element is the first position)
-        ASTNode *recroot = *(ASTNode**)at(bnf->refs, 0);
+        ASTNode *recroot = *(ASTNode**)at(bnf->refs, bnf->refs->size - 2);
         recroot->rec = 1;
         if (flags & ASTFLAGS_END) { superast->status = STATUS_FAILED; break; }
         if (recroot->status == STATUS_PARTIAL && c == AST_LOCK) {
@@ -425,6 +426,7 @@ void astnewsymbol(ASTNode *ast, BNFNode *bnf, BNFNode *raw, ASTFlags flags, Symb
           subast = astsubnode(ast, ast->pos + ast->rec);
           subbnf = bnfsubnode(bnf, ast->pos);
           if (!subast) subast = newASTNode(ast, NULL);
+          f = 0;
           f |= flags & ~ASTFLAGS_REC;
           f |= !ast->pos ? ASTFLAGS_FRONT : 0;
           astnewsymbol(subast, subbnf, raw, f, ns);
@@ -594,7 +596,7 @@ ASTNode *parseast(char *filename)
       break;
     }
   }
-  //astnewsymbol(ast, rootent, rawent, ASTFLAGS_END, NULL);
+  astnewsymbol(ast, rootent, rawent, ASTFLAGS_END, NULL);
 
   deleteArray(&trace);
   ssclose(ss);
