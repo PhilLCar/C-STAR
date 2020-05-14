@@ -188,12 +188,14 @@ int nextsymbol(TrackedEntity *te, char (*tegetc)(void*), void (*teungetc)(char, 
           teungetc(c, te);
         }
         if (dec || (c >= '0' && c <= '9')) {
-          symbol->type = SYMBOL_NUMBER;
+          symbol->type = dec ? SYMBOL_DECIMAL : SYMBOL_INTEGER;
           pos = te->position;
           if (!extend(&buf, &buf_size, &buf_cap, c)) goto next_fail;
           continue;
         }
-      } else if (symbol->type == SYMBOL_NUMBER && (type == NONE || (type == BREAK && c == '.'))) {
+      } else if ((symbol->type == SYMBOL_INTEGER || symbol->type == SYMBOL_DECIMAL) &&
+                 (type == NONE || (type == BREAK && c == '.'))) {
+        if (c == '.') symbol->type = SYMBOL_DECIMAL;
         if (!extend(&buf, &buf_size, &buf_cap, c)) goto next_fail;
         continue;
       }

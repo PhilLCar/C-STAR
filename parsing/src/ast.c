@@ -330,7 +330,7 @@ void astnewchar(ASTNode *ast, BNFNode *bnf, ASTFlags flags, char c)
   pop(bnf->refs);
 }
 
-void astnewsymbol(ASTNode *ast, BNFNode *bnf, BNFNode *raw, ASTFlags flags, Symbol *s)
+void astnewsymbol(ASTNode *ast, BNFNode *bnf, ASTFlags flags, Symbol *s)
 {
   ASTNode  *superast;
   ASTNode  *subast;
@@ -353,23 +353,9 @@ void astnewsymbol(ASTNode *ast, BNFNode *bnf, BNFNode *raw, ASTFlags flags, Symb
     case NODE_RAW:
       if (s) {
         if (s->type == (SymbolType)bnf->content) {
-          if (s->type == SYMBOL_NUMBER) {
-            ASTNode *number = newASTNode(NULL, NULL);
-            astnewchar(number, raw, ASTFLAGS_NONE, AST_LOCK);
-            for (int i = 0; s->text[i]; i++) astnewchar(number, raw, ASTFLAGS_NONE, s->text[i]);
-            astnewchar(number, raw, ASTFLAGS_END, AST_LOCK);
-            if (number->status == STATUS_CONFIRMED) {
-              ast->status = STATUS_CONFIRMED;
-              concat(ast->value, newString(number->value->content));
-              concat(ast->name,  newString(number->name->content));
-            } else {
-              ast->status = STATUS_FAILED;
-            }
-            deleteAST(&number);
-          } else {
-            concat(ast->value, newString(s->text));
-            ast->status = STATUS_CONFIRMED;
-          }
+          concat(ast->name,  newString(bnf->name));
+          concat(ast->value, newString(s->text));
+          ast->status = STATUS_CONFIRMED;
         } else ast->status = STATUS_FAILED;
       } else {
         ast->status = STATUS_ONGOING;
@@ -429,7 +415,7 @@ void astnewsymbol(ASTNode *ast, BNFNode *bnf, BNFNode *raw, ASTFlags flags, Symb
           f = 0;
           f |= flags & ~ASTFLAGS_REC;
           f |= !ast->pos ? ASTFLAGS_FRONT : 0;
-          astnewsymbol(subast, subbnf, raw, f, ns);
+          astnewsymbol(subast, subbnf, f, ns);
           if (subast->status == STATUS_FAILED) {
             deleteAST(rem(superast->subnodes, i--)); break;
           } else if (subast->status == STATUS_PARTIAL) {
@@ -516,7 +502,7 @@ void astnewsymbol(ASTNode *ast, BNFNode *bnf, BNFNode *raw, ASTFlags flags, Symb
         if (!subast) subast = newASTNode(ast, NULL);
         if (subast->status != STATUS_FAILED) {
           f |= (flags & ~ASTFLAGS_REC) | (bnf->type == NODE_REC ? ASTFLAGS_REC : 0);
-          astnewsymbol(subast, subbnf, raw, f, s);
+          astnewsymbol(subast, subbnf, f, s);
           if (subast->status == STATUS_CONFIRMED)    { ast->status = STATUS_CONFIRMED; save = subast; }
           else if (subast->status == STATUS_PARTIAL) { ast->status = STATUS_PARTIAL;   save = subast; }
           else if (subast->status == STATUS_REC)     { ast->status = STATUS_REC;       save = subast; }
@@ -577,9 +563,7 @@ void astnewsymbol(ASTNode *ast, BNFNode *bnf, BNFNode *raw, ASTFlags flags, Symb
 ASTNode *parseast(char *filename)
 {
   BNFNode      *bnftree  = parsebnf("parsing/bnf/preprocessor.bnf");
-  BNFNode      *rawtree  = parsebnf("parsing/bnf/raw.bnf");
   BNFNode      *rootent  = bnfsubnode(bnftree, 0);
-  BNFNode      *rawent   = bnfsubnode(rawtree, 0);
   Parser       *parser   = newParser("parsing/prs/csr.prs");
   SymbolStream *ss       = ssopen(filename, parser);
   ASTNode      *ast      = newASTNode(NULL, NULL);
@@ -589,20 +573,19 @@ ASTNode *parseast(char *filename)
   Symbol *s;
   while (!(s = ssgets(ss))->eof) {
     if (s->text[0] == '\n') continue;
-    astnewsymbol(ast, rootent, rawent, ASTFLAGS_NONE, NULL);
-    astnewsymbol(ast, rootent, rawent, ASTFLAGS_NONE, s);
+    astnewsymbol(ast, rootent, ASTFLAGS_NONE, NULL);
+    astnewsymbol(ast, rootent, ASTFLAGS_NONE, s);
     if (ast->status == STATUS_FAILED) {
       printsymbolmessage(ERRLVL_ERROR, trace, s, "Unexpected symbol!");
       break;
     }
   }
-  astnewsymbol(ast, rootent, rawent, ASTFLAGS_END, NULL);
+  astnewsymbol(ast, rootent, ASTFLAGS_END, NULL);
 
   deleteArray(&trace);
   ssclose(ss);
   deleteParser(&parser);
   deleteBNFTree(&bnftree);
-  deleteBNFTree(&rawtree);
   return ast;
 }
 

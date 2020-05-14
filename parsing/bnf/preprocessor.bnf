@@ -5,7 +5,7 @@
 <operation2> ::= <operation2> <operator2> <operation1> | <operation1>
 <operation1> ::= <operation1> <operator1> <operation0> | <operation0>
 <operation0> ::= <operator0> <value> | <value>
-<value>      ::= <raw: variable> | <raw: number> | <raw: string> | <function> | <parent>
+<value>      ::= <raw: variable> | <raw: integer> | <raw: decimal> | <raw: string> | <function> | <parent>
 <function>   ::= <raw: variable> "(" <operation6> ")"
 <parent>     ::= "(" <operation6> ")"
 <operator0>  ::= "~" | "-"

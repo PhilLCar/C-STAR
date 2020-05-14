@@ -124,11 +124,12 @@ BNFNode *parsebnfname(SymbolStream *ss, BNFNode *basenode, Array *trace)
         node = getnode(basenode, basenode, name);
         if (!node) {
           node = newBNFNode(basenode, name, NODE_RAW);
-          if (!strcmp(s->text, "number")) {
-            node->content = (void*)SYMBOL_NUMBER;
+          if (!strcmp(s->text, "integer")) {
+            node->content = (void*)SYMBOL_INTEGER;
+          } else if (!strcmp(s->text, "decimal")) {
+            node->content = (void*)SYMBOL_DECIMAL;
           } else if (!strcmp(s->text, "string")) {
             node->content = (void*)SYMBOL_STRING;
-
           } else if (!strcmp(s->text, "variable")) {
             node->content = (void*)SYMBOL_VARIABLE;
           }

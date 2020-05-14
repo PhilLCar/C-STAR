@@ -28,7 +28,6 @@ typedef struct ppenv {
   Array   *env;
   Array   *stack;
   BNFNode *tree;
-  BNFNode *raw;
 } PPEnv;
 
 void preprocess(char*, Array*);

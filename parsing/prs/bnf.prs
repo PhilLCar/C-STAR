@@ -34,7 +34,8 @@
 :
 
 == Reserved ==
-number
+integer
+decimal
 string
 variable
 
