@@ -7,7 +7,7 @@
 
 #include <diagnostic.h>
 
-typedef struct trackedFile {
+typedef struct trackedfile {
   FILE *fptr;
   char *buffer;
   int   size;
@@ -21,6 +21,6 @@ typedef struct trackedFile {
 TrackedFile *tfopen(char*, int);
 void         tfclose(TrackedFile*);
 char         tfgetc(TrackedFile*);
-void         tfungetc(TrackedFile*, char c);
+void         tfungetc(char c, TrackedFile*);
 
 #endif

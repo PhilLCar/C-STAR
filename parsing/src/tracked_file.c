@@ -82,7 +82,7 @@ char tfgetc(TrackedFile *tf)
   return tf->buffer[0];
 }
 
-void tfungetc(TrackedFile *tf, char c)
+void tfungetc(char c, TrackedFile *tf)
 {
   ungetc(tf->buffer[tf->size - 1], tf->fptr);
   for (int i = tf->size - 1; i > 0; i--) {

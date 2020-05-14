@@ -16,6 +16,7 @@ UTILS  =$(OBJECTS)/error.o   \
 PARSING=$(OBJECTS)/symbol.o         \
         $(OBJECTS)/generic_parser.o \
         $(OBJECTS)/tracked_file.o   \
+        $(OBJECTS)/tracked_string.o \
         $(OBJECTS)/bnf.o            \
         $(OBJECTS)/ast.o
 CISOR  =$(OBJECTS)/preprocessor.o

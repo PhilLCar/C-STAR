@@ -42,7 +42,7 @@ Symbol *ppconsume(SymbolStream *ss, FILE *output) {
       }
     }
     if (c) {
-      tfungetc(ss->tfptr, c);
+      tfungetc(c, ss->tfptr);
       break;
     }
   }
@@ -270,7 +270,6 @@ int preprocessfile(char *filename, Array *incpath, Array *trace, PPEnv *ppenv, i
           break;
         }
       }
-      printf("%d\n", ast->subnodes->size);
       deleteAST(&ast);
     /////////////////////////////////////////////////////////////////////////////////////
     } else if (!strcmp(s->text, "#elif")) {
@@ -323,7 +322,7 @@ int preprocessfile(char *filename, Array *incpath, Array *trace, PPEnv *ppenv, i
     } else {
       char c;
       while ((c = tfgetc(ss->tfptr)) != '#' && c != EOF);
-      tfungetc(ss->tfptr, '#');
+      tfungetc('#', ss->tfptr);
     }
   }
 
@@ -363,6 +362,11 @@ void preprocess(char *filename, Array *incpath)
 
   preprocessfile(filename, incpath, trace, &ppenv, 0);
 
+  for (int i = 0; i < env->size; i++) {
+    Macro *m = at(env, i);
+    free(m->name);
+    free(m->value);
+  }
   if (parser)   deleteParser(&parser);
   if (output)   fclose(output);
   if (metadata) fclose(metadata);

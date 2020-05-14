@@ -1,3 +1,6 @@
+#ifndef PREPROCESSOR_CISOR
+#define PREPROCESSOR_CISOR
+
 #include <string.h>
 #include <stdlib.h>
 
@@ -29,3 +32,5 @@ typedef struct ppenv {
 } PPEnv;
 
 void preprocess(char*, Array*);
+
+#endif

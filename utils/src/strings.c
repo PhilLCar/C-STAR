@@ -76,3 +76,32 @@ int contains(String *a, String *b)
   }
   return match;
 }
+
+StringStream *sopen(String *str)
+{
+  StringStream *s = malloc(sizeof(StringStream));
+  if (s) {
+    s->str = str;
+    s->pos = 0;
+  }
+  return s;
+}
+
+void sclose(StringStream *s)
+{
+  free(s);
+}
+
+char sgetc(StringStream *s)
+{
+  char c = s->str->content[s->pos];
+  if (!c) c = EOF;
+  else    s->pos++;
+  return c;
+}
+
+void sungetc(char c, StringStream *s) {
+  if (s->pos > 0) {
+    s->str->content[--s->pos] = c;
+  }
+}

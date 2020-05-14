@@ -1,5 +1,16 @@
 #include <symbol.h>
 
+typedef struct trackedEntity {
+  void *ptr;
+  char *buffer;
+  int   size;
+  int   line;
+  int   position;
+  int  *linestack;
+  int   stack_pos;
+  int   stack_cap;
+} TrackedEntity;
+
 enum {
   NONE = 0,
   DELIM,
@@ -36,8 +47,8 @@ int extend(char **buffer, int *size, int *cap, char c)
   return 1;
 }
 
-// Returns the next symbol in the tracked file tf
-int nextsymbol(TrackedFile *tf, Parser *parser, Symbol *symbol)
+// Returns the next symbol in the tracked entity
+int nextsymbol(TrackedEntity *te, char (*tegetc)(void*), void (*teungetc)(char, void*), Parser *parser, Symbol *symbol)
 {
   char  c;
   int   buf_size = 0, buf_cap = 2;
@@ -54,16 +65,16 @@ int nextsymbol(TrackedFile *tf, Parser *parser, Symbol *symbol)
 
   if (buf != NULL) {
     memset(buf, 0, buf_cap * sizeof(char));
-    while ((c = tfgetc(tf)) != EOF) {
+    while ((c = tegetc(te)) != EOF) {
       type = NONE;
       symbol->eof = 0;
       int cmp, tmp, ws = 0;
       //////////////////////////////////////// NEW-LINE ////////////////////////////////////////
       if (c == '\n' && symbol->type != SYMBOL_COMMENT) {
         if (buf_size) {
-          tfungetc(tf, c);
+          teungetc(c, te);
         } else {
-          pos = tf->position;
+          pos = te->position;
           if (!extend(&buf, &buf_size, &buf_cap, c)) goto next_fail;
         }
         break;
@@ -78,7 +89,7 @@ int nextsymbol(TrackedFile *tf, Parser *parser, Symbol *symbol)
           }
         }
         if (ws) {
-          c = tfgetc(tf);
+          c = tegetc(te);
           switch (c) {
             case 'n':
               c = '\n';
@@ -96,9 +107,9 @@ int nextsymbol(TrackedFile *tf, Parser *parser, Symbol *symbol)
           if (!extend(&buf, &buf_size, &buf_cap, c)) goto next_fail;
           continue;
         }
-        if ((cmp = strcmps(tf->buffer, symbol->close))) {
+        if ((cmp = strcmps(te->buffer, symbol->close))) {
           close = 1;
-          for (int i = 1; i < cmp; i++) tfgetc(tf);
+          for (int i = 1; i < cmp; i++) tegetc(te);
           break;
         } else if (!extend(&buf, &buf_size, &buf_cap, c)) goto next_fail;
         continue;
@@ -106,11 +117,11 @@ int nextsymbol(TrackedFile *tf, Parser *parser, Symbol *symbol)
       //////////////////////////////////////// COM STOP ////////////////////////////////////////
       if (symbol->type == SYMBOL_COMMENT) {
         if (!symbol->close && c == '\n') {
-          tfungetc(tf, c);
+          teungetc(c, te);
           break;
-        } else if (symbol->close && (cmp = strcmps(tf->buffer, symbol->close))) {
+        } else if (symbol->close && (cmp = strcmps(te->buffer, symbol->close))) {
           close = 1;
-          for (int i = 1; i < cmp; i++) tfgetc(tf);
+          for (int i = 1; i < cmp; i++) tegetc(te);
           break;
         } else if (!extend(&buf, &buf_size, &buf_cap, c)) goto next_fail;
         continue;
@@ -124,14 +135,14 @@ int nextsymbol(TrackedFile *tf, Parser *parser, Symbol *symbol)
       }
       if (ws) {
         if (buf_size) {
-          tfungetc(tf, c);
+          teungetc(c, te);
           break;
         }
         else continue;
       }
       //////////////////////////////////////// DELIMITERS ////////////////////////////////////////
       for (int i = 0; parser->delimiters[i]; i += 2) {
-        if ((cmp = strcmps(tf->buffer, parser->delimiters[i]))) {
+        if ((cmp = strcmps(te->buffer, parser->delimiters[i]))) {
           if (cmp > ws) {
             ws  = cmp;
             tmp = i;
@@ -141,7 +152,7 @@ int nextsymbol(TrackedFile *tf, Parser *parser, Symbol *symbol)
       }
       //////////////////////////////////////// LINECOM ////////////////////////////////////////
       for (int i = 0; parser->linecom[i]; i++) {
-        if ((cmp = strcmps(tf->buffer, parser->linecom[i]))) {
+        if ((cmp = strcmps(te->buffer, parser->linecom[i]))) {
           if (cmp > ws) {
             ws  = cmp;
             tmp = i;
@@ -151,7 +162,7 @@ int nextsymbol(TrackedFile *tf, Parser *parser, Symbol *symbol)
       }
       //////////////////////////////////////// MULTICOM ////////////////////////////////////////
       for (int i = 0; parser->multicom[i]; i += 2) {
-        if ((cmp = strcmps(tf->buffer, parser->multicom[i]))) {
+        if ((cmp = strcmps(te->buffer, parser->multicom[i]))) {
           if (cmp > ws) {
             ws  = cmp;
             tmp = i;
@@ -161,7 +172,7 @@ int nextsymbol(TrackedFile *tf, Parser *parser, Symbol *symbol)
       }
       //////////////////////////////////////// BREAKSYMBOLS ////////////////////////////////////////
       for (int i = 0; parser->breaksymbols[i]; i++) {
-        if ((cmp = strcmps(tf->buffer, parser->breaksymbols[i]))) {
+        if ((cmp = strcmps(te->buffer, parser->breaksymbols[i]))) {
           if (cmp > ws) {
             ws = cmp;
             type = BREAK;
@@ -172,13 +183,13 @@ int nextsymbol(TrackedFile *tf, Parser *parser, Symbol *symbol)
       if (!buf_size) {
         int dec = 0;
         if (c == '.') {
-          char t = tfgetc(tf);
+          char t = tegetc(te);
           if (t >= '0' && t <= '9') dec = 1;
-          tfungetc(tf, t);
+          teungetc(c, te);
         }
         if (dec || (c >= '0' && c <= '9')) {
           symbol->type = SYMBOL_NUMBER;
-          pos = tf->position;
+          pos = te->position;
           if (!extend(&buf, &buf_size, &buf_cap, c)) goto next_fail;
           continue;
         }
@@ -190,11 +201,11 @@ int nextsymbol(TrackedFile *tf, Parser *parser, Symbol *symbol)
       // delim
       if (ws && type == DELIM) {
         if (buf_size) {
-          tfungetc(tf, c);
+          teungetc(c, te);
           break;
         } else {
           symbol->type   = SYMBOL_STRING;
-          symbol->line   = tf->line;
+          symbol->line   = te->line;
           symbol->open   = malloc((parser->lookahead + 1) * sizeof(char));
           symbol->close  = malloc((parser->lookahead + 1) * sizeof(char));
           if (symbol->open != NULL && symbol->close != NULL) {
@@ -203,9 +214,9 @@ int nextsymbol(TrackedFile *tf, Parser *parser, Symbol *symbol)
           } else {
             goto next_fail;
           }
-          pos = tf->position + ws;
+          pos = te->position + ws;
           for (int i = 1; i < ws; i++) {
-            c = tfgetc(tf);
+            c = tegetc(te);
           }
           continue;
         }
@@ -213,7 +224,7 @@ int nextsymbol(TrackedFile *tf, Parser *parser, Symbol *symbol)
       // linecom
       if (ws && type == LINECOM) {
         if (buf_size) {
-          tfungetc(tf, c);
+          teungetc(c, te);
           break;
         } else {
           symbol->type    = SYMBOL_COMMENT;
@@ -223,9 +234,9 @@ int nextsymbol(TrackedFile *tf, Parser *parser, Symbol *symbol)
           } else {
             goto next_fail;
           }
-          pos = tf->position + ws;
+          pos = te->position + ws;
           for (int i = 1; i < ws; i++) {
-            c = tfgetc(tf);
+            c = tegetc(te);
           }
           continue;
         }
@@ -233,11 +244,11 @@ int nextsymbol(TrackedFile *tf, Parser *parser, Symbol *symbol)
       // multicom
       if (ws && type == MULTICOM) {
         if (buf_size) {
-          tfungetc(tf, c);
+          teungetc(c, te);
           break;
         } else {
           symbol->type    = SYMBOL_COMMENT;
-          symbol->line    = tf->line;
+          symbol->line    = te->line;
           symbol->open    = malloc((parser->lookahead + 1) * sizeof(char));
           symbol->close   = malloc((parser->lookahead + 1) * sizeof(char));
           if (symbol->open != NULL && symbol->close != NULL) {
@@ -246,9 +257,9 @@ int nextsymbol(TrackedFile *tf, Parser *parser, Symbol *symbol)
           } else {
             goto next_fail;
           }
-          pos = tf->position + ws;
+          pos = te->position + ws;
           for (int i = 1; i < ws; i++) {
-            c = tfgetc(tf);
+            c = tegetc(te);
           }
           continue;
         }
@@ -256,14 +267,14 @@ int nextsymbol(TrackedFile *tf, Parser *parser, Symbol *symbol)
       // break
       if (ws && type == BREAK) {
         if (buf_size) {
-          tfungetc(tf, c);
+          teungetc(c, te);
         } else {
           symbol->type = SYMBOL_OPERATOR;
-          pos          = tf->position;
+          pos          = te->position;
           for (int i = 1;; i++) {
             if (!extend(&buf, &buf_size, &buf_cap, c)) goto next_fail;
             if (i == ws) break;
-            c = tfgetc(tf);
+            c = tegetc(te);
           }
         }
         break;
@@ -271,7 +282,7 @@ int nextsymbol(TrackedFile *tf, Parser *parser, Symbol *symbol)
       //////////////////////////////////////// SYMBOL ////////////////////////////////////////
       if (!buf_size) {
         symbol->type = SYMBOL_VARIABLE;
-        pos          = tf->position;
+        pos          = te->position;
       }
       if (!extend(&buf, &buf_size, &buf_cap, c)) {
       next_fail:
@@ -291,7 +302,7 @@ int nextsymbol(TrackedFile *tf, Parser *parser, Symbol *symbol)
         break;
       }
     }
-    if (symbol->line < 0) symbol->line = tf->line;
+    if (symbol->line < 0) symbol->line = te->line;
     symbol->position = pos;
     new = 1;
   }
@@ -308,7 +319,11 @@ Symbol *sparse(char *filename, Parser *parser)
     symbols = malloc(symbols_cap * sizeof(Symbol));
     if (symbols != NULL) {
       memset(symbols, 0, symbols_cap * sizeof(Symbol));
-      while (nextsymbol(tf, parser, &symbols[symbols_size])) {
+      while (nextsymbol((TrackedEntity*)tf,
+                        (char(*)(void*))tfgetc, 
+                        (void(*)(char, void*))tfungetc, 
+                        parser, 
+                        &symbols[symbols_size])) {
         if (symbols[symbols_size].eof) {
           // END OF FILE
           break;
@@ -370,7 +385,11 @@ Symbol *ssgets(SymbolStream *ss)
   if (ss->stack->size) {
     *s = *(Symbol*)pop(ss->stack);
   } else {
-    if (!nextsymbol(ss->tfptr, ss->parser, s)) {
+    if (!nextsymbol((TrackedEntity*)ss->tfptr, 
+                    (char(*)(void*))tfgetc, 
+                    (void(*)(char, void*))tfungetc,
+                    ss->parser, 
+                    s)) {
       return NULL;
     }
   }
@@ -422,4 +441,64 @@ void freesymbol(Symbol *s)
   if (s->text)  free(s->text);
   if (s->open)  free(s->open);
   if (s->close) free(s->close);
+}
+
+StringSymbolStream *sssopen(String *str, Parser *parser)
+{
+  StringSymbolStream *sss   = malloc(sizeof(StringSymbolStream));
+  TrackedString      *ts    = tsopen(str, parser->lookahead);
+  Array              *stack = newArray(sizeof(Symbol));
+
+  if (parser && sss && ts && stack) {
+    sss->str     = str;
+    sss->tsptr   = ts;
+    sss->parser  = parser;
+    sss->stack   = stack;
+
+    sss->symbol.text  = NULL;
+    sss->symbol.open  = NULL;
+    sss->symbol.close = NULL;
+  }
+  else
+  {
+    if (sss)   free(sss);
+    if (ts)    tsclose(ts);
+    if (stack) deleteArray(&stack);
+    sss = NULL;
+  }
+  return sss;
+}
+
+void sssclose(StringSymbolStream *sss)
+{
+  while (popobj(sss->stack, (F)freesymbol));
+  if (sss->tsptr) tsclose(sss->tsptr);
+  deleteArray(&sss->stack);
+  freesymbol(&sss->symbol);
+  free(sss);
+}
+
+Symbol *sssgets(StringSymbolStream *sss)
+{
+  Symbol *s = &sss->symbol;
+  freesymbol(s);
+  if (sss->stack->size) {
+    *s = *(Symbol*)pop(sss->stack);
+  } else {
+    if (!nextsymbol((TrackedEntity*)sss->tsptr, 
+                    (char(*)(void*))tsgetc, 
+                    (void(*)(char, void*))tsungetc,
+                    sss->parser, 
+                    s)) {
+      return NULL;
+    }
+  }
+  return s;
+}
+
+void sssungets(StringSymbolStream *sss, Symbol *s)
+{
+  Symbol *t = newSymbol(s);
+  push(sss->stack, t);
+  free(t);
 }
