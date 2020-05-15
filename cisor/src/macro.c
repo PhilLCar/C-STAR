@@ -57,12 +57,66 @@ Symbol *macroconsumestring(StringSymbolStream *sss, String *output)
   return sssgets(sss);
 }
 
-String *macroeval(Array *env, Parser *parser, Array *args, Macro *m, Expansion *e)
-{
+void macroconcat(String *str, Parser *parser) {
+  String *n = newString("");
+  String *buffer = NULL;
+  char   *tmp;
+  int     string = 0;
+  int     paste = 0;
 
+  for (int i = 0; i < str->length; i++) {
+    char c  = str->content[i];
+    int  ws = 0;
+    
+    if (c == '\n') {
+      ws = 1;
+      paste = 0;
+    } else if (c == '"') {
+      string++;
+      paste = 0;
+    } else if (c == '#') {
+      paste++;
+    } else {
+      for (int j = 0; parser->whitespaces[j]; j++) {
+        if (c == parser->whitespaces[j]) {
+          ws = 1;
+          break;
+        }
+      }
+      if (!ws) {
+        if (string == 2) string = 0;
+        if (paste  == 2) {
+          deleteString(&buffer);
+        }
+        paste = 0;
+      }
+    }
+
+    if ((ws && string != 1) || string == 2 || paste > 0) {
+      if (!buffer) buffer = newString("");
+      append(buffer, c);
+    } else if (string == 3) {
+      deleteString(&buffer);
+      string = 1;
+    } else {
+      if (buffer) {
+        concat(n, buffer);
+        buffer = NULL;
+      }
+      append(n, c);
+    }
+  }
+
+  if (buffer) concat(n, buffer);
+  
+  tmp          = n->content;
+  n->content   = str->content;
+  str->content = tmp;
+  str->length  = n->length;
+  deleteString(&n);
 }
 
-void macroexpand(Array *env, Parser *parser, String *expr, Expansion *e)
+void macroexpand(Array *env, Parser *parser, String *expr, Expansion *e, Array *args)
 {
   StringSymbolStream *sss   = sssopen(expr, parser);
   Symbol             *s;
@@ -72,7 +126,26 @@ void macroexpand(Array *env, Parser *parser, String *expr, Expansion *e)
     if (s->type == SYMBOL_VARIABLE) {
       Macro *m;
       int    exp = 0;
-      for (int i = 0; i < env->size; i++) {
+      int    arg = 0;
+      if (args) {
+        for (int i = 0; i < args->size; i++) {
+          Parameter *p = at(args, i);
+          if (s->text[0] == '#') {
+            if (!strcmp(s->text + 1, p->name->content)) {
+              char *content = p->expansion->value->content;
+              int stringize = content[0] != '"' && content[p->expansion->value->length - 1] != '"';
+              if (stringize) append(e->value, '"');
+              concat(e->value, newString(content));
+              if (stringize) append(e->value, '"');
+              arg = 1;
+            }
+          } else if (!strcmp(s->text, p->name->content)) {
+              concat(e->value, newString(p->expansion->value->content));
+              arg = 1;
+          }
+        }
+      }
+      for (int i = 0; !arg && i < env->size; i++) {
         m = at(env, i);
         if (!strcmp(s->text, m->name->content)) {
           Expanded expanded;
@@ -87,7 +160,7 @@ void macroexpand(Array *env, Parser *parser, String *expr, Expansion *e)
         if (m->params->size) {
           char c = tsgetc(sss->tsptr);
           if (c == '(') {
-            Array *args = newArray(sizeof(String*));
+            Array *nargs = newArray(sizeof(Parameter));
             do {
               int p = 0;
               String *str = newString("");
@@ -102,30 +175,51 @@ void macroexpand(Array *env, Parser *parser, String *expr, Expansion *e)
                 e->invalid = MACRO_ERROR_EOF_IN_PARAMETERS;
               } else {
                 trim(str);
-                push(args, &str);
+                Expansion *sube = newExpansion();
+                macroexpand(env, parser, str, sube, args);
+                if (!sube->invalid) {
+                  if (nargs->size < m->params->size) {
+                    Parameter p;
+                    p.name      = *(String**)at(m->params, nargs->size);
+                    p.expansion = sube;
+                    push(nargs, &p);
+                  } else {
+                    combine(e->hist, sube->hist);
+                    deleteExpansion(&sube);
+                    e->invalid = MACRO_ERROR_PARAMETER_MISMATCH;
+                  }
+                } else {
+                  combine(e->hist, sube->hist);
+                  deleteExpansion(&sube);
+                  e->invalid = MACRO_ERROR_WRONG_PARAMETER_FORMAT;
+                }
               }
+              deleteString(&str);
             } while (c != EOF && c != ')');
             if (!e->invalid) {
-              if (args->size == m->params->size) {
-                concat(e->value, macroeval(env, parser, args, m, e));
+              if (nargs->size == m->params->size) {
+                String *str = newString(m->value->content);
+                macroexpand(env, parser, str, e, nargs);
+                deleteString(&str);
               } else {
                 e->invalid = MACRO_ERROR_PARAMETER_MISMATCH;
               }
             }
-            while (args->size) {
-              deleteString(pop(args));
+            while (nargs->size) {
+              Parameter *p = pop(nargs);
+              deleteExpansion(&p->expansion);
             }
-            deleteArray(&args);
+            deleteArray(&nargs);
           } else {
             tsungetc(c, sss->tsptr);
             concat(e->value, newString(s->text));
           }
         } else {
           String *str = newString(m->value->content);
-          macroexpand(env, parser, str, e);
+          macroexpand(env, parser, str, e, args);
           deleteString(&str);
         }
-      } else {
+      } else if (!arg) {
         concat(e->value, newString(s->text));
       }
     } else {
@@ -134,6 +228,6 @@ void macroexpand(Array *env, Parser *parser, String *expr, Expansion *e)
       if (s->close) concat(e->value, newString(s->close));
     }
   }
-
+  macroconcat(e->value, parser);
   if (sss) sssclose(sss);
 }

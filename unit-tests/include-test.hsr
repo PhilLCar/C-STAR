@@ -1,11 +1,19 @@
 #define A            131
 #define B            342
-#define CONCAT(X, Y) #X ## #Y
+#define CONCAT(X, Y) #X #Y
+#define COMBINE(X)   {X ## _value}
+
+#ifdef COMBINE
 // test
-#if 0b101 == 7 ^ (1 + 1)
 if (true) {
   print(CONCAT(CONCAT(A, B), B));
-} else print("false");
+  print(COMBINE(test))
+} 
+#if 0b101 == 7 ^ 0x2
+else print("false");
+#endif
+#elif 0
+print("Allo")
 #else
-print("test undef");
+print("Ok\n");
 #endif

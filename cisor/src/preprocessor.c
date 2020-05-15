@@ -371,7 +371,7 @@ int preprocessfile(char *filename, Array *incpath, Array *trace, PPEnv *ppenv, i
             append(str, c);
           } else tfungetc(c, ss->tfptr);
           Expansion *e = newExpansion();
-          expandmacro(ppenv->env, ppenv->parser, str, e);
+          macroexpand(ppenv->env, ppenv->parser, str, e, NULL);
           switch (e->invalid) {
             case MACRO_ERROR_MAX_DEPTH:
               printmacromessage(ERRLVL_ERROR, trace, e->hist, "Reached maximum expansion depth!");

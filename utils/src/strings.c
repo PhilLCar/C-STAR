@@ -22,6 +22,7 @@ void deleteString(String **s)
     free((*s)->content);
     free(*s);
   }
+  *s = NULL;
 }
 
 void freestring(String *s)

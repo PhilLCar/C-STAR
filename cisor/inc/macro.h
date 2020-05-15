@@ -38,10 +38,15 @@ typedef struct expansion {
   int     invalid;
 } Expansion;
 
+typedef struct parameter {
+  String    *name;
+  Expansion *expansion;
+} Parameter;
+
 Expansion *newExpansion();
 void       deleteExpansion(Expansion**);
 void       freemacro(Macro*);
 void       freeexpansion(Expansion*);
-void       macroexpand(Array*, Parser*, String*, Expansion*);
+void       macroexpand(Array*, Parser*, String*, Expansion*, Array*);
 
 #endif
