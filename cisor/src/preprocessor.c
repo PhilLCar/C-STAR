@@ -50,33 +50,33 @@ Symbol *ppconsume(SymbolStream *ss, FILE *output) {
 }
 
 Symbol *ppread(SymbolStream *ss, String *str) {
-  char c;
-  Symbol *s = NULL;
-  if (tfgetc(ss->tfptr) != '\n') {
-    while ((c = tfgetc(ss->tfptr)) != EOF && c != '\n') {
-      if (c == '\\') {
-        s = ssgets(ss);
-        if (s->text[0] != '\n') {
-          break;
-        }
-        s = NULL;
+  Symbol *s     = NULL;
+  char    c;
+
+  while ((c = tfgetc(ss->tfptr)) != EOF && c != '\n') {
+    if (c == '\\') {
+      s = ssgets(ss);
+      if (s->text[0] != '\n') {
+        break;
       }
-      append(str, c);
+      s = NULL;
     }
+    append(str, c);
   }
+  trim(str);
   return s;
 }
 
 int preprocessfile(char *filename, Array *incpath, Array *trace, PPEnv *ppenv, int search)
 {
   if (trace->size >= INCLUDE_MAX_DEPTH) {
-    printfilemessage(ERRLVL_ERROR, trace, "Reache inclusion maximum depth, check for recursive incldues!");
+    printfilemessage(ERRLVL_ERROR, trace, "Reached inclusion maximum depth, check for recursive incldues!");
     return 0;
   }
 
   SymbolStream *ss      = ssopen(filename, ppenv->parser);
   Symbol       *s;
-  char          error[256];
+  char          error[1024];
   char         *ext     = fileext(filename);
   //int           cmode   = 0;
   int           valid   = 1;
@@ -112,7 +112,7 @@ int preprocessfile(char *filename, Array *incpath, Array *trace, PPEnv *ppenv, i
     /////////////////////////////////////////////////////////////////////////////////////
     if (!strcmp(s->text, "#include") && !ignore) {
       char fnwext[INCLUDE_MAX_FILE_LENGTH];
-      s = ssgets(ss);
+      while ((s = ssgets(ss))->type == SYMBOL_COMMENT);
       if (s->type == SYMBOL_STRING) {
         // local include
         if (fileext(s->text)[0]) sprintf(fnwext, "%s", s->text);
@@ -150,7 +150,7 @@ int preprocessfile(char *filename, Array *incpath, Array *trace, PPEnv *ppenv, i
         valid = 0;
       }
       if (valid) {
-        s = ssgets(ss);
+        while ((s = ssgets(ss))->type == SYMBOL_COMMENT);
         if (s->text[0] && s->text[0] != '\n') {
           sprintf(error, "Expected 'newline' got '%s' instead!", s->text);
           printsymbolmessage(ERRLVL_ERROR, trace, s, error);
@@ -160,19 +160,56 @@ int preprocessfile(char *filename, Array *incpath, Array *trace, PPEnv *ppenv, i
     /////////////////////////////////////////////////////////////////////////////////////
     } else if (!strcmp(s->text, "#define") && !ignore) {
       Macro   m;
-      String *str = newString("");
-      s = ssgets(ss);
-      m.name = malloc(strlen(s->text) + 1);
-      sprintf(m.name, "%s", s->text);
-      s = ppread(ss, str);
-      if (s) printsymbolmessage(ERRLVL_ERROR, trace, s, "Unexpected character '\\'!");
-      m.value = str->content;
-      str->content = NULL;
-      deleteString(&str);
-      push(ppenv->env, &m);
+      char    c;
+      while ((s = ssgets(ss))->type == SYMBOL_COMMENT);
+      m.filename = newString(filename);
+      m.name     = newString(s->text);
+      m.value    = newString("");
+      m.params   = newArray(sizeof(String*));
+      m.line     = s->line;
+      m.position = s->position;
+
+      if (m.name->length > MACRO_NAME_MAX_LENGTH) {
+        printsymbolmessage(ERRLVL_ERROR, trace, s, "Macro name exceeds maximum length!");
+        freemacro(&m);
+        valid = 0;
+      }
+      if (valid) {
+        int def = 0;
+        for (int i = 0; i < ppenv->env->size; i++) {
+          Macro *c = at(ppenv->env, i);
+          if (equals(m.name, c->name)) {
+            def = 1;
+            freemacro(c);
+            set(ppenv->env, i, &m);
+            break;
+          }
+        }
+        if (!def) push(ppenv->env, &m);
+        else {
+          sprintf(error, "Macro '%s' is already defined, the previous definition was overwritten...", m.name->content);
+          printsymbolmessage(ERRLVL_WARNING, trace, s, error);
+        }
+        c = tfgetc(ss->tfptr);
+        if (c == '(') {
+          while (!(s = ssgets(ss))->eof) {
+            if (!strcmp(s->text, ")")) break;
+            if (!strcmp(s->text, ",")) continue;
+            String *t = newString(s->text);
+            push(m.params, &t);
+          }
+        }
+        if (c != '\n' && c != EOF) {
+          s = ppread(ss, m.value);
+          if (s) {
+            printsymbolmessage(ERRLVL_ERROR, trace, s, "Unexpected character '\\'!");
+            valid = 0;
+          }
+        }
+      }
     /////////////////////////////////////////////////////////////////////////////////////
     } else if (!strcmp(s->text, "#undef") && !ignore) {
-      s = ssgets(ss);
+      while ((s = ssgets(ss))->type == SYMBOL_COMMENT);
       if (s->eof || !strcmp(s->text, "\n")) {
         printsymbolmessage(ERRLVL_ERROR, trace, s, "Expected a macro to undefine, got nothing");
         valid = 0;
@@ -181,8 +218,9 @@ int preprocessfile(char *filename, Array *incpath, Array *trace, PPEnv *ppenv, i
         int undef = 0;
         for (int i = 0; i < ppenv->env->size; i++) {
           Macro *m = at(ppenv->env, i);
-          if (!strcmp(s->text, m->name)) {
+          if (!strcmp(s->text, m->name->content)) {
             undef = 1;
+            freemacro(m);
             rem(ppenv->env, i);
             break;
           }
@@ -191,7 +229,7 @@ int preprocessfile(char *filename, Array *incpath, Array *trace, PPEnv *ppenv, i
           sprintf(error, "'%s' is not defined...", s->text);
           printsymbolmessage(ERRLVL_WARNING, trace, s, error);
         }
-        s = ssgets(ss);
+        while ((s = ssgets(ss))->type == SYMBOL_COMMENT);
         if (s->text[0] && s->text[0] != '\n') {
           sprintf(error, "Expected 'newline' got '%s' instead!", s->text);
           printsymbolmessage(ERRLVL_ERROR, trace, s, error);
@@ -200,7 +238,7 @@ int preprocessfile(char *filename, Array *incpath, Array *trace, PPEnv *ppenv, i
       }
     /////////////////////////////////////////////////////////////////////////////////////
     } else if (!strcmp(s->text, "#ifdef")) {
-      s = ssgets(ss);
+      while ((s = ssgets(ss))->type == SYMBOL_COMMENT);
       if (s->eof || !strcmp(s->text, "\n")) {
         printsymbolmessage(ERRLVL_ERROR, trace, s, "Expected a macro to verify, got nothing");
         valid = 0;
@@ -209,7 +247,7 @@ int preprocessfile(char *filename, Array *incpath, Array *trace, PPEnv *ppenv, i
         int def = 0;
         for (int i = 0; i < ppenv->env->size; i++) {
           Macro *m = at(ppenv->env, i);
-          if (!strcmp(s->text, m->name)) {
+          if (!strcmp(s->text, m->name->content)) {
             def = 1;
             break;
           }
@@ -217,7 +255,7 @@ int preprocessfile(char *filename, Array *incpath, Array *trace, PPEnv *ppenv, i
         if (def) {
           control++;
         }
-        s = ssgets(ss);
+        while ((s = ssgets(ss))->type == SYMBOL_COMMENT);
         if (s->text[0] && s->text[0] != '\n') {
           sprintf(error, "Expected 'newline' got '%s' instead!", s->text);
           printsymbolmessage(ERRLVL_ERROR, trace, s, error);
@@ -226,7 +264,7 @@ int preprocessfile(char *filename, Array *incpath, Array *trace, PPEnv *ppenv, i
       }
     /////////////////////////////////////////////////////////////////////////////////////
     } else if (!strcmp(s->text, "#ifndef")) {
-      s = ssgets(ss);
+      while ((s = ssgets(ss))->type == SYMBOL_COMMENT);
       if (s->eof || !strcmp(s->text, "\n")) {
         printsymbolmessage(ERRLVL_ERROR, trace, s, "Expected a macro to verify, got nothing");
         valid = 0;
@@ -235,7 +273,7 @@ int preprocessfile(char *filename, Array *incpath, Array *trace, PPEnv *ppenv, i
         int undef = 1;
         for (int i = 0; i < ppenv->env->size; i++) {
           Macro *m = at(ppenv->env, i);
-          if (!strcmp(s->text, m->name)) {
+          if (!strcmp(s->text, m->name->content)) {
             undef = 0;
             break;
           }
@@ -243,7 +281,7 @@ int preprocessfile(char *filename, Array *incpath, Array *trace, PPEnv *ppenv, i
         if (undef) {
           control++;
         }
-        s = ssgets(ss);
+        while ((s = ssgets(ss))->type == SYMBOL_COMMENT);
         if (s->text[0] && s->text[0] != '\n') {
           sprintf(error, "Expected 'newline' got '%s' instead!", s->text);
           printsymbolmessage(ERRLVL_ERROR, trace, s, error);
@@ -283,17 +321,34 @@ int preprocessfile(char *filename, Array *incpath, Array *trace, PPEnv *ppenv, i
     /////////////////////////////////////////////////////////////////////////////////////
     } else if (!strcmp(s->text, "#warning") && !ignore) {
       String *str = newString("");
-      s = ppread(ss, str);
-      if (s) printsymbolmessage(ERRLVL_ERROR, trace, s, "Unexpected character '\\'!");
-      else printsymbolmessage(ERRLVL_WARNING, trace, s, str->content);
+      Symbol *sym = newSymbol(s);
+      char    c;
+      if ((c = tfgetc(ss->tfptr)) != '\n' && c != EOF) {
+        s = ppread(ss, str);
+        if (s) {
+          printsymbolmessage(ERRLVL_ERROR, trace, s, "Unexpected character '\\'!");
+          valid = 0;
+        }
+      } else {
+        concat(str, newString("No message..."));
+      }
+      printsymbolmessage(ERRLVL_WARNING, trace, sym, str->content);
       deleteString(&str);
+      deleteSymbol(&sym);
     /////////////////////////////////////////////////////////////////////////////////////
     } else if (!strcmp(s->text, "#error") && !ignore) {
       String *str = newString("");
-      s = ppread(ss, str);
-      if (s) printsymbolmessage(ERRLVL_ERROR, trace, s, "Unexpected character '\\'!");
-      else printsymbolmessage(ERRLVL_ERROR, trace, s, str->content);
+      Symbol *sym = newSymbol(s);
+      char    c;
+      if ((c = tfgetc(ss->tfptr)) != '\n' && c != EOF) {
+        s = ppread(ss, str);
+        if (s) printsymbolmessage(ERRLVL_ERROR, trace, s, "Unexpected character '\\'!");
+      } else {
+        concat(str, newString("No message..."));
+      }
+      printsymbolmessage(ERRLVL_ERROR, trace, sym, str->content);
       deleteString(&str);
+      deleteSymbol(&sym);
       valid = 0;
     /////////////////////////////////////////////////////////////////////////////////////
     } else if (!strcmp(s->text, "#pragma") && !ignore) {
@@ -301,28 +356,43 @@ int preprocessfile(char *filename, Array *incpath, Array *trace, PPEnv *ppenv, i
     /////////////////////////////////////////////////////////////////////////////////////
     } else if (!ignore) {
       while (!s->eof && s->text[0] != '\n') {
-        int expanded = 0;
-        if (s->open) for (int i = 0; s->open[i]; i++)   fputc(s->open[i],  ppenv->output);
-        else {
-          for (int i = 0; i < ppenv->env->size; i++) {
-            Macro *m   = at(ppenv->env, i);
-            int    len = strlen(m->value);
-            if (!strcmp(s->text, m->name)) {
-              expanded = 1;
-              for (int j = 0; j < len; j++)             fputc(m->value[j], ppenv->output);
+        if (s->open) for (int i = 0; s->open[i]; i++) fputc(s->open[i], ppenv->output);
+        if (s->type == SYMBOL_VARIABLE) {
+          String *str = newString(s->text);
+          char c = tfgetc(ss->tfptr);
+          if (c == '(') {
+            int p = 1;
+            do {
+              append(str, c);
+              c = tfgetc(ss->tfptr);
+              if (c == '(')      p++;
+              else if (c == ')') p--;
+            } while (p > 0);
+            append(str, c);
+          } else tfungetc(c, ss->tfptr);
+          Expansion *e = newExpansion();
+          expandmacro(ppenv->env, ppenv->parser, str, e);
+          switch (e->invalid) {
+            case MACRO_ERROR_MAX_DEPTH:
+              printmacromessage(ERRLVL_ERROR, trace, e->hist, "Reached maximum expansion depth!");
+              valid = 0;
               break;
-            }
+            default:
+              for (int i = 0; i < e->value->length; i++) fputc(e->value->content[i], ppenv->output);
+              break;
           }
+          deleteExpansion(&e);
+          deleteString(&str);
         }
-        if (!expanded) for (int i = 0; s->text[i]; i++) fputc(s->text[i],  ppenv->output);
-        if (s->close) for (int i = 0; s->close[i]; i++) fputc(s->close[i], ppenv->output);
+        else for (int i = 0; s->text[i]; i++)           fputc(s->text[i],      ppenv->output);
+        if (s->close) for (int i = 0; s->close[i]; i++) fputc(s->close[i],     ppenv->output);
         s = ppconsume(ss, ppenv->output);
       }
       fputc('\n', ppenv->output);
     } else {
       char c;
       while ((c = tfgetc(ss->tfptr)) != '#' && c != EOF);
-      tfungetc('#', ss->tfptr);
+      if (c != EOF) tfungetc('#', ss->tfptr);
     }
   }
 
@@ -361,9 +431,7 @@ void preprocess(char *filename, Array *incpath)
   preprocessfile(filename, incpath, trace, &ppenv, 0);
 
   for (int i = 0; i < env->size; i++) {
-    Macro *m = at(env, i);
-    free(m->name);
-    free(m->value);
+    freemacro(at(env, i));
   }
   if (parser)   deleteParser(&parser);
   if (output)   fclose(output);

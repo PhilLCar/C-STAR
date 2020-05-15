@@ -1,8 +1,10 @@
-#define TRUE "test"
+#define A            131
+#define B            342
+#define CONCAT(X, Y) #X ## #Y
 // test
 #if 0b101 == 7 ^ (1 + 1)
 if (true) {
-  print(TRUE);
+  print(CONCAT(CONCAT(A, B), B));
 } else print("false");
 #else
 print("test undef");

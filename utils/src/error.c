@@ -69,6 +69,17 @@ void printtrace(Array *trace) {
   }
 }
 
+void printmtrace(Array *hist) {
+  if (hist->size > 1) {
+    Expanded *exp = at(hist, hist->size - 2);
+    fprintf(stderr, "In macro expansion of "FONT_BOLD"%s"FONT_RESET"\n", exp->m->name->content);
+    for (int i = hist->size - 3; i >= 0; i--) {
+      exp = at(hist, i);
+      fprintf(stderr, "        expanded from "FONT_BOLD"%s"FONT_RESET"\n", exp->m->name->content);
+    }
+  }
+}
+
 void printmessagetype(MessageType type) {
   switch (type) {
   case ERRLVL_INFO:
@@ -142,7 +153,26 @@ void printnodemessage(MessageType type, Array *trace, char *nodename, char* mess
   fprintf(stderr, "%s\n", message);
 }
 
-void printsymbolmessage(MessageType type, Array *trace,  Symbol *symbol, char *message) {
+void printmacromessage(MessageType type, Array *trace, Array *hist, char *message) {
+  Macro  *macro = ((Expanded*)at(hist, hist->size - 1))->m;
+  Symbol *s     = malloc(sizeof(Symbol));
+  s->open       = NULL;
+  s->close      = NULL;
+  s->text       = macro->name->content;
+  s->position   = macro->position;
+  s->line       = macro->line;
+
+  printtrace(trace);
+  printmessagetype(type);
+  printfilename(*(char**)at(trace, trace->size - 1));
+  printcoords(s);
+  printmtrace(hist);
+  fprintf(stderr, "%s\n", message);
+  printcontext(type, s, macro->filename->content);
+  free(s);
+}
+
+void printsymbolmessage(MessageType type, Array *trace, Symbol *symbol, char *message) {
   printtrace(trace);
   printmessagetype(type);
   printfilename(*(char**)at(trace, trace->size - 1));

@@ -9,6 +9,7 @@
 #include <array.h>
 #include <terminal.h>
 #include <symbol.h>
+#include <macro.h>
 
 #define CONTEXT_LENGTH 35
 
@@ -19,6 +20,7 @@ typedef enum messagetype {
   ERRLVL_ERROR
 } MessageType;
 
+void printmacromessage(MessageType, Array*, Array*, char*);
 void printnodemessage(MessageType, Array*, char*, char*);
 void printsymbolmessage(MessageType, Array*, Symbol*, char*);
 void printfilemessage(MessageType, Array*, char*);

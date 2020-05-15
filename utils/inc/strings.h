@@ -22,7 +22,11 @@ void    deleteString(String**);
 void    freestring(String*);
 String *concat(String*, String*);
 String *append(String*, char);
-int     equal(String*, String*);
+String *prepend(String*, char);
+String *inject(String*, int, char);
+String *substring(String*, int, int);
+String *trim(String*);
+int     equals(String*, String*);
 int     contains(String*, String*);
 
 StringStream *sopen(String*);

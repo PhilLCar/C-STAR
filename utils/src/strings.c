@@ -56,7 +56,64 @@ String *append(String *a, char c)
   return a;
 }
 
-int equal(String *a, String *b)
+String *prepend(String *a, char c)
+{
+  char *n = realloc(a->content, (a->length + 2) * sizeof(char));
+  if (n) {
+    a->content = n;
+    for (int i = a->length + 1; i > 0; i--) a->content[i] = a->content[i - 1];
+    a->content[0] = c;
+  } else {
+    deleteString(&a);
+  }
+  return a;
+}
+
+String *inject(String *a, int index, char c)
+{
+  char *n = realloc(a->content, (a->length + 2) * sizeof(char));
+  if (n) {
+    a->content = n;
+    for (int i = a->length + 1; i > index; i--) a->content[i] = a->content[i - 1];
+    a->content[index] = c;
+  } else {
+    deleteString(&a);
+  }
+  return a;
+}
+
+String *substring(String *a, int start, int length)
+{
+  char *s = malloc((length + 1) * sizeof(char));
+  if (s) {
+    for (int i = 0; i < length; i++) {
+      s[i] = a->content[start + i];
+    }
+    s[length] = 0;
+    free(a->content);
+    a->content = s;
+    a->length  = length;
+  } else {
+    if (s) free(s);
+    deleteString(&a);
+  }
+  return a;
+}
+
+String *trim(String *a) {
+  int start, length;
+  for (start = 0; start < a->length; start++) {
+    char c = a->content[start];
+    if (c != ' ' && c != '\t') break;
+  }
+  for (length = a->length - start; length > 0; length--) {
+    char c = a->content[start + length - 1];
+    if (c != ' ' && c != '\t') break;
+  }
+  return substring(a, start, length);
+}
+
+int equals(String *a, String *b)
 {
   return !strcmp(a->content, b->content);
 }

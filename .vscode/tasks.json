@@ -7,6 +7,11 @@
             "label": "ast-debug",
             "type": "shell",
             "command": "make ast-debug"
+        },
+        {
+            "label": "preprocessor-debug",
+            "type": "shell",
+            "command": "make preprocessor-debug"
         }
     ]
 }

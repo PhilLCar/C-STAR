@@ -19,7 +19,8 @@ PARSING=$(OBJECTS)/symbol.o         \
         $(OBJECTS)/tracked_string.o \
         $(OBJECTS)/bnf.o            \
         $(OBJECTS)/ast.o
-CISOR  =$(OBJECTS)/preprocessor.o
+CISOR  =$(OBJECTS)/preprocessor.o \
+        $(OBJECTS)/macro.o
 
 test: parse-test array-test bnf-test ast-test preprocessor-test
 
