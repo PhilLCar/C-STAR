@@ -11,7 +11,8 @@
 #define MACRO_EXPANSION_MAX_DEPTH 128
 
 typedef enum macroerrors {
-  MACRO_ERROR_MAX_DEPTH = 1,
+  MACRO_VALID = 0,
+  MACRO_ERROR_MAX_DEPTH,
   MACRO_ERROR_WRONG_CALL_FORMAT,
   MACRO_ERROR_WRONG_PARAMETER_FORMAT,
   MACRO_ERROR_EOF_IN_PARAMETERS,
@@ -47,6 +48,6 @@ Expansion *newExpansion();
 void       deleteExpansion(Expansion**);
 void       freemacro(Macro*);
 void       freeexpansion(Expansion*);
-void       macroexpand(Array*, Parser*, String*, Expansion*, Array*);
+void       macroexpand(Array*, Parser*, String*, Expansion*, Array*, int);
 
 #endif

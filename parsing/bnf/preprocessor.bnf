@@ -6,12 +6,12 @@
 <operation1> ::= <operation1> <operator1> <operation0> | <operation0>
 <operation0> ::= <operator0> <value> | <value>
 <value>      ::= <raw: variable> | <raw: integer> | <raw: decimal> | <raw: string> | <function> | <parent>
-<function>   ::= <raw: variable> "(" <operation6> ")"
+<function>   ::= <raw: variable> "(" [ <operation6> { "," <operation6> } ] ")"
 <parent>     ::= "(" <operation6> ")"
-<operator0>  ::= "~" | "-"
+<operator0>  ::= "~" | "-" | "!"
 <operator1>  ::= "^" | "&" | "|"
 <operator2>  ::= "*" | "/" | "%"
-<operator3>  ::= "+" | "-" | "##"
-<operator4>  ::= "||"
+<operator3>  ::= "+" | "-"
+<operator4>  ::= "==" | "!=" | "<=" | "<" | ">=" | ">"
 <operator5>  ::= "&&"
-<operator6>  ::= "==" | "!=" | "<=" | "<" | ">=" | ">"
+<operator6>  ::= "||"

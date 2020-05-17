@@ -12,9 +12,18 @@
 #include <macro.h>
 #include <bnf.h>
 #include <ast.h>
+#include <raw.h>
 
 #define INCLUDE_MAX_DEPTH         128
 #define INCLUDE_MAX_FILE_LENGTH  1024
+
+typedef enum pptype {
+  PPTYPE_INT,
+  PPTYPE_DEC,
+  PPTYPE_STRING,
+  PPTYPE_CHAR,
+  PPTYPE_ERROR
+} PPType;
 
 typedef struct ppenv {
   FILE    *output;
@@ -24,6 +33,11 @@ typedef struct ppenv {
   Array   *stack;
   BNFNode *tree;
 } PPEnv;
+
+typedef struct ppresult {
+  PPType  type;
+  void   *value;
+} PPResult;
 
 void preprocess(char*, Array*);
 

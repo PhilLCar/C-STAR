@@ -12,6 +12,7 @@ endif
 UTILS  =$(OBJECTS)/error.o   \
         $(OBJECTS)/array.o   \
         $(OBJECTS)/strings.o \
+				$(OBJECTS)/raw.o     \
         $(OBJECTS)/diagnostic.o
 PARSING=$(OBJECTS)/symbol.o         \
         $(OBJECTS)/generic_parser.o \

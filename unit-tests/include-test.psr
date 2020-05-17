@@ -1,5 +1,3 @@
-// test
-if (true) {
-  print("131342342");
-  print({test_value})
-} else print("false");
+//#define COMBINE(X)   X ## _value
+
+ print("Allo")

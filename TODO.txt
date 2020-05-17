@@ -5,3 +5,4 @@
 - PP: Concat stringize expansion
 - PP: Macro errors
 - PP: if valid =0 delete psr and msr
+- Symbol error when non-closing pairs

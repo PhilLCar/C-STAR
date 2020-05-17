@@ -116,7 +116,7 @@ void macroconcat(String *str, Parser *parser) {
   deleteString(&n);
 }
 
-void macroexpand(Array *env, Parser *parser, String *expr, Expansion *e, Array *args)
+void macroexpand(Array *env, Parser *parser, String *expr, Expansion *e, Array *args, int pp)
 {
   StringSymbolStream *sss   = sssopen(expr, parser);
   Symbol             *s;
@@ -127,7 +127,29 @@ void macroexpand(Array *env, Parser *parser, String *expr, Expansion *e, Array *
       Macro *m;
       int    exp = 0;
       int    arg = 0;
-      if (args) {
+      if (pp && !strcmp(s->text, "defined")) {
+        s = sssgets(sss);
+        if (strcmp(s->text, "(")) {
+          e->invalid = MACRO_ERROR_WRONG_CALL_FORMAT;
+        } else {
+          s = sssgets(sss);
+          for (int i = 0; !arg && i < env->size; i++) {
+            m = at(env, i);
+            if (!strcmp(s->text, m->name->content)) {
+              exp = 1;
+              break;
+            }
+          }
+          if (exp) append(e->value, '1');
+          else     append(e->value, '0');
+          exp = 0;
+          s = sssgets(sss);
+          if (strcmp(s->text, ")")) {
+            e->invalid = MACRO_ERROR_WRONG_PARAMETER_FORMAT;
+          }
+        }
+        arg = 1;
+      } else if (args) {
         for (int i = 0; i < args->size; i++) {
           Parameter *p = at(args, i);
           if (s->text[0] == '#') {
@@ -176,7 +198,7 @@ void macroexpand(Array *env, Parser *parser, String *expr, Expansion *e, Array *
               } else {
                 trim(str);
                 Expansion *sube = newExpansion();
-                macroexpand(env, parser, str, sube, args);
+                macroexpand(env, parser, str, sube, args, pp);
                 if (!sube->invalid) {
                   if (nargs->size < m->params->size) {
                     Parameter p;
@@ -199,7 +221,7 @@ void macroexpand(Array *env, Parser *parser, String *expr, Expansion *e, Array *
             if (!e->invalid) {
               if (nargs->size == m->params->size) {
                 String *str = newString(m->value->content);
-                macroexpand(env, parser, str, e, nargs);
+                macroexpand(env, parser, str, e, nargs, pp);
                 deleteString(&str);
               } else {
                 e->invalid = MACRO_ERROR_PARAMETER_MISMATCH;
@@ -216,7 +238,7 @@ void macroexpand(Array *env, Parser *parser, String *expr, Expansion *e, Array *
           }
         } else {
           String *str = newString(m->value->content);
-          macroexpand(env, parser, str, e, args);
+          macroexpand(env, parser, str, e, args, pp);
           deleteString(&str);
         }
       } else if (!arg) {

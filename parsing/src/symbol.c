@@ -81,32 +81,32 @@ int nextsymbol(TrackedEntity *te, char (*tegetc)(void*), void (*teungetc)(char, 
       }
       //////////////////////////////////////// STRING STOP ////////////////////////////////////////
       if (symbol->type == SYMBOL_STRING) {
-        //////////////////////////////////////// ESCAPE ////////////////////////////////////////
-        for (int i = 0; parser->escapes[i]; i++) {
-          if (c == parser->escapes[i]) {
-            ws = 1;
-            break;
-          }
-        }
-        if (ws) {
-          c = tegetc(te);
-          switch (c) {
-            case 'n':
-              c = '\n';
-              break;
-            case 't':
-              c = '\t';
-              break;
-            case 'r':
-              c = '\r';
-              break;
-            case '0':
-              c = '\0';
-              break;
-          }
-          if (!extend(&buf, &buf_size, &buf_cap, c)) goto next_fail;
-          continue;
-        }
+        // //////////////////////////////////////// ESCAPE ////////////////////////////////////////
+        // for (int i = 0; parser->escapes[i]; i++) {
+        //   if (c == parser->escapes[i]) {
+        //     ws = 1;
+        //     break;
+        //   }
+        // }
+        // if (ws) {
+        //   c = tegetc(te);
+        //   switch (c) {
+        //     case 'n':
+        //       c = '\n';
+        //       break;
+        //     case 't':
+        //       c = '\t';
+        //       break;
+        //     case 'r':
+        //       c = '\r';
+        //       break;
+        //     case '0':
+        //       c = '\0';
+        //       break;
+        //   }
+        //   if (!extend(&buf, &buf_size, &buf_cap, c)) goto next_fail;
+        //   continue;
+        // }
         if ((cmp = strcmps(te->buffer, symbol->close))) {
           close = 1;
           for (int i = 1; i < cmp; i++) tegetc(te);
