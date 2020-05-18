@@ -1,8 +1,8 @@
 -ASTError for each node
 - lire le script à Thériault
 - duplication of the PARTIAL nodes on recurse can be avoided if deletion handles empty nodes
-- PP: Concat adjactent strings
-- PP: Concat stringize expansion
+- Link symbols with AST
 - PP: Macro errors
 - PP: if valid =0 delete psr and msr
 - Symbol error when non-closing pairs
+- Add type raw char

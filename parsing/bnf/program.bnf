@@ -1,34 +1,28 @@
-;; include (parsing/bnf/types.bnf)
+;; include (parsing/bnf/expressions.bnf)
+#;; include (parsing/bnf/oop.bnf)
+#;; include (parsing/bnf/operator.bnf)
 
 <program> ::= { <statement> }
 
-<statement> ::= <line> | <func-assoc> | <special-blocks> | <class-decl> | <operator-assoc>
+<statement> ::= <block> | <func-assoc> | <special-blocks> | <address> //| <class-decl> | <operator-assoc>
 
-<line> ::= ( <expression> | <declaration> ) ";"
+<block>       ::= <line> | "{" { <statement> } "}"
+<line>        ::= [ <expression> | <declaration> | <control> ] ";"
+<declaration> ::= <type> <expression>
+<control>     ::= "goto" <raw: variable> | "break" [ <expression> ] | "continue" [ <expression> ] | "finish" [ <expression> ]
 
-<expression> ::= ( <unary> <expression> ) |
-                 ( <expression> <binary> <expression> ) |
-                 ( <expression> <binary1> <expression> <binary2> ) |
-                 ( <expression> <tertiary1> <expression> <tertiary2> <expression> ) |
-                 ( <variable> | <const-variable> | <constant>)
+<func-assoc>      ::= [ <type> ] <raw: variable> <lambda>
+<lambda>          ::= [ <parameter-block> ] <block>
+<parameter-block> ::= "(" [ <parameter> { "," <parameter> } ] ")"
+<parameter>       ::= [ <type> ] <assignment>
 
-<assignment> ::= <variable> [ "=" <expression> ]
-
-<declaration> ::= [ <type> ] <assignment> { "," <assignment> }
-
-<function-association> ::= [ <type> ] <variable> <lambda-expression>
-<lambda-expression> ::= [ <parameter-block> ] <block>
-<parameter-block> ::= "(" ")" | "(" [ <parameter> { "," <parameter> } ] ")"
-<parameter> ::= [ <type> ] <assignment>
-
-
-<block> ::= <line> | "{" { <statement> } "}"
-
-<if-block> ::= "if" <expression> <block> [ "else" <block> ]
-<while-block> ::= [ <do-block> ] "while" <expression> <block>
-<for-block> ::= [ <do-block> ] "for" "(" [ <expression> ] ";" [ <expression> ] ";" [ <expression> ] ")" <block>
-<foreach-block> ::= [ <do-block> ] "foreach" "(" [ <expression> ] "in" <variable> ")" <block>
-<switch-block> ::= "switch" <expression> {}
+<special-blocks> ::= <if-block> | <while-block> | <for-block> | <foreach-block> | <switch-block> | <metafor-block>
+<do-block>      ::= "do" <block>
+<if-block>      ::= "if" <expression> <block> [ "else" <block> ]
+<while-block>   ::= [ <do-block> ] "while" <expression> <block>
+<for-block>     ::= [ <do-block> ] "for" "(" [ <expression> | <declaration> ] ";" [ <expression> ] ";" [ <expression> ] ")" <block>
+<foreach-block> ::= [ <do-block> ] "for" "each" "(" [ <expression> ] "in" <expression> ")" <block>
+<switch-block>  ::= "switch" <expression> "{" { <switch-label> ":" { <statement> } } "}"
 
 # var[10, 10, 10] a;
 #
@@ -38,6 +32,7 @@
 # 	// meta access, if a's structure is unknown
 # 	a[meta x] = wtv;
 # }
-<metafor-block> ::= [ <do-block> ] "metafor" "(" [ <declaration> ] "in" <variable> ")" <block>
+<metafor-block> ::= [ <do-block> ] "meta" "for" "(" [ <declaration> ] "in" <variable> ")" <block>
 
-
+<address>      ::= <raw: variable> ":"
+<switch-label> ::= ( "case" <expression> | "default" ) ":"

@@ -298,10 +298,12 @@ int nextsymbol(TrackedEntity *te, char (*tegetc)(void*), void (*teungetc)(char, 
       symbol->close[0] = 0;
     }
     symbol->text = buf;
-    for (int i = 0; parser->reserved[i]; i++) {
-      if (!strcmp(buf, parser->reserved[i])) {
-        symbol->type = SYMBOL_RESERVED;
-        break;
+    if (symbol->type == SYMBOL_VARIABLE) {
+      for (int i = 0; parser->reserved[i]; i++) {
+        if (!strcmp(buf, parser->reserved[i])) {
+          symbol->type = SYMBOL_RESERVED;
+          break;
+        }
       }
     }
     if (symbol->line < 0) symbol->line = te->line;

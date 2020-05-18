@@ -49,6 +49,7 @@ PPResult ppeval(ASTNode *ast, PPEnv *ppenv) {
       result.value = b.value;
     } else if (!strcmp(op->content, "^")) {
       if (a.type == PPTYPE_INT && b.type == PPTYPE_INT) {
+        result.type  = PPTYPE_INT;
         result.value = (void*)((long)a.value ^ (long)b.value);
       } else {
         result.type  = PPTYPE_ERROR;
@@ -56,6 +57,7 @@ PPResult ppeval(ASTNode *ast, PPEnv *ppenv) {
       }
     } else if (!strcmp(op->content, "&")) {
       if (a.type == PPTYPE_INT && b.type == PPTYPE_INT) {
+        result.type  = PPTYPE_INT;
         result.value = (void*)((long)a.value & (long)b.value);
       } else {
         result.type  = PPTYPE_ERROR;
@@ -63,6 +65,7 @@ PPResult ppeval(ASTNode *ast, PPEnv *ppenv) {
       }
     } else if (!strcmp(op->content, "|")) {
       if (a.type == PPTYPE_INT && b.type == PPTYPE_INT) {
+        result.type  = PPTYPE_INT;
         result.value = (void*)((long)a.value | (long)b.value);
       } else {
         result.type  = PPTYPE_ERROR;
@@ -71,6 +74,7 @@ PPResult ppeval(ASTNode *ast, PPEnv *ppenv) {
     } else if (!strcmp(op->content, "*")) {
       // add decimal support!
       if (a.type == PPTYPE_INT && b.type == PPTYPE_INT) {
+        result.type  = PPTYPE_INT;
         result.value = (void*)((long)a.value * (long)b.value);
       } else {
         result.type  = PPTYPE_ERROR;
@@ -79,6 +83,7 @@ PPResult ppeval(ASTNode *ast, PPEnv *ppenv) {
     } else if (!strcmp(op->content, "/")) {
       // add decimal support!
       if (a.type == PPTYPE_INT && b.type == PPTYPE_INT) {
+        result.type  = PPTYPE_INT;
         result.value = (void*)((long)a.value / (long)b.value);
       } else {
         result.type  = PPTYPE_ERROR;
@@ -86,6 +91,7 @@ PPResult ppeval(ASTNode *ast, PPEnv *ppenv) {
       }
     } else if (!strcmp(op->content, "%")) {
       if (a.type == PPTYPE_INT && b.type == PPTYPE_INT) {
+        result.type  = PPTYPE_INT;
         result.value = (void*)((long)a.value % (long)b.value);
       } else {
         result.type  = PPTYPE_ERROR;
@@ -94,6 +100,7 @@ PPResult ppeval(ASTNode *ast, PPEnv *ppenv) {
     } else if (!strcmp(op->content, "+")) {
       // add decimal support!
       if (a.type == PPTYPE_INT && b.type == PPTYPE_INT) {
+        result.type  = PPTYPE_INT;
         result.value = (void*)((long)a.value + (long)b.value);
       } else {
         result.type  = PPTYPE_ERROR;
@@ -103,6 +110,7 @@ PPResult ppeval(ASTNode *ast, PPEnv *ppenv) {
     } else if (!strcmp(op->content, "-")) {
       // add decimal support!
       if (a.type == PPTYPE_INT && b.type == PPTYPE_INT) {
+        result.type  = PPTYPE_INT;
         result.value = (void*)((long)a.value - (long)b.value);
       } else {
         result.type  = PPTYPE_ERROR;
@@ -111,8 +119,10 @@ PPResult ppeval(ASTNode *ast, PPEnv *ppenv) {
       }
     } else if (!strcmp(op->content, "==")) {
       if (a.type == PPTYPE_INT && b.type == PPTYPE_INT) {
+        result.type  = PPTYPE_INT;
         result.value = (void*)(long)((long)a.value == (long)b.value);
       } else if (a.type == PPTYPE_STRING && b.type == PPTYPE_STRING) {
+        result.type  = PPTYPE_INT;
         result.value = (void*)(long)(strcmp(a.value, b.value) == 0);
       } else {
         result.type  = PPTYPE_ERROR;
@@ -121,8 +131,10 @@ PPResult ppeval(ASTNode *ast, PPEnv *ppenv) {
       }
     } else if (!strcmp(op->content, "!=")) {
       if (a.type == PPTYPE_INT && b.type == PPTYPE_INT) {
+        result.type  = PPTYPE_INT;
         result.value = (void*)(long)((long)a.value != (long)b.value);
       } else if (a.type == PPTYPE_STRING && b.type == PPTYPE_STRING) {
+        result.type  = PPTYPE_INT;
         result.value = (void*)(long)(strcmp(a.value, b.value) != 0);
       } else {
         result.type  = PPTYPE_ERROR;
@@ -131,8 +143,10 @@ PPResult ppeval(ASTNode *ast, PPEnv *ppenv) {
       }
     } else if (!strcmp(op->content, "<=")) {
       if (a.type == PPTYPE_INT && b.type == PPTYPE_INT) {
+        result.type  = PPTYPE_INT;
         result.value = (void*)(long)((long)a.value <= (long)b.value);
       } else if (a.type == PPTYPE_STRING && b.type == PPTYPE_STRING) {
+        result.type  = PPTYPE_INT;
         result.value = (void*)(long)(strcmp(a.value, b.value) <= 0);
       } else {
         result.type  = PPTYPE_ERROR;
@@ -141,8 +155,10 @@ PPResult ppeval(ASTNode *ast, PPEnv *ppenv) {
       }
     } else if (!strcmp(op->content, "<")) {
       if (a.type == PPTYPE_INT && b.type == PPTYPE_INT) {
+        result.type  = PPTYPE_INT;
         result.value = (void*)(long)((long)a.value < (long)b.value);
       } else if (a.type == PPTYPE_STRING && b.type == PPTYPE_STRING) {
+        result.type  = PPTYPE_INT;
         result.value = (void*)(long)(strcmp(a.value, b.value) < 0);
       } else {
         result.type  = PPTYPE_ERROR;
@@ -151,8 +167,10 @@ PPResult ppeval(ASTNode *ast, PPEnv *ppenv) {
       }
     } else if (!strcmp(op->content, ">=")) {
       if (a.type == PPTYPE_INT && b.type == PPTYPE_INT) {
+        result.type  = PPTYPE_INT;
         result.value = (void*)(long)((long)a.value >= (long)b.value);
       } else if (a.type == PPTYPE_STRING && b.type == PPTYPE_STRING) {
+        result.type  = PPTYPE_INT;
         result.value = (void*)(long)(strcmp(a.value, b.value) >= 0);
       } else {
         result.type  = PPTYPE_ERROR;
@@ -161,8 +179,10 @@ PPResult ppeval(ASTNode *ast, PPEnv *ppenv) {
       }
     } else if (!strcmp(op->content, ">")) {
       if (a.type == PPTYPE_INT && b.type == PPTYPE_INT) {
+        result.type  = PPTYPE_INT;
         result.value = (void*)(long)((long)a.value > (long)b.value);
       } else if (a.type == PPTYPE_STRING && b.type == PPTYPE_STRING) {
+        result.type  = PPTYPE_INT;
         result.value = (void*)(long)(strcmp(a.value, b.value) > 0);
       } else {
         result.type  = PPTYPE_ERROR;
@@ -577,16 +597,23 @@ int preprocessfile(char *filename, Array *incpath, Array *trace, PPEnv *ppenv, i
           exp = ppexpandmacro(ppenv, expr, trace, 1);
           if (exp) {
             StringSymbolStream *sss = sssopen(exp, ppenv->parser);
-            while (!(s = sssgets(sss))->eof) {
+            while (valid && !(s = sssgets(sss))->eof) {
               astnewsymbol(ast, ppenv->tree, ASTFLAGS_NONE, NULL);
               astnewsymbol(ast, ppenv->tree, ASTFLAGS_NONE, s);
               if (ast->status == STATUS_FAILED) {
+                s->line     += t->line;
+                s->position += t->position;
                 printsymbolmessage(ERRLVL_ERROR, trace, s, "Badely formatted expression!");
                 valid = 0;
-                break;
               }
             }
             astnewsymbol(ast, ppenv->tree, ASTFLAGS_END, NULL);
+            if (ast->status != STATUS_CONFIRMED) {
+                s->line     += t->line;
+                s->position += t->position;
+              printsymbolmessage(ERRLVL_ERROR, trace, s, "Badely formatted expression!");
+              valid = 0;
+            }
             sssclose(sss);
             deleteString(&exp);
           } else valid = 0;
@@ -622,16 +649,23 @@ int preprocessfile(char *filename, Array *incpath, Array *trace, PPEnv *ppenv, i
           exp = ppexpandmacro(ppenv, expr, trace, 1);
           if (exp) {
             StringSymbolStream *sss = sssopen(exp, ppenv->parser);
-            while (!(s = sssgets(sss))->eof) {
+            while (valid && !(s = sssgets(sss))->eof) {
               astnewsymbol(ast, ppenv->tree, ASTFLAGS_NONE, NULL);
               astnewsymbol(ast, ppenv->tree, ASTFLAGS_NONE, s);
               if (ast->status == STATUS_FAILED) {
+                s->line     += t->line;
+                s->position += t->position;
                 printsymbolmessage(ERRLVL_ERROR, trace, s, "Badely formatted expression!");
                 valid = 0;
-                break;
               }
             }
             astnewsymbol(ast, ppenv->tree, ASTFLAGS_END, NULL);
+            if (ast->status != STATUS_CONFIRMED) {
+                s->line     += t->line;
+                s->position += t->position;
+              printsymbolmessage(ERRLVL_ERROR, trace, s, "Badely formatted expression!");
+              valid = 0;
+            }
             sssclose(sss);
             deleteString(&exp);
           } else valid = 0;

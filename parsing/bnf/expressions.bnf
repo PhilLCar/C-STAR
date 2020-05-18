@@ -1,0 +1,102 @@
+// PRIORITY 18 LR
+<expression> ::= <expression> "," <assignment> | <assignment>
+
+// PRIORITY 17 RL
+<assignment> ::= <ternary> ( "="    | 
+                             "+="   |
+                             "-="   |
+                             "*="   |
+                             "/="   |
+                             "%="   |
+                             "**="  |
+                             "<<="  |
+                             ">>="  |
+                             ">>>=" |
+                             "|>="  |
+                             "<|="  |
+                             "&="   |
+                             "^="   |
+                             "|="   |
+                             "~=") <assignment> | <ternary>
+
+// PRIORITY 15 RL
+<ternary> ::= <ternary> "?" <log-or> ":" <log-or> | <log-or>
+
+// PRIORITY 14 LR
+<log-or>  ::= <log-or> "||" <log-xor> | <log-xor>
+
+// PRIORITY 13 LR
+<log-xor> ::= <log-xor> "^^" <log-and> | <log-and>
+
+// PRIORITY 12 LR
+<log-and> ::= <log-and> "&&" <bit-or> | <bit-or>
+
+// PRIORITY 11 LR
+<bit-or>  ::= <bit-or> "|" <bit-xor> | <bit-xor>
+
+// PRIORITY 10 LR
+<bit-xor> ::= <bit-xor> "^" <bit-and> | <bit-and>
+
+// PRIORITY 9 LR
+<bit-and> ::= <bit-and> "&" <comparative> | <comparative>
+
+// PRIORITY 8 LR
+<comparative> ::= <comparative> ( "==" | "===" | "!=" | "!==" ) <relational> | <relational>
+
+// PRIORITY 7 LR
+<relational> ::= <relational> ( "<" | ">" | "<=" | ">=" ) <shift> | <shift>
+
+// PRIORITY 6 LR
+<shift> ::= <shift> ( "<<" | ">>" | ">>>" | "|>" | "<|" ) <additive> | <additive>
+
+// PRIORITY 5 LR
+<additive> ::= <additive> ( "+" | "-" ) <multiplicative> | <multiplicative>
+
+// PRIORITY 4 LR
+<multiplicative> ::= <multiplicative> ( "*" | "/" | "%" ) <power> | <power>
+
+// PRIORITY 3 LR
+<power> ::= <power> "**" <p2> | <p2>
+
+// PRIORITY 2 RL
+<p2> ::= <prefix> | <unary> | <not> | <cast> | <deref> | <ref> | <type-op> | <p1>
+<prefix>  ::= ( "++" | "--" | "!*" | "!/" ) <p1>
+<unary>   ::= ( "+" | "-" ) <p1>
+<not>     ::= ( "!" | "~" ) <p1>
+<cast>    ::= "(" (<raw: variable> | <type>) ")" <p1>
+<deref>   ::= "*" <p1>
+<ref>     ::= "&" <p1>
+<type-op> ::= <p1> ( "sizeof" | "typeof" ) <type-op>
+
+// PRIORITY 1 LR
+<p1> ::= <postfix> | <call> | <index> | <access> | <p-access> | <parent> | <list> | <array> | <dict> | <value>
+<postfix>  ::= <expression> ( "++" | "--" | "!*" | "!/" | "!")
+<call>     ::= <raw: variable> "(" <expression> ")"
+<index>    ::= ( <raw:variable> | <raw: string> ) "[" <expression> "]"
+<access>   ::= <expression> "."  <raw: variable>
+<p-access> ::= <expression> "->" <raw: variable>
+<parent>   ::= "(" <expression> ")"
+<list>     ::= "[" [ <expression> ] "]"
+<array>    ::= "{" [ <expression> ] "}"
+<dict>     ::= "{" [ <raw: variable> ":" <expression> { "," <raw: variable> ":" <expression> } ] "}"
+
+// BASE VALUE
+<value> ::= <raw: variable> | <raw: string> | <raw: integer> | <raw: decimal>
+
+// TYPES
+<type> ::= [ "const" ] ( "var" | <integer-type>   | 
+                                 <decimal-type>   | 
+                                 <character-type> | 
+                                 <string-type>    | 
+                                 <boolean-type>   |
+                                 <file-type> ) [ <dimension> ]
+<integer-type> ::= ([ "unsigned" ] ( "byte" | "short" | "int" | "long" )) | "integer"
+<decimal-type> ::= "mini" | "float" | "double" | "decimal"
+<boolean-type> ::= "bool"
+<character-type> ::= "char" | "utf16" | "utf32"
+<string-type> ::= "string" | "string16" | "string32"
+<file-type> ::= "file"
+<dimension> ::= ( "*" | "&" | <array-type> | <list-type> | <dict-type>) [ <dimension> ]
+<list-type> ::= "(" [ <expression> ] ")"
+<array-type> ::= "[" [ <expression> ] { "," <expression> } "]"
+<dict-type> ::= "{" [ <expression> ] "}"

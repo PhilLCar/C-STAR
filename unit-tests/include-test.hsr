@@ -1,7 +1,7 @@
 #define A            131
 #define B            342
 #define CONCAT(X, Y) #X #Y
-//#define COMBINE(X)   X ## _value
+#define COMBINE(X)   X ## _value
 
 #ifdef COMBINE
 // test
@@ -9,7 +9,7 @@ if (true) {
   print(CONCAT(CONCAT(A, B), B));
   print(COMBINE(test))
 } 
-#if 0b101 == 7 ^ 0x2 
+#if A + B == 473
 else print("false");
 #endif
 #elif 1

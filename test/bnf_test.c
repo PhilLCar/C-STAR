@@ -91,7 +91,7 @@ void printnode(BNFNode *n, char *s, int base, int lvl, int last) {
 }
 
 int main() {
-  BNFNode *n = parsebnf("parsing/bnf/preprocessor.bnf");
+  BNFNode *n = parsebnf("parsing/bnf/program.bnf");
   CHECK_MEMORY;
   printnode(n, "", 0, 0, 0);
   deleteBNFTree(&n);
