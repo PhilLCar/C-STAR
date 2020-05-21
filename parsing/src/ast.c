@@ -337,13 +337,12 @@ void astnewchar(ASTNode *ast, BNFNode *bnf, ASTFlags flags, char c)
   pop(bnf->refs);
 }
 
-int astnewsymbol(ASTNode *ast, BNFNode *bnf, ASTFlags flags, Symbol *s)
+void astnewsymbol(ASTNode *ast, BNFNode *bnf, ASTFlags flags, Symbol *s)
 {
   ASTNode  *superast;
   ASTNode  *subast;
   ASTNode  *save    = NULL;
   BNFNode  *subbnf;
-  int       newline = 0;
   int       size    = 0;
   int       f       = 0;
   char     *content = bnf->content;
@@ -360,7 +359,9 @@ int astnewsymbol(ASTNode *ast, BNFNode *bnf, ASTFlags flags, Symbol *s)
       break;
     case NODE_RAW:
       if (s) {
-        if (s->type == (SymbolType)bnf->content) {
+        if (s->type == SYMBOL_NEWLINE && s->type != (SymbolType)bnf->content) {
+          ast->status = STATUS_ONGOING;
+        } else if (s->type == (SymbolType)bnf->content) {
           concat(ast->name,  newString(bnf->name));
           concat(ast->value, newString(s->text));
           ast->status = STATUS_CONFIRMED;
@@ -372,7 +373,8 @@ int astnewsymbol(ASTNode *ast, BNFNode *bnf, ASTFlags flags, Symbol *s)
       break;
     case NODE_LEAF:
       if (s) {
-        if (content) {
+        if (s->type == SYMBOL_NEWLINE) {                 ast->status = STATUS_ONGOING;   }
+        else if (content) {
           if (strcmp(s->text, content)) {                ast->status = STATUS_FAILED;    } 
           else { concat(ast->value, newString(content)); ast->status = STATUS_CONFIRMED; }
         }
@@ -422,7 +424,7 @@ int astnewsymbol(ASTNode *ast, BNFNode *bnf, ASTFlags flags, Symbol *s)
           f |= flags & ~ASTFLAGS_REC & ~ASTFLAGS_FRONT;
           if (flags & ASTFLAGS_REC) f |= !ast->pos ? ASTFLAGS_FRONT & flags : 0;
           else                      f |= !ast->pos ? ASTFLAGS_FRONT : 0;
-          newline |= astnewsymbol(subast, subbnf, f, ns);
+          astnewsymbol(subast, subbnf, f, ns);
           if (subast->status == STATUS_FAILED) {
             deleteAST(rem(superast->subnodes, i--)); break;
           } else if (subast->status == STATUS_PARTIAL) {
@@ -464,13 +466,6 @@ int astnewsymbol(ASTNode *ast, BNFNode *bnf, ASTFlags flags, Symbol *s)
             subast->status = STATUS_ONGOING;
           } else if (!ns) break;
           if (ns) ns = NULL;
-        }
-        if (ast->pos == size - 2) {
-          // greed on newline
-          BNFNode *last = bnfsubnode(bnf, size - 1);
-          if (last->type == NODE_LEAF && ((char*)last->content)[0] == '\n') {
-            newline = 1;
-          }
         }
       }
       /////////////////////////// LIST FOOTER ///////////////////////////////////////////
@@ -523,7 +518,7 @@ int astnewsymbol(ASTNode *ast, BNFNode *bnf, ASTFlags flags, Symbol *s)
         if (!subast) subast = newASTNode(ast, NULL);
         if (subast->status != STATUS_FAILED) {
           f |= (flags & ~ASTFLAGS_REC) | (bnf->type == NODE_REC ? ASTFLAGS_REC : 0);
-          newline |= astnewsymbol(subast, subbnf, f, s);
+          astnewsymbol(subast, subbnf, f, s);
           if (subast->status == STATUS_CONFIRMED)    { ast->status = STATUS_CONFIRMED; save = subast; }
           else if (subast->status == STATUS_PARTIAL) { ast->status = STATUS_PARTIAL;   save = subast; }
           else if (subast->status == STATUS_REC)     { ast->status = STATUS_REC;       save = subast; }
@@ -579,7 +574,16 @@ int astnewsymbol(ASTNode *ast, BNFNode *bnf, ASTFlags flags, Symbol *s)
       break;
   }
   pop(bnf->refs);
-  return newline;
+}
+
+int isopening(Symbol *symbol, Parser *parser)
+{
+  for (int i = 0; parser->delimiters[i]; i++) {
+    if (!strcmp(symbol->text, parser->delimiters[i])) {
+      return (i + 1) % 2;
+    }
+  }
+  return 0;
 }
 
 ASTNode *parseast(char *filename)
@@ -593,12 +597,13 @@ ASTNode *parseast(char *filename)
   push(trace, &filename);
 
   Symbol *s;
-  int     newline = 0;
+  int ignore= 0;
   while ((s = ssgets(ss))->type != SYMBOL_EOF) {
-    //if (s->text[0] == '\n') continue;
-    if (s->type == SYMBOL_COMMENT) continue;
+    if (s->type == SYMBOL_NEWLINE && ignore) continue;
+    if (s->type == SYMBOL_COMMENT)              continue;
+    ignore = s->type == SYMBOL_BREAK || (s->type == SYMBOL_DELIMITER && isopening(s, parser));
     astnewsymbol(ast, rootent, ASTFLAGS_NONE, NULL);
-    newline = astnewsymbol(ast, rootent, ASTFLAGS_NONE, s);
+    astnewsymbol(ast, rootent, ASTFLAGS_NONE, s);
     if (ast->status == STATUS_FAILED) {
       printsymbolmessage(ERRLVL_ERROR, trace, s, "Unexpected symbol!");
       break;

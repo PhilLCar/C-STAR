@@ -4,9 +4,7 @@
 - Link symbols with AST
 - PP: if valid =0 delete psr and msr
 - Symbol error when non-closing pairs
-- Add type raw char
 - Add type raw constant
 - PP: C-Mode
 - PP: append ";" at end of lines missing it that don't finish by an operator
-- Fix grammar ambiguity
 - Fix leftmost expansion

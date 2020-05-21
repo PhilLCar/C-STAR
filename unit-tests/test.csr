@@ -1,1 +1,11 @@
-print("ok")
+if (test == 3 &&
+    test != 8 &&
+    test >= 3)
+{
+  print("ok")
+  print("wow super")
+  print(interessant)
+} else {
+  print("ok");
+  print("On dirait que ça marche");
+}

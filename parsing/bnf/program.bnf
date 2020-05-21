@@ -7,7 +7,7 @@
 <statement> ::= <block> | <special-blocks> | <address> //| <class-decl> | <operator-assoc>
 
 <block>       ::= <line> | "{" { <statement> } "}" | <func-assoc>
-<line>        ::= [ <expression> | <declaration> | <control> ] <raw: newline>
+<line>        ::= [ <expression> | <declaration> | <control> ] ( ";" | <raw: newline> )
 <declaration> ::= <type> <expression>
 <control>     ::= "goto" <raw: variable> | "break" [ <expression> ] | "continue" [ <expression> ] | "finish" [ <expression> ]
 
@@ -17,12 +17,12 @@
 <parameter>       ::= [ <type> ] <expression>
 
 <special-blocks> ::= <if-block> | <while-block> | <for-block> | <foreach-block> | <switch-block> | <metafor-block>
-<do-block>      ::= "do" <block>
-<if-block>      ::= "if" <expression> <block> [ "else" <block> ]
-<while-block>   ::= [ <do-block> ] "while" <expression> <block>
-<for-block>     ::= [ <do-block> ] "for" "(" [ <expression> | <declaration> ] ";" [ <expression> ] ";" [ <expression> ] ")" <block>
-<foreach-block> ::= [ <do-block> ] "for" "each" "(" [ <expression> ] ( "in" | "of" ) <expression> ")" <block>
-<switch-block>  ::= "switch" <expression> "{" { <switch-label> ":" { <statement> } } "}"
+<do-block>       ::= "do" <block>
+<if-block>       ::= "if" <expression> <block> [ "else" <block> ]
+<while-block>    ::= [ <do-block> ] "while" <expression> <block>
+<for-block>      ::= [ <do-block> ] "for" "(" [ <expression> | <declaration> ] ";" [ <expression> ] ";" [ <expression> ] ")" <block>
+<foreach-block>  ::= [ <do-block> ] "for" "each" "(" [ <expression> ] ( "in" | "of" ) <expression> ")" <block>
+<switch-block>   ::= "switch" <expression> "{" { <switch-label> ":" { <statement> } } "}"
 
 # var[10, 10, 10] a;
 #
