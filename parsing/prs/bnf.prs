@@ -2,11 +2,13 @@
  	
 == Escape chars ==
 \
-== Delimiters
+== Strings ==
 "
 "
 '
 '
+
+== Chars ==
 
 == Line comments ==
 //
@@ -17,9 +19,14 @@
 /*
 */
 
-== Breaksymbols ==
+== Operators ==
 |
 ::=
+,
++
+:
+
+== Delimiters ==
 (
 )
 {
@@ -28,15 +35,17 @@
 ]
 <
 >
+
+== BreakSymbols ==
 ;;
-,
-+
-:
 
 == Reserved ==
+raw
 integer
 decimal
 string
+char
 variable
+newline
 
 == EOF ==

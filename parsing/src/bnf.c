@@ -78,7 +78,7 @@ int expect(SymbolStream *ss, Array *trace, char *str)
     int junk = 0;
     Symbol *t = newSymbol(&ss->symbol);
     s = ssgets(ss);
-    while (strcmp(s->text, str) && !s->eof) {
+    while (s->type != SYMBOL_NEWLINE && s->type != SYMBOL_EOF) {
       s = ssgets(ss);
       junk = 1;
     }
@@ -107,9 +107,9 @@ BNFNode *parsebnfname(SymbolStream *ss, BNFNode *basenode, Array *trace)
   Symbol *t     = newSymbol(s);
 
   s = ssgets(ss);
-  if (s->eof) {
+  if (s->type == SYMBOL_EOF) {
     printsymbolmessage(ERRLVL_ERROR, trace, t, "Expected node name, reached end of file!");
-  } else if (!strcmp(s->text, "\n")) {
+  } else if (s->type == SYMBOL_NEWLINE) {
     printsymbolmessage(ERRLVL_ERROR, trace, t, "Expected node name, reached new line!");
   } else if (s->type == SYMBOL_STRING || s->type == SYMBOL_COMMENT || s->type == SYMBOL_OPERATOR) {
     printsymbolmessage(ERRLVL_ERROR, trace, s, "Bad format for node name!");
@@ -132,6 +132,10 @@ BNFNode *parsebnfname(SymbolStream *ss, BNFNode *basenode, Array *trace)
             node->content = (void*)SYMBOL_STRING;
           } else if (!strcmp(s->text, "variable")) {
             node->content = (void*)SYMBOL_VARIABLE;
+          } else if (!strcmp(s->text, "char")) {
+            node->content = (void*)SYMBOL_CHAR;
+          } else if (!strcmp(s->text, "newline")) {
+            node->content = (void*)SYMBOL_NEWLINE;
           }
         }
       } else {
@@ -161,6 +165,17 @@ BNFNode *parsebnfname(SymbolStream *ss, BNFNode *basenode, Array *trace)
   return node;
 }
 
+void bnfsimplify(BNFNode *parent, BNFNode *subnode, Array *content)
+{
+  BNFNode *child = *(BNFNode**)at(content, 0);
+  if (child->type != NODE_REC) {
+    subnode->content = NULL;
+    deleteBNFNode(pop(parent->content));
+    push(parent->content, pop(content));
+    deleteArray(&content);
+  }
+}
+
 int parsebnfstatement(SymbolStream *ss, BNFNode *basenode, BNFNode *parent, Array *trace, char *stop)
 {
   int oplast = 0, ret = 1, concat = 0;
@@ -171,7 +186,7 @@ int parsebnfstatement(SymbolStream *ss, BNFNode *basenode, BNFNode *parent, Arra
 
   do {
     s = ssgets(ss);
-    if (s->eof) {
+    if (s->type == SYMBOL_EOF) {
       ret = 0;
       break;
     }
@@ -266,10 +281,7 @@ int parsebnfstatement(SymbolStream *ss, BNFNode *basenode, BNFNode *parent, Arra
         ret = 0;
       } else {
         if (content->size == 1) {
-          subnode->content = NULL;
-          deleteBNFNode(pop(parent->content));
-          push(parent->content, pop(content));
-          deleteArray(&content);
+          bnfsimplify(parent, subnode, content);
         }
         subnode = newBNFNode(basenode, "", NODE_LIST);
         push(parent->content, &subnode);
@@ -299,10 +311,10 @@ int parsebnfstatement(SymbolStream *ss, BNFNode *basenode, BNFNode *parent, Arra
       } else ret = 0;
       oplast = 0;
     } //////////////////////////////////////////////////////////////////////////////////////////
-    else if (!(strcmp(s->text, stop) || (stop[0] == '\n' && oplast))) {
+    else if (!strcmp(s->text, stop) || (stop[0] == '\n' && s->type == SYMBOL_NEWLINE && !oplast)) {
       break;
     } //////////////////////////////////////////////////////////////////////////////////////////
-    else if (s->text[0] != '\n') {
+    else if (s->type != SYMBOL_NEWLINE) {
       char error[256];
       sprintf(error, "Unexpected symbol '"FONT_BOLD"%s"FONT_RESET"'!", s->text);
       printsymbolmessage(ERRLVL_ERROR, trace, s, error);
@@ -314,10 +326,7 @@ int parsebnfstatement(SymbolStream *ss, BNFNode *basenode, BNFNode *parent, Arra
     printsymbolmessage(ERRLVL_WARNING, trace, s, "Empty group ignored");
     deleteBNFNode(pop(parent->content));
   } else if (content->size == 1) {
-    subnode->content = NULL;
-    deleteBNFNode(pop(parent->content));
-    push(parent->content, pop(content));
-    deleteArray(&content);
+    bnfsimplify(parent, subnode, content);
   }
   return ret;
 }
@@ -330,17 +339,17 @@ int parsebnfincludes(Parser *parser, SymbolStream *ss, BNFNode *basenode, Array 
   }
   while ((s = ssgets(ss))) {
     if (s->type == SYMBOL_COMMENT) continue;
-    if (strcmp(s->text, ";;") || s->eof) break;
+    if (strcmp(s->text, ";;") || s->type == SYMBOL_EOF) break;
     if (!expect(ss, trace, "include")) return 0;
     if (!expect(ss, trace, "("))       return 0;
     Symbol *n = newSymbol(&ss->symbol);
     String *a = newString("");
     while ((s = ssgets(ss))) {
-      if (!strcmp(s->text, "\n")) {
+      if (s->type == SYMBOL_NEWLINE) {
         printsymbolmessage(ERRLVL_ERROR, trace, n, "Expected closing parenthesis, reached newline instead");
         break;
       }
-      if (s->eof) {
+      if (s->type == SYMBOL_EOF) {
         printsymbolmessage(ERRLVL_ERROR, trace, n, "Expected closing parenthesis, reached end of file instead");
         break;
       }
@@ -375,9 +384,9 @@ void parsebnfbody(SymbolStream *ss, BNFNode *basenode, Array *trace)
 {
   Symbol *s;
   while ((s = ssgets(ss))) {
-    if (s->eof) break;
-    if (!strcmp(s->text, "\n")) continue;
-    if (s->type == SYMBOL_COMMENT)             continue;
+    if (s->type == SYMBOL_EOF)     break;
+    if (s->type == SYMBOL_NEWLINE) continue;
+    if (s->type == SYMBOL_COMMENT) continue;
     if (strcmp(s->text, "<")) {
       char error[256];
       sprintf(error, "Expected '"FONT_BOLD"<"FONT_RESET"', got '"FONT_BOLD"%s"FONT_RESET"' instead!", s->text);

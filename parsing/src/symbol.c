@@ -13,9 +13,12 @@ typedef struct trackedEntity {
 
 enum {
   NONE = 0,
-  DELIM,
+  STRING,
+  CHAR,
   LINECOM,
   MULTICOM,
+  OPERATOR,
+  DELIM,
   BREAK
 };
 
@@ -60,14 +63,13 @@ int nextsymbol(TrackedEntity *te, char (*tegetc)(void*), void (*teungetc)(char, 
   symbol->open    = NULL;
   symbol->close   = NULL;
   symbol->line    = -1;
-  symbol->type    = SYMBOL_NONE;
-  symbol->eof     = 1;
+  symbol->type    = SYMBOL_EOF;
 
   if (buf != NULL) {
     memset(buf, 0, buf_cap * sizeof(char));
     while ((c = tegetc(te)) != EOF) {
       type = NONE;
-      symbol->eof = 0;
+      if (symbol->type == SYMBOL_EOF) symbol->type = SYMBOL_NONE;
       int cmp, tmp, ws = 0;
       //////////////////////////////////////// NEW-LINE ////////////////////////////////////////
       if (c == '\n' && symbol->type != SYMBOL_COMMENT) {
@@ -75,38 +77,21 @@ int nextsymbol(TrackedEntity *te, char (*tegetc)(void*), void (*teungetc)(char, 
           teungetc(c, te);
         } else {
           pos = te->position;
-          if (!extend(&buf, &buf_size, &buf_cap, c)) goto next_fail;
+          symbol->type = SYMBOL_NEWLINE;
         }
         break;
       }
       //////////////////////////////////////// STRING STOP ////////////////////////////////////////
       if (symbol->type == SYMBOL_STRING) {
-        // //////////////////////////////////////// ESCAPE ////////////////////////////////////////
-        // for (int i = 0; parser->escapes[i]; i++) {
-        //   if (c == parser->escapes[i]) {
-        //     ws = 1;
-        //     break;
-        //   }
-        // }
-        // if (ws) {
-        //   c = tegetc(te);
-        //   switch (c) {
-        //     case 'n':
-        //       c = '\n';
-        //       break;
-        //     case 't':
-        //       c = '\t';
-        //       break;
-        //     case 'r':
-        //       c = '\r';
-        //       break;
-        //     case '0':
-        //       c = '\0';
-        //       break;
-        //   }
-        //   if (!extend(&buf, &buf_size, &buf_cap, c)) goto next_fail;
-        //   continue;
-        // }
+        if ((cmp = strcmps(te->buffer, symbol->close))) {
+          close = 1;
+          for (int i = 1; i < cmp; i++) tegetc(te);
+          break;
+        } else if (!extend(&buf, &buf_size, &buf_cap, c)) goto next_fail;
+        continue;
+      }
+      //////////////////////////////////////// CHARS STOP ////////////////////////////////////////
+      if (symbol->type == SYMBOL_CHAR) {
         if ((cmp = strcmps(te->buffer, symbol->close))) {
           close = 1;
           for (int i = 1; i < cmp; i++) tegetc(te);
@@ -140,13 +125,23 @@ int nextsymbol(TrackedEntity *te, char (*tegetc)(void*), void (*teungetc)(char, 
         }
         else continue;
       }
-      //////////////////////////////////////// DELIMITERS ////////////////////////////////////////
-      for (int i = 0; parser->delimiters[i]; i += 2) {
-        if ((cmp = strcmps(te->buffer, parser->delimiters[i]))) {
+      //////////////////////////////////////// STRINGS ////////////////////////////////////////
+      for (int i = 0; parser->strings[i]; i += 2) {
+        if ((cmp = strcmps(te->buffer, parser->strings[i]))) {
           if (cmp > ws) {
             ws  = cmp;
             tmp = i;
-            type = DELIM;
+            type = STRING;
+          }
+        }
+      }
+      //////////////////////////////////////// CHARS ////////////////////////////////////////
+      for (int i = 0; parser->chars[i]; i += 2) {
+        if ((cmp = strcmps(te->buffer, parser->chars[i]))) {
+          if (cmp > ws) {
+            ws  = cmp;
+            tmp = i;
+            type = CHAR;
           }
         }
       }
@@ -167,6 +162,24 @@ int nextsymbol(TrackedEntity *te, char (*tegetc)(void*), void (*teungetc)(char, 
             ws  = cmp;
             tmp = i;
             type = MULTICOM;
+          }
+        }
+      }
+      //////////////////////////////////////// OPERATORS ////////////////////////////////////////
+      for (int i = 0; parser->operators[i]; i++) {
+        if ((cmp = strcmps(te->buffer, parser->operators[i]))) {
+          if (cmp > ws) {
+            ws = cmp;
+            type = OPERATOR;
+          }
+        }
+      }
+      //////////////////////////////////////// DELIMITERS ////////////////////////////////////////
+      for (int i = 0; parser->delimiters[i]; i++) {
+        if ((cmp = strcmps(te->buffer, parser->delimiters[i]))) {
+          if (cmp > ws) {
+            ws = cmp;
+            type = DELIM;
           }
         }
       }
@@ -200,8 +213,8 @@ int nextsymbol(TrackedEntity *te, char (*tegetc)(void*), void (*teungetc)(char, 
         continue;
       }
       //////////////////////////////////////////////////////////////////////////////////////////
-      // delim
-      if (ws && type == DELIM) {
+      // strings
+      if (ws && type == STRING) {
         if (buf_size) {
           teungetc(c, te);
           break;
@@ -211,8 +224,31 @@ int nextsymbol(TrackedEntity *te, char (*tegetc)(void*), void (*teungetc)(char, 
           symbol->open   = malloc((parser->lookahead + 1) * sizeof(char));
           symbol->close  = malloc((parser->lookahead + 1) * sizeof(char));
           if (symbol->open != NULL && symbol->close != NULL) {
-            memcpy(symbol->open,  parser->delimiters[tmp],     ws                                  + 1);
-            memcpy(symbol->close, parser->delimiters[tmp + 1], strlen(parser->delimiters[tmp + 1]) + 1);
+            memcpy(symbol->open,  parser->strings[tmp],     ws                                  + 1);
+            memcpy(symbol->close, parser->strings[tmp + 1], strlen(parser->strings[tmp + 1]) + 1);
+          } else {
+            goto next_fail;
+          }
+          pos = te->position + ws;
+          for (int i = 1; i < ws; i++) {
+            c = tegetc(te);
+          }
+          continue;
+        }
+      }
+      // chars
+      if (ws && type == CHAR) {
+        if (buf_size) {
+          teungetc(c, te);
+          break;
+        } else {
+          symbol->type   = SYMBOL_CHAR;
+          symbol->line   = te->line;
+          symbol->open   = malloc((parser->lookahead + 1) * sizeof(char));
+          symbol->close  = malloc((parser->lookahead + 1) * sizeof(char));
+          if (symbol->open != NULL && symbol->close != NULL) {
+            memcpy(symbol->open,  parser->chars[tmp],     ws                             + 1);
+            memcpy(symbol->close, parser->chars[tmp + 1], strlen(parser->chars[tmp + 1]) + 1);
           } else {
             goto next_fail;
           }
@@ -266,12 +302,42 @@ int nextsymbol(TrackedEntity *te, char (*tegetc)(void*), void (*teungetc)(char, 
           continue;
         }
       }
+      // operators
+      if (ws && type == OPERATOR) {
+        if (buf_size) {
+          teungetc(c, te);
+        } else {
+          symbol->type = SYMBOL_OPERATOR;
+          pos          = te->position;
+          for (int i = 1;; i++) {
+            if (!extend(&buf, &buf_size, &buf_cap, c)) goto next_fail;
+            if (i == ws) break;
+            c = tegetc(te);
+          }
+        }
+        break;
+      }
+      // delimiters
+      if (ws && type == DELIM) {
+        if (buf_size) {
+          teungetc(c, te);
+        } else {
+          symbol->type = SYMBOL_DELIMITER;
+          pos          = te->position;
+          for (int i = 1;; i++) {
+            if (!extend(&buf, &buf_size, &buf_cap, c)) goto next_fail;
+            if (i == ws) break;
+            c = tegetc(te);
+          }
+        }
+        break;
+      }
       // break
       if (ws && type == BREAK) {
         if (buf_size) {
           teungetc(c, te);
         } else {
-          symbol->type = SYMBOL_OPERATOR;
+          symbol->type = SYMBOL_BREAK;
           pos          = te->position;
           for (int i = 1;; i++) {
             if (!extend(&buf, &buf_size, &buf_cap, c)) goto next_fail;
@@ -328,7 +394,7 @@ Symbol *sparse(char *filename, Parser *parser)
                         (void(*)(char, void*))tfungetc, 
                         parser, 
                         &symbols[symbols_size])) {
-        if (symbols[symbols_size].eof) {
+        if (symbols[symbols_size].type == SYMBOL_EOF) {
           // END OF FILE
           break;
         }

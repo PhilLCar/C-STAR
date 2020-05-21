@@ -32,7 +32,7 @@ int main(void) {
   i = 0;
   int eof;
   do {
-    eof = aboutc[i].eof;
+    eof = aboutc[i].type == SYMBOL_EOF;
     freesymbol(&aboutc[i++]);
   } while (!eof);
   free(aboutc);

@@ -4,24 +4,24 @@
 
 <program> ::= { <statement> }
 
-<statement> ::= <block> | <func-assoc> | <special-blocks> | <address> //| <class-decl> | <operator-assoc>
+<statement> ::= <block> | <special-blocks> | <address> //| <class-decl> | <operator-assoc>
 
-<block>       ::= <line> | "{" { <statement> } "}"
-<line>        ::= [ <expression> | <declaration> | <control> ] ";"
+<block>       ::= <line> | "{" { <statement> } "}" | <func-assoc>
+<line>        ::= [ <expression> | <declaration> | <control> ] <raw: newline>
 <declaration> ::= <type> <expression>
 <control>     ::= "goto" <raw: variable> | "break" [ <expression> ] | "continue" [ <expression> ] | "finish" [ <expression> ]
 
 <func-assoc>      ::= [ <type> ] <raw: variable> <lambda>
-<lambda>          ::= [ <parameter-block> ] <block>
+<lambda>          ::= <parameter-block> "{" {<statement> } "}"
 <parameter-block> ::= "(" [ <parameter> { "," <parameter> } ] ")"
-<parameter>       ::= [ <type> ] <assignment>
+<parameter>       ::= [ <type> ] <expression>
 
 <special-blocks> ::= <if-block> | <while-block> | <for-block> | <foreach-block> | <switch-block> | <metafor-block>
 <do-block>      ::= "do" <block>
 <if-block>      ::= "if" <expression> <block> [ "else" <block> ]
 <while-block>   ::= [ <do-block> ] "while" <expression> <block>
 <for-block>     ::= [ <do-block> ] "for" "(" [ <expression> | <declaration> ] ";" [ <expression> ] ";" [ <expression> ] ")" <block>
-<foreach-block> ::= [ <do-block> ] "for" "each" "(" [ <expression> ] "in" <expression> ")" <block>
+<foreach-block> ::= [ <do-block> ] "for" "each" "(" [ <expression> ] ( "in" | "of" ) <expression> ")" <block>
 <switch-block>  ::= "switch" <expression> "{" { <switch-label> ":" { <statement> } } "}"
 
 # var[10, 10, 10] a;
@@ -32,7 +32,7 @@
 # 	// meta access, if a's structure is unknown
 # 	a[meta x] = wtv;
 # }
-<metafor-block> ::= [ <do-block> ] "meta" "for" "(" [ <declaration> ] "in" <variable> ")" <block>
+<metafor-block> ::= [ <do-block> ] "meta" "for" "(" [ <declaration> ] "in" <expression> ")" <block>
 
 <address>      ::= <raw: variable> ":"
 <switch-label> ::= ( "case" <expression> | "default" ) ":"

@@ -1,3 +1,4 @@
-<operation> ::= <raw: integer> <operator> <raw: integer>
-<operation> ::= <operation>    <operator> <raw: integer>
-<operator>  ::= "+" | "-"
+;; include ("parsing/bnf/program.bnf")
+
+#<program> ::= "1" | <parent>
+#<parent>  ::= "(" <program> ")"

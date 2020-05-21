@@ -10,22 +10,27 @@
 #include <array.h>
 
 typedef enum symbolerror {
-  SYMBOL_END_OF_FILE = 1,
-  SYMBOL_ERROR_NONCLOSING,
-  SYMBOL_ERROR_ILLEGAL_CHAR,
-  SYMBOL_ERROR_OTHER
+  SYMBOLERROR_END_OF_FILE = 1,
+  SYMBOLERROR_NONCLOSING,
+  SYMBOLERROR_ILLEGAL_CHAR,
+  SYMBOLERROR_OTHER
 } SymbolError;
 
 typedef enum symboltype {
   SYMBOL_NONE,
   SYMBOL_STRING,
+  SYMBOL_CHAR,
   SYMBOL_COMMENT,
   SYMBOL_INTEGER,
   SYMBOL_DECIMAL,
   SYMBOL_VARIABLE,
   SYMBOL_OPERATOR,
+  SYMBOL_DELIMITER,
+  SYMBOL_BREAK,
   SYMBOL_RESERVED,
-  SYMBOL_ERROR
+  SYMBOL_ERROR,
+  SYMBOL_NEWLINE,
+  SYMBOL_EOF
 } SymbolType;
 
 typedef struct symbol {
@@ -35,7 +40,6 @@ typedef struct symbol {
   int         line;
   int         position;
   SymbolType  type;
-  int         eof;
 } Symbol;
 
 typedef struct symbolstream {

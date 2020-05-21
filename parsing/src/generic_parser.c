@@ -98,31 +98,44 @@ Parser *newParser(char *filename)
 		parser->whitespaces  = readchar(fptr);
 		emptyline(fptr); // Escape chars
 		parser->escapes      = readchar(fptr);
-		emptyline(fptr); // Delimiters
-		parser->delimiters   = readline(fptr);
+		emptyline(fptr); // Strings
+		parser->strings      = readline(fptr);
+		emptyline(fptr); // Chars
+		parser->chars        = readline(fptr);
 		emptyline(fptr); // Line comments
 		parser->linecom      = readline(fptr);
 		emptyline(fptr); // Multiline comments
 		parser->multicom     = readline(fptr);
+		emptyline(fptr); // Operators
+		parser->operators    = readline(fptr);
+		emptyline(fptr); // Delimiters
+		parser->delimiters   = readline(fptr);
 		emptyline(fptr); // Breaksymbols
 		parser->breaksymbols = readline(fptr);
 		emptyline(fptr); // Reserved
 		parser->reserved     = readline(fptr);
 		if (parser->whitespaces  == NULL ||
-			parser->escapes      == NULL ||
-			parser->delimiters   == NULL ||
-			parser->linecom      == NULL ||
-			parser->multicom     == NULL ||
-			parser->breaksymbols == NULL ||
-			parser->reserved     == NULL)
+			  parser->escapes      == NULL ||
+			  parser->strings      == NULL ||
+			  parser->chars        == NULL ||
+			  parser->linecom      == NULL ||
+			  parser->multicom     == NULL ||
+			  parser->operators    == NULL ||
+			  parser->delimiters   == NULL ||
+			  parser->breaksymbols == NULL ||
+			  parser->reserved     == NULL)
 		{
 			deleteParser(&parser);
 		}
 		else
 		{
 			int lookahead = 0;
-			for (int i = 0; parser->delimiters[i]; i++) {
-				int l = strlen(parser->delimiters[i]);
+			for (int i = 0; parser->strings[i]; i++) {
+				int l = strlen(parser->strings[i]);
+				if (l > lookahead) lookahead = l;
+			}
+			for (int i = 0; parser->chars[i]; i++) {
+				int l = strlen(parser->chars[i]);
 				if (l > lookahead) lookahead = l;
 			}
 			for (int i = 0; parser->linecom[i]; i++) {
@@ -131,6 +144,14 @@ Parser *newParser(char *filename)
 			}
 			for (int i = 0; parser->multicom[i]; i++) {
 				int l = strlen(parser->multicom[i]);
+				if (l > lookahead) lookahead = l;
+			}
+			for (int i = 0; parser->operators[i]; i++) {
+				int l = strlen(parser->operators[i]);
+				if (l > lookahead) lookahead = l;
+			}
+			for (int i = 0; parser->delimiters[i]; i++) {
+				int l = strlen(parser->delimiters[i]);
 				if (l > lookahead) lookahead = l;
 			}
 			for (int i = 0; parser->breaksymbols[i]; i++) {
@@ -155,9 +176,13 @@ void deleteParser(Parser **parser)
 	if (*parser != NULL) {
 		if ((*parser)->whitespaces  != NULL) free((*parser)->whitespaces);
 		if ((*parser)->escapes      != NULL) free((*parser)->escapes);
-		if ((*parser)->delimiters   != NULL) {
-			for (int i = 0; (*parser)->delimiters[i]; i++)   free((*parser)->delimiters[i]);
-			free((*parser)->delimiters);
+		if ((*parser)->strings      != NULL) {
+			for (int i = 0; (*parser)->strings[i]; i++)      free((*parser)->strings[i]);
+			free((*parser)->strings);
+		}
+		if ((*parser)->chars       != NULL) {
+			for (int i = 0; (*parser)->chars[i]; i++)        free((*parser)->chars[i]);
+			free((*parser)->chars);
 		}
 		if ((*parser)->linecom      != NULL) {
 			for (int i = 0; (*parser)->linecom[i]; i++)      free((*parser)->linecom[i]);
@@ -166,6 +191,14 @@ void deleteParser(Parser **parser)
 		if ((*parser)->multicom     != NULL) {
 			for (int i = 0; (*parser)->multicom[i]; i++)     free((*parser)->multicom[i]);
 			free((*parser)->multicom);
+		}
+		if ((*parser)->operators   != NULL) {
+			for (int i = 0; (*parser)->operators[i]; i++)    free((*parser)->operators[i]);
+			free((*parser)->operators);
+		}
+		if ((*parser)->delimiters   != NULL) {
+			for (int i = 0; (*parser)->delimiters[i]; i++)   free((*parser)->delimiters[i]);
+			free((*parser)->delimiters);
 		}
 		if ((*parser)->breaksymbols != NULL) {
 			for (int i = 0; (*parser)->breaksymbols[i]; i++) free((*parser)->breaksymbols[i]);

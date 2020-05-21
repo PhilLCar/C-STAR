@@ -122,7 +122,7 @@ void macroexpand(Array *env, Parser *parser, String *expr, Expansion *e, Array *
   Symbol             *s;
 
   if (e->hist->size >= MACRO_EXPANSION_MAX_DEPTH) e->invalid = MACRO_ERROR_MAX_DEPTH;
-  while (!e->invalid && !(s = macroconsumestring(sss, e->value))->eof) {
+  while (!e->invalid && (s = macroconsumestring(sss, e->value))->type != SYMBOL_EOF) {
     if (s->type == SYMBOL_VARIABLE) {
       Macro *m;
       int    exp = 0;

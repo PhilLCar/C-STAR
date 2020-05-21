@@ -2,9 +2,11 @@
  	
 == Escape chars ==
 \
-== Delimiters
+== Strings ==
 "
 "
+
+== Chars ==
 '
 '
 
@@ -15,33 +17,69 @@
 /*
 */
 
-== Breaksymbols ==
+== Operators ==
 +
+++
 -
+--
+!
+!*
+!/
 *
+**
 /
+%
 =
 &
 ~
 ^
 |
-(
-)
-{
-}
-[
-]
 <
 >
 ,
 \
 &&
 ||
+^^
 ==
 <=
 >=
-##
-;
+!=
+===
+!==
++=
+-=
+*=
+/=
+~=
+&=
+^=
+|=
+<<=
+>>=
+>>>=
+|>=
+<|=
+<<
+>>
+>>>
+<|
+|>
+.
+->
+?
+:
+,
+
+== Delimiters ==
+(
+)
+{
+}
+[
+]
+
+== BreakSymbols ==
 
 == Reserved ==
 if
@@ -78,5 +116,7 @@ operator
 true
 false
 null
+file
+dir
 
 == EOF ==

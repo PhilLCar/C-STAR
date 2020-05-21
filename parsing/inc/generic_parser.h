@@ -11,9 +11,12 @@
 typedef struct parser {
   char   *whitespaces;
   char   *escapes;
-  char  **delimiters;
+  char  **strings;
+  char  **chars;
   char  **linecom;
   char  **multicom;
+  char  **operators;
+  char  **delimiters;
   char  **breaksymbols;
   char  **reserved;
   int     lookahead;

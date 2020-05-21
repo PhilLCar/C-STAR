@@ -346,7 +346,7 @@ Symbol *ppread(SymbolStream *ss, String *str) {
   while ((c = tfgetc(ss->tfptr)) != EOF && c != '\n') {
     if (c == '\\') {
       s = ssgets(ss);
-      if (s->text[0] != '\n') {
+      if (s->type != SYMBOL_NEWLINE) {
         break;
       }
       s = NULL;
@@ -398,7 +398,7 @@ int preprocessfile(char *filename, Array *incpath, Array *trace, PPEnv *ppenv, i
     }
   }
 
-  while (valid && !(s = ppconsume(ss, ppenv->output))->eof) {
+  while (valid && (s = ppconsume(ss, ppenv->output))->type != SYMBOL_EOF) {
     /////////////////////////////////////////////////////////////////////////////////////
     if (!strcmp(s->text, "#include") && !ignore) {
       char fnwext[INCLUDE_MAX_FILE_LENGTH];
@@ -441,7 +441,7 @@ int preprocessfile(char *filename, Array *incpath, Array *trace, PPEnv *ppenv, i
       }
       if (valid) {
         while ((s = ssgets(ss))->type == SYMBOL_COMMENT);
-        if (s->text[0] && s->text[0] != '\n') {
+        if (s->type != SYMBOL_NEWLINE && s->type != SYMBOL_EOF) {
           sprintf(error, "Expected 'newline' got '%s' instead!", s->text);
           printsymbolmessage(ERRLVL_ERROR, trace, s, error);
           valid = 0;
@@ -482,7 +482,7 @@ int preprocessfile(char *filename, Array *incpath, Array *trace, PPEnv *ppenv, i
         }
         c = tfgetc(ss->tfptr);
         if (c == '(') {
-          while (!(s = ssgets(ss))->eof) {
+          while ((s = ssgets(ss))->type != SYMBOL_EOF) {
             if (!strcmp(s->text, ")")) break;
             if (!strcmp(s->text, ",")) continue;
             String *t = newString(s->text);
@@ -501,7 +501,7 @@ int preprocessfile(char *filename, Array *incpath, Array *trace, PPEnv *ppenv, i
     /////////////////////////////////////////////////////////////////////////////////////
     } else if (!strcmp(s->text, "#undef") && !ignore) {
       while ((s = ssgets(ss))->type == SYMBOL_COMMENT);
-      if (s->eof || !strcmp(s->text, "\n")) {
+      if (s->type == SYMBOL_EOF || s->type == SYMBOL_NEWLINE) {
         printsymbolmessage(ERRLVL_ERROR, trace, s, "Expected a macro to undefine, got nothing");
         valid = 0;
       }
@@ -521,7 +521,7 @@ int preprocessfile(char *filename, Array *incpath, Array *trace, PPEnv *ppenv, i
           printsymbolmessage(ERRLVL_WARNING, trace, s, error);
         }
         while ((s = ssgets(ss))->type == SYMBOL_COMMENT);
-        if (s->text[0] && s->text[0] != '\n') {
+        if (s->type != SYMBOL_EOF && s->type != SYMBOL_NEWLINE) {
           sprintf(error, "Expected 'newline' got '%s' instead!", s->text);
           printsymbolmessage(ERRLVL_ERROR, trace, s, error);
           valid = 0;
@@ -530,7 +530,7 @@ int preprocessfile(char *filename, Array *incpath, Array *trace, PPEnv *ppenv, i
     /////////////////////////////////////////////////////////////////////////////////////
     } else if (!strcmp(s->text, "#ifdef")) {
       while ((s = ssgets(ss))->type == SYMBOL_COMMENT);
-      if (s->eof || !strcmp(s->text, "\n")) {
+      if (s->type == SYMBOL_EOF || s->type == SYMBOL_NEWLINE) {
         printsymbolmessage(ERRLVL_ERROR, trace, s, "Expected a macro to verify, got nothing");
         valid = 0;
       }
@@ -548,7 +548,7 @@ int preprocessfile(char *filename, Array *incpath, Array *trace, PPEnv *ppenv, i
           ignore = 1;
         }
         while ((s = ssgets(ss))->type == SYMBOL_COMMENT);
-        if (s->text[0] && s->text[0] != '\n') {
+        if (s->type != SYMBOL_EOF && s->type != SYMBOL_NEWLINE) {
           sprintf(error, "Expected 'newline' got '%s' instead!", s->text);
           printsymbolmessage(ERRLVL_ERROR, trace, s, error);
           valid = 0;
@@ -557,7 +557,7 @@ int preprocessfile(char *filename, Array *incpath, Array *trace, PPEnv *ppenv, i
     /////////////////////////////////////////////////////////////////////////////////////
     } else if (!strcmp(s->text, "#ifndef")) {
       while ((s = ssgets(ss))->type == SYMBOL_COMMENT);
-      if (s->eof || !strcmp(s->text, "\n")) {
+      if (s->type == SYMBOL_EOF || s->type == SYMBOL_NEWLINE) {
         printsymbolmessage(ERRLVL_ERROR, trace, s, "Expected a macro to verify, got nothing");
         valid = 0;
       }
@@ -575,7 +575,7 @@ int preprocessfile(char *filename, Array *incpath, Array *trace, PPEnv *ppenv, i
           ignore = 1;
         }
         while ((s = ssgets(ss))->type == SYMBOL_COMMENT);
-        if (s->text[0] && s->text[0] != '\n') {
+        if (s->type != SYMBOL_EOF && s->type != SYMBOL_NEWLINE) {
           sprintf(error, "Expected 'newline' got '%s' instead!", s->text);
           printsymbolmessage(ERRLVL_ERROR, trace, s, error);
           valid = 0;
@@ -597,7 +597,7 @@ int preprocessfile(char *filename, Array *incpath, Array *trace, PPEnv *ppenv, i
           exp = ppexpandmacro(ppenv, expr, trace, 1);
           if (exp) {
             StringSymbolStream *sss = sssopen(exp, ppenv->parser);
-            while (valid && !(s = sssgets(sss))->eof) {
+            while (valid && (s = sssgets(sss))->type != SYMBOL_EOF) {
               astnewsymbol(ast, ppenv->tree, ASTFLAGS_NONE, NULL);
               astnewsymbol(ast, ppenv->tree, ASTFLAGS_NONE, s);
               if (ast->status == STATUS_FAILED) {
@@ -649,7 +649,7 @@ int preprocessfile(char *filename, Array *incpath, Array *trace, PPEnv *ppenv, i
           exp = ppexpandmacro(ppenv, expr, trace, 1);
           if (exp) {
             StringSymbolStream *sss = sssopen(exp, ppenv->parser);
-            while (valid && !(s = sssgets(sss))->eof) {
+            while (valid && (s = sssgets(sss))->type != SYMBOL_EOF) {
               astnewsymbol(ast, ppenv->tree, ASTFLAGS_NONE, NULL);
               astnewsymbol(ast, ppenv->tree, ASTFLAGS_NONE, s);
               if (ast->status == STATUS_FAILED) {
@@ -683,13 +683,13 @@ int preprocessfile(char *filename, Array *incpath, Array *trace, PPEnv *ppenv, i
         deleteSymbol(&t);
         deleteString(&expr);
         deleteAST(&ast);
-      } else { ignore = 1; while ((s = ssgets(ss))->eof && !strcmp(s->text, "\n")); }
+      } else { ignore = 1; while ((s = ssgets(ss))->type != SYMBOL_EOF && s->type == SYMBOL_NEWLINE); }
     /////////////////////////////////////////////////////////////////////////////////////
     } else if (!strcmp(s->text, "#else")) {
       if (!*(int*)last(ifstack)) ignore = 0;
       else                       ignore = 1;
       while ((s = ssgets(ss))->type == SYMBOL_COMMENT);
-      if (s->text[0] && s->text[0] != '\n') {
+      if (s->type != SYMBOL_EOF && s->type != SYMBOL_NEWLINE) {
         sprintf(error, "Expected 'newline' got '%s' instead!", s->text);
         printsymbolmessage(ERRLVL_ERROR, trace, s, error);
         valid = 0;
@@ -698,7 +698,7 @@ int preprocessfile(char *filename, Array *incpath, Array *trace, PPEnv *ppenv, i
     } else if (!strcmp(s->text, "#endif")) {
       pop(ifstack);
       while ((s = ssgets(ss))->type == SYMBOL_COMMENT);
-      if (s->text[0] && s->text[0] != '\n') {
+      if (s->type != SYMBOL_EOF && s->type != SYMBOL_NEWLINE) {
         sprintf(error, "Expected 'newline' got '%s' instead!", s->text);
         printsymbolmessage(ERRLVL_ERROR, trace, s, error);
         valid = 0;
@@ -740,7 +740,7 @@ int preprocessfile(char *filename, Array *incpath, Array *trace, PPEnv *ppenv, i
       // UNIMPLEMENTED
     /////////////////////////////////////////////////////////////////////////////////////
     } else if (!ignore) {
-      while (!s->eof && s->text[0] != '\n') {
+      while (s->type != SYMBOL_EOF && s->type != SYMBOL_NEWLINE) {
         if (s->open) for (int i = 0; s->open[i]; i++) fputc(s->open[i], ppenv->output);
         if (s->type == SYMBOL_VARIABLE) {
           String *str = newString(s->text);

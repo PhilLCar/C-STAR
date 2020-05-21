@@ -175,7 +175,7 @@ void astnewchar(ASTNode *ast, BNFNode *bnf, ASTFlags flags, char c)
           subbnf = bnfsubnode(bnf, ast->pos);
           if (!subast) subast = newASTNode(ast, NULL);
           f  = 0;
-          f |= (flags & ~ASTFLAGS_REC) | (bnf->type == NODE_CONCAT ? ASTFLAGS_CONCAT : 0);
+          f |= (flags & ~ASTFLAGS_REC & ~ASTFLAGS_FRONT) | (bnf->type == NODE_CONCAT ? ASTFLAGS_CONCAT : 0);
           f |= superast->pos > 1 ? ASTFLAGS_STARTED : 0;
           f |= !ast->pos ? ASTFLAGS_FRONT : 0;
           astnewchar(subast, subbnf, f, nc);
@@ -260,8 +260,15 @@ void astnewchar(ASTNode *ast, BNFNode *bnf, ASTFlags flags, char c)
         }
         break;
       }
-      if (superast->status == STATUS_FAILED || superast->status == STATUS_CONFIRMED) break;
+      if (superast->status == STATUS_FAILED) break;
       if (superast->status == STATUS_NOSTATUS) superast->status = STATUS_ONGOING;
+      if (superast->status == STATUS_CONFIRMED) {
+        if (c != AST_LOCK) { 
+          while (superast->subnodes->size) deleteAST(pop(superast->subnodes));
+          superast->status = STATUS_FAILED;
+        }
+        break;
+      }
       if (!superast->subnodes->size) ast = newASTNode(superast, bnf);
       else                           ast = astsubnode(superast, 0);
       ast->status = STATUS_ONGOING;
@@ -330,12 +337,13 @@ void astnewchar(ASTNode *ast, BNFNode *bnf, ASTFlags flags, char c)
   pop(bnf->refs);
 }
 
-void astnewsymbol(ASTNode *ast, BNFNode *bnf, ASTFlags flags, Symbol *s)
+int astnewsymbol(ASTNode *ast, BNFNode *bnf, ASTFlags flags, Symbol *s)
 {
   ASTNode  *superast;
   ASTNode  *subast;
   ASTNode  *save    = NULL;
   BNFNode  *subbnf;
+  int       newline = 0;
   int       size    = 0;
   int       f       = 0;
   char     *content = bnf->content;
@@ -358,17 +366,15 @@ void astnewsymbol(ASTNode *ast, BNFNode *bnf, ASTFlags flags, Symbol *s)
           ast->status = STATUS_CONFIRMED;
         } else ast->status = STATUS_FAILED;
       } else {
-        ast->status = STATUS_ONGOING;
+        if (flags & ASTFLAGS_END) ast->status = STATUS_FAILED;
+        else                      ast->status = STATUS_ONGOING;
       }
       break;
     case NODE_LEAF:
       if (s) {
         if (content) {
-          if (strcmp(s->text, content)) {
-            ast->status = STATUS_FAILED;
-          } else {
-            concat(ast->value, newString(content)); ast->status = STATUS_CONFIRMED;
-          }
+          if (strcmp(s->text, content)) {                ast->status = STATUS_FAILED;    } 
+          else { concat(ast->value, newString(content)); ast->status = STATUS_CONFIRMED; }
         }
       } else {
         if (content && ast->status != STATUS_CONFIRMED) {
@@ -413,9 +419,10 @@ void astnewsymbol(ASTNode *ast, BNFNode *bnf, ASTFlags flags, Symbol *s)
           subbnf = bnfsubnode(bnf, ast->pos);
           if (!subast) subast = newASTNode(ast, NULL);
           f = 0;
-          f |= flags & ~ASTFLAGS_REC;
-          f |= !ast->pos ? ASTFLAGS_FRONT : 0;
-          astnewsymbol(subast, subbnf, f, ns);
+          f |= flags & ~ASTFLAGS_REC & ~ASTFLAGS_FRONT;
+          if (flags & ASTFLAGS_REC) f |= !ast->pos ? ASTFLAGS_FRONT & flags : 0;
+          else                      f |= !ast->pos ? ASTFLAGS_FRONT : 0;
+          newline |= astnewsymbol(subast, subbnf, f, ns);
           if (subast->status == STATUS_FAILED) {
             deleteAST(rem(superast->subnodes, i--)); break;
           } else if (subast->status == STATUS_PARTIAL) {
@@ -458,6 +465,13 @@ void astnewsymbol(ASTNode *ast, BNFNode *bnf, ASTFlags flags, Symbol *s)
           } else if (!ns) break;
           if (ns) ns = NULL;
         }
+        if (ast->pos == size - 2) {
+          // greed on newline
+          BNFNode *last = bnfsubnode(bnf, size - 1);
+          if (last->type == NODE_LEAF && ((char*)last->content)[0] == '\n') {
+            newline = 1;
+          }
+        }
       }
       /////////////////////////// LIST FOOTER ///////////////////////////////////////////
       if (save) {
@@ -490,8 +504,15 @@ void astnewsymbol(ASTNode *ast, BNFNode *bnf, ASTFlags flags, Symbol *s)
         }
         break;
       }
-      if (superast->status == STATUS_FAILED || superast->status == STATUS_CONFIRMED) break;
+      if (superast->status == STATUS_FAILED) break;
       if (superast->status == STATUS_NOSTATUS) superast->status = STATUS_ONGOING;
+      if (superast->status == STATUS_CONFIRMED) {
+        if (s){
+          while (superast->subnodes->size) deleteAST(pop(superast->subnodes));
+          superast->status = STATUS_FAILED;
+        }
+        break;
+      }
       if (!superast->subnodes->size) ast = newASTNode(superast, bnf);
       else                           ast = astsubnode(superast, 0);
       ast->status = STATUS_ONGOING;
@@ -502,7 +523,7 @@ void astnewsymbol(ASTNode *ast, BNFNode *bnf, ASTFlags flags, Symbol *s)
         if (!subast) subast = newASTNode(ast, NULL);
         if (subast->status != STATUS_FAILED) {
           f |= (flags & ~ASTFLAGS_REC) | (bnf->type == NODE_REC ? ASTFLAGS_REC : 0);
-          astnewsymbol(subast, subbnf, f, s);
+          newline |= astnewsymbol(subast, subbnf, f, s);
           if (subast->status == STATUS_CONFIRMED)    { ast->status = STATUS_CONFIRMED; save = subast; }
           else if (subast->status == STATUS_PARTIAL) { ast->status = STATUS_PARTIAL;   save = subast; }
           else if (subast->status == STATUS_REC)     { ast->status = STATUS_REC;       save = subast; }
@@ -558,11 +579,12 @@ void astnewsymbol(ASTNode *ast, BNFNode *bnf, ASTFlags flags, Symbol *s)
       break;
   }
   pop(bnf->refs);
+  return newline;
 }
 
 ASTNode *parseast(char *filename)
 {
-  BNFNode      *bnftree  = parsebnf("parsing/bnf/preprocessor.bnf");
+  BNFNode      *bnftree  = parsebnf("parsing/bnf/test.bnf");
   BNFNode      *rootent  = bnfsubnode(bnftree, 0);
   Parser       *parser   = newParser("parsing/prs/csr.prs");
   SymbolStream *ss       = ssopen(filename, parser);
@@ -571,16 +593,18 @@ ASTNode *parseast(char *filename)
   push(trace, &filename);
 
   Symbol *s;
-  while (!(s = ssgets(ss))->eof) {
-    if (s->text[0] == '\n') continue;
+  int     newline = 0;
+  while ((s = ssgets(ss))->type != SYMBOL_EOF) {
+    //if (s->text[0] == '\n') continue;
+    if (s->type == SYMBOL_COMMENT) continue;
     astnewsymbol(ast, rootent, ASTFLAGS_NONE, NULL);
-    astnewsymbol(ast, rootent, ASTFLAGS_NONE, s);
+    newline = astnewsymbol(ast, rootent, ASTFLAGS_NONE, s);
     if (ast->status == STATUS_FAILED) {
       printsymbolmessage(ERRLVL_ERROR, trace, s, "Unexpected symbol!");
       break;
     }
   }
-  astnewsymbol(ast, rootent, ASTFLAGS_END, NULL);
+  astnewsymbol(ast, rootent, ASTFLAGS_FRONT | ASTFLAGS_END, NULL);
 
   deleteArray(&trace);
   ssclose(ss);
