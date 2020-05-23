@@ -9,12 +9,14 @@
 
 <block>       ::= <line> | "{" { <statement> } "}"
 <line>        ::= [ <expression> | <declaration> | <control> ] ";" | ( <expression> | <declaration> | <control> ) <raw: newline>
-<declaration> ::= <type> <expression>
+<declaration> ::= <type> ( <expression> - <call> | <prototype> )
+<prototype>   ::= <raw:variable> "(" [ <type> <raw: variable> { "," <type> <raw: variable> } ] ")"
 <control>     ::= "goto" <raw: variable> | "break" [ <expression> ] | "continue" [ <expression> ] | "finish" [ <expression> ]
 
-<special-blocks> ::= <if-block> | <while-block> | <for-block> | <foreach-block> | <switch-block> | <metafor-block>
+<special-blocks> ::= <if-block> | <if-else-block> | <while-block> | <for-block> | <foreach-block> | <switch-block> | <metafor-block>
 <do-block>       ::= "do" <statement>
-<if-block>       ::= "if" <log-or> <statement> [ "else" <statement> ]
+<if-else-block>  ::= "if" <log-or> <statement> - <if-block> "else" <statement>
+<if-block>       ::= "if" <log-or> <statement>
 <while-block>    ::= [ <do-block> ] "while" <log-or> <statement>
 <for-block>      ::= [ <do-block> ] "for" "(" [ <expression> | <declaration> ] ";" [ <expression> ] ";" [ <expression> ] ")" <statement>
 <foreach-block>  ::= [ <do-block> ] "for" "each" "(" [ <expression> ] ( "in" | "of" ) <expression> ")" <statement>

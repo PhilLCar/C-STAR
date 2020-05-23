@@ -624,14 +624,20 @@ ASTNode *parseast(char *filename)
   int ignore= 0;
   while ((s = ssgets(ss))->type != SYMBOL_EOF) {
     if (s->type == SYMBOL_NEWLINE && ignore) continue;
-    if (s->type == SYMBOL_COMMENT)              continue;
-    ignore = s->type == SYMBOL_BREAK || (s->type == SYMBOL_DELIMITER && isopening(s, parser));
+    if (s->type == SYMBOL_COMMENT)           continue;
+    ignore = s->type == SYMBOL_BREAK     || 
+             s->type == SYMBOL_NEWLINE   || 
+            (s->type == SYMBOL_DELIMITER && isopening(s, parser));
     astnewsymbol(ast, rootent, ASTFLAGS_NONE, NULL);
     astnewsymbol(ast, rootent, ASTFLAGS_NONE, s);
     if (ast->status == STATUS_FAILED) {
       printsymbolmessage(ERRLVL_ERROR, trace, s, "Unexpected symbol!");
       break;
     }
+  }
+  if (!ignore) {
+    s->type = SYMBOL_NEWLINE;
+    astnewsymbol(ast, rootent, ASTFLAGS_NONE, s);
   }
   astnewsymbol(ast, rootent, ASTFLAGS_END, NULL);
 

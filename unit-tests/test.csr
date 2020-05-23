@@ -1,4 +1,6 @@
-if test 
+if test {
   if test
-    if test test
-    else ok
+    if test
+      if test test
+      else test
+} else test

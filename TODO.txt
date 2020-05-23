@@ -4,3 +4,4 @@
 - PP: if valid =0 delete psr and msr
 - PP: C-Mode
 - Fix leftmost expansion
+- Regularize AST

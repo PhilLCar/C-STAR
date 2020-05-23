@@ -1,8 +1,11 @@
 <forward: statement>
 <forward: type>
 
-// PRIORITY 19 LR
-<expression> ::= <expression> "," <func-assoc> | <func-assoc>
+// PRIORITY 20 LR
+<expression> ::= <expression> "," <pairing> | <pairing>
+
+// PRIORITY 19 RL
+<pairing> ::= <func-assoc> ":" <pairing> | <func-assoc>
 
 // PRIORITY 18 RL
 <func-assoc> ::= [ <type> ] <raw: variable> <assignment> - <parent> | <assignment>
@@ -62,20 +65,19 @@
 <multiplicative> ::= <multiplicative> ( "*" | "/" | "%" ) <power> | <power>
 
 // PRIORITY 3 LR
-<power> ::= <power> "**" <p2> | <p2>
+<power> ::= <power> "!^" <p2> | <p2>
 
 // PRIORITY 2 RL
-<p2> ::= <prefix> | <unary> | <not> | <cast> | <deref> | <ref> | <pairing> | <p1>
+<p2> ::= <prefix> | <unary> | <not> | <cast> | <deref> | <ref> | <p1>
 <prefix>  ::= ( "++" | "--" | "!*" | "!/" | "<:") <p1>
 <unary>   ::= ( "+" | "-" ) <p1>
 <not>     ::= ( "!" | "~" ) <p1>
 <cast>    ::= "(" <type> ")" <p1>
 <deref>   ::= "*" <p1>
 <ref>     ::= "&" <p1>
-<pairing> ::= <p1> ":" <p2>
 
 // PRIORITY 1 LR
-<p1> ::= <postfix> | <call> | <index> | <access> | <p-access> | <parent> | <list> | <array> | <dict> | <lambda> | <value>
+<p1> ::= <postfix> | <call> | <index> | <access> | <p-access> | <parent> | <list> | <array> | <lambda> | <value>
 <postfix>   ::= <expression> ( "++" | "--" | "!*" | "!/" | "!" | ":>")
 <call>      ::= <raw: variable> "(" <expression> ")"
 <index>     ::= ( <raw:variable> | <raw: string> ) "[" <expression> "]"
@@ -84,7 +86,6 @@
 <parent>    ::= "(" <expression> ")"
 <list>      ::= "[" [ <expression> ] "]"
 <array>     ::= "{" [ <expression> ] "}"
-<dict>      ::= "{" [ <value> ":" <expression> { "," <value> ":" <expression> } ] "}"
 <lambda>    ::= "(" [ <parameter> { "," <parameter> } ] ")" "{" { <statement> } "}"
 <parameter> ::= [ <type> ] <expression>
 
