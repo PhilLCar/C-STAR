@@ -114,10 +114,13 @@ string32
 file
 class
 operator
+file
+dir
+
+== Constants ==
 true
 false
 null
-file
-dir
+
 
 == EOF ==

@@ -9,13 +9,6 @@
 #include <tracked_string.h>
 #include <array.h>
 
-typedef enum symbolerror {
-  SYMBOLERROR_END_OF_FILE = 1,
-  SYMBOLERROR_NONCLOSING,
-  SYMBOLERROR_ILLEGAL_CHAR,
-  SYMBOLERROR_OTHER
-} SymbolError;
-
 typedef enum symboltype {
   SYMBOL_NONE,
   SYMBOL_STRING,
@@ -28,9 +21,12 @@ typedef enum symboltype {
   SYMBOL_DELIMITER,
   SYMBOL_BREAK,
   SYMBOL_RESERVED,
-  SYMBOL_ERROR,
+  SYMBOL_CONSTANT,
   SYMBOL_NEWLINE,
-  SYMBOL_EOF
+  SYMBOL_EOF,
+
+  SYMBOL_ERROR                = 0x100,
+  SYMBOL_ERROR_NON_CLOSING    = 0x101
 } SymbolType;
 
 typedef struct symbol {
@@ -62,7 +58,7 @@ Symbol       *sparse(char*, Parser*);
 SymbolStream *ssopen(char*, Parser*);
 void          ssclose(SymbolStream*);
 Symbol       *ssgets(SymbolStream*);
-void          ssungets(SymbolStream*, Symbol*);
+void          ssungets(Symbol*, SymbolStream*);
 Symbol       *newSymbol(Symbol*);
 void          deleteSymbol(Symbol**);
 void          freesymbol(Symbol*);
@@ -70,6 +66,6 @@ void          freesymbol(Symbol*);
 StringSymbolStream *sssopen(String*, Parser*);
 void                sssclose(StringSymbolStream*);
 Symbol             *sssgets(StringSymbolStream*);
-void                sssungets(StringSymbolStream*, Symbol*);
+void                sssungets(Symbol*, StringSymbolStream*);
 
 #endif

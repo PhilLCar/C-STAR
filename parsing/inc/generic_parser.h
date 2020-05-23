@@ -19,6 +19,7 @@ typedef struct parser {
   char  **delimiters;
   char  **breaksymbols;
   char  **reserved;
+  char  **constants;
   int     lookahead;
 } Parser;
 

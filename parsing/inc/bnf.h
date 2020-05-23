@@ -13,6 +13,13 @@
 #define INCLUDE_MAX_DEPTH   128
 #define EBNF_TO_BNF         1
 
+typedef enum bnfdef {
+  BNF_NOT_DEFINED,
+  BNF_DEFINED,
+  BNF_DECLARED,
+  BNF_DEFINED_AND_DECLARED
+} BNFDef;
+
 typedef enum bnftype {
   NODE_ROOT = 0,
   NODE_LEAF,
@@ -20,6 +27,7 @@ typedef enum bnftype {
   NODE_CONCAT,
   NODE_LIST,
   NODE_REC,
+  NODE_NOT,
   NODE_ANON,
   NODE_ONE_OF,
   NODE_ONE_OR_NONE,
@@ -29,7 +37,7 @@ typedef enum bnftype {
 
 typedef struct bnfnode {
   char    *name;
-  int      def;
+  BNFDef   def;
   BNFType  type;
   void    *content;
   int      rec;

@@ -1,28 +1,25 @@
 ;; include (parsing/bnf/expressions.bnf)
+;; include (parsing/bnf/types.bnf)
 #;; include (parsing/bnf/oop.bnf)
 #;; include (parsing/bnf/operator.bnf)
 
-<program> ::= { <statement> }
+<program> ::= { ( <statement> | <address> /*| <class-decl> | <operator-assoc>*/ ) }
 
-<statement> ::= <block> | <special-blocks> | <address> //| <class-decl> | <operator-assoc>
+<statement> ::= <block> | <special-blocks>
 
-<block>       ::= <line> | "{" { <statement> } "}" | <func-assoc>
+<block>       ::= <line> | "{" { <statement> } "}"
 <line>        ::= [ <expression> | <declaration> | <control> ] ( ";" | <raw: newline> )
 <declaration> ::= <type> <expression>
 <control>     ::= "goto" <raw: variable> | "break" [ <expression> ] | "continue" [ <expression> ] | "finish" [ <expression> ]
 
-<func-assoc>      ::= [ <type> ] <raw: variable> <lambda>
-<lambda>          ::= <parameter-block> "{" {<statement> } "}"
-<parameter-block> ::= "(" [ <parameter> { "," <parameter> } ] ")"
-<parameter>       ::= [ <type> ] <expression>
-
 <special-blocks> ::= <if-block> | <while-block> | <for-block> | <foreach-block> | <switch-block> | <metafor-block>
-<do-block>       ::= "do" <block>
-<if-block>       ::= "if" <expression> <block> [ "else" <block> ]
-<while-block>    ::= [ <do-block> ] "while" <expression> <block>
-<for-block>      ::= [ <do-block> ] "for" "(" [ <expression> | <declaration> ] ";" [ <expression> ] ";" [ <expression> ] ")" <block>
-<foreach-block>  ::= [ <do-block> ] "for" "each" "(" [ <expression> ] ( "in" | "of" ) <expression> ")" <block>
-<switch-block>   ::= "switch" <expression> "{" { <switch-label> ":" { <statement> } } "}"
+<condition>      ::= <raw:variable> | <log-or>
+<do-block>       ::= "do" <statement>
+<if-block>       ::= "if" <condition> <statement> [ "else" <statement> ]
+<while-block>    ::= [ <do-block> ] "while" <condition> <statement>
+<for-block>      ::= [ <do-block> ] "for" "(" [ <expression> | <declaration> ] ";" [ <expression> ] ";" [ <expression> ] ")" <statement>
+<foreach-block>  ::= [ <do-block> ] "for" "each" "(" [ <expression> ] ( "in" | "of" ) <expression> ")" <statement>
+<switch-block>   ::= "switch" <condition> "{" { <switch-label> ":" { <statement> } } "}"
 
 # var[10, 10, 10] a;
 #

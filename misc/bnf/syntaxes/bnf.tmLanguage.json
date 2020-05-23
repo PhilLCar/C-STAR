@@ -28,7 +28,7 @@
 		"keywords": {
 			"patterns": [{
 				"name": "keyword.operator.bnf",
-				"match": "(\\+|,|\\||\\{|\\}|\\[|\\]|\\(|\\))"
+				"match": "(\\+|\\-|,|\\||\\{|\\}|\\[|\\]|\\(|\\))"
 			}]
 		},
 		"strings": {
@@ -83,7 +83,7 @@
 		},
 		"nodes": {
 			"patterns": [{
-				"match": "^\\s*(<)\\s*((raw|anon)\\s*(:))?\\s*(.*?)\\s*(>)\\s*(::=)",
+				"match": "^\\s*(<)\\s*((raw|anon|forward)\\s*(:))?\\s*(.*?)\\s*(>)\\s*(::=)",
 				"captures": {
 					"1": { "name": "keyword.operator.bnf" },
 					"3": { "name": "constant.language.bnf" },
@@ -94,7 +94,7 @@
 				}
 			},
 			{
-				"match": "(<)\\s*((raw|anon)\\s*(:))?\\s*(.*?)\\s*(>)",
+				"match": "(<)\\s*((raw|anon|forward)\\s*(:))?\\s*(.*?)\\s*(>)",
 				"captures": {
 					"1": { "name": "keyword.operator.bnf" },
 					"3": { "name": "constant.language.bnf" },

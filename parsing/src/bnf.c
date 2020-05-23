@@ -41,7 +41,7 @@ BNFNode *newBNFNode(BNFNode *basenode, char *name, BNFType type)
   if (node && n && (a || type == NODE_LEAF || type == NODE_RAW)) {
     sprintf(n, "%s", name);
     node->name    = n;
-    node->def     = 0;
+    node->def     = BNF_NOT_DEFINED;
     node->type    = type;
     node->content = a;
     node->rec     = 0;
@@ -100,7 +100,7 @@ int expect(SymbolStream *ss, Array *trace, char *str)
   return ok;
 }
 
-BNFNode *parsebnfname(SymbolStream *ss, BNFNode *basenode, Array *trace)
+BNFNode *parsebnfname(SymbolStream *ss, BNFNode *basenode, Array *trace, BNFDef def)
 {
   BNFNode *node = NULL;
   Symbol *s     = &ss->symbol;
@@ -136,10 +136,27 @@ BNFNode *parsebnfname(SymbolStream *ss, BNFNode *basenode, Array *trace)
             node->content = (void*)SYMBOL_CHAR;
           } else if (!strcmp(s->text, "newline")) {
             node->content = (void*)SYMBOL_NEWLINE;
+          } else if (!strcmp(s->text, "constant")) {
+            node->content = (void*)SYMBOL_CONSTANT;
+          } else if (!strcmp(s->text, "new-type")) {
+            node->content = NULL;
           }
         }
       } else {
         printsymbolmessage(ERRLVL_ERROR, trace, s, "Invalid raw type!");
+      }
+    }
+  } else if (!strcmp(s->text, "forward")) {
+    if (expect(ss, trace, ":")) {
+      s = ssgets(ss);
+      if (s->type == SYMBOL_VARIABLE) {
+        node = getnode(basenode, basenode, s->text);
+        if (!node) {
+          node = newBNFNode(basenode, s->text, NODE_ONE_OF);
+          node->def = BNF_DECLARED;
+        } else node->def = BNF_DEFINED_AND_DECLARED;
+      } else {
+        printsymbolmessage(ERRLVL_ERROR, trace, s, "Invalid forward node!");
       }
     }
   } else if (!strcmp(s->text, "anon")) {
@@ -159,6 +176,7 @@ BNFNode *parsebnfname(SymbolStream *ss, BNFNode *basenode, Array *trace)
     if (!node) {
       node = newBNFNode(basenode, s->text, NODE_ONE_OF);
     }
+    if (def == BNF_DEFINED) node->def = def;
   }
   deleteSymbol(&t);
 
@@ -266,8 +284,8 @@ int parsebnfstatement(SymbolStream *ss, BNFNode *basenode, BNFNode *parent, Arra
           node->type = NODE_MANY_OR_ONE;
         }
       } else {
-        ssungets(ss, s);
-        ssungets(ss, t);
+        ssungets(s, ss);
+        ssungets(t, ss);
         s = ssgets(ss);
       }
       deleteSymbol(&t);
@@ -303,8 +321,22 @@ int parsebnfstatement(SymbolStream *ss, BNFNode *basenode, BNFNode *parent, Arra
       }
       oplast = 1;
     } //////////////////////////////////////////////////////////////////////////////////////////
+    else if (s->text[0] == '-') {
+      if (!content->size) {
+        printsymbolmessage(ERRLVL_WARNING, trace, s, "Empty group ignored");
+      } else if (content != subnode->content) {
+        printsymbolmessage(ERRLVL_ERROR, trace, s, "Unexpected operator!");
+        ret = 0;
+      } else {
+        BNFNode *node = newBNFNode(basenode, "", NODE_NOT);
+        push(node->content, pop(subnode->content));
+        push(subnode->content, &node);
+        concat = 1;
+      }
+      oplast = 1;
+    } //////////////////////////////////////////////////////////////////////////////////////////
     else if (s->text[0] == '<') {
-      BNFNode *node = parsebnfname(ss, basenode, trace);
+      BNFNode *node = parsebnfname(ss, basenode, trace, BNF_NOT_DEFINED);
       if (node) {
         push(content, &node);
         if (!expect(ss, trace, ">")) ret = 0;
@@ -376,7 +408,7 @@ int parsebnfincludes(Parser *parser, SymbolStream *ss, BNFNode *basenode, Array 
     deleteSymbol(&n);
     if (!expect(ss, trace, "\n")) return 0;
   }
-  ssungets(ss, s);
+  ssungets(s, ss);
   return 1;
 }
 
@@ -393,36 +425,38 @@ void parsebnfbody(SymbolStream *ss, BNFNode *basenode, Array *trace)
       printsymbolmessage(ERRLVL_ERROR, trace, s, error);
       break;
     } else {
-      BNFNode *node = parsebnfname(ss, basenode, trace);
-      if (!node) break;
-      node->def = 1;
+      BNFNode *node = parsebnfname(ss, basenode, trace, BNF_DEFINED);
+      if (!node)                     break;
       if (!expect(ss, trace, ">"))   break;
-      if (!expect(ss, trace, "::=")) break;
       push(basenode->content, &node);
+      if (node->def == BNF_DECLARED) continue; // forward declared
+      else if (node->def == BNF_DEFINED_AND_DECLARED) {
+        node->def = BNF_DEFINED;
+        continue;
+      }
+      if (!expect(ss, trace, "::=")) break;
       if (!parsebnfstatement(ss, basenode, node, trace, "\n")) break;
     }
   }
 }
 
-BNFNode* verifybnftree(BNFNode *basenode, BNFNode *node)
+void verifybnftree(BNFNode *basenode, BNFNode *node, Array *trace)
 {
-  BNFNode *def = NULL;
   if (node != NULL) {
     if (node == basenode) {
       basenode->rec++;
     } else if (node->rec < basenode->rec) {
       node->rec = basenode->rec;
-    } else return def;
-    if (node->type == NODE_ONE_OF && node->name[0] && !node->def) {
-      def = node;
+    } else return;
+    if (node->type == NODE_ONE_OF && node->name[0] && node->def == BNF_NOT_DEFINED) {
+      printnodemessage(ERRLVL_WARNING, trace, node->name, "Undefined node!");
     } else if (node->type != NODE_LEAF && node->type != NODE_RAW) {
-      Array *a = node->content;
-      for (int i = 0; !def && i < a->size; i++) {
-        def = verifybnftree(basenode, *(BNFNode**)at(a, i));
+      Array *content = node->content;
+      for (int i = 0; i < content->size; i++) {
+        verifybnftree(basenode, *(BNFNode**)at(content, i), trace);
       }
     }
   }
-  return def;
 }
 
 BNFNode *parsebnfnode(char *filename, Parser *parser, BNFNode *basenode, Array *trace, Array *includes)
@@ -434,10 +468,8 @@ BNFNode *parsebnfnode(char *filename, Parser *parser, BNFNode *basenode, Array *
     printfilemessage(ERRLVL_ERROR, trace, "Could not open file!");
   } else {
     if (parsebnfincludes(parser, ss, basenode, trace, includes)) {
-      BNFNode *n;
       parsebnfbody(ss, basenode, trace);
-      n = verifybnftree(basenode, basenode);
-      if (n) printnodemessage(ERRLVL_WARNING, trace, n->name, "Undefined node!");
+      verifybnftree(basenode, basenode, trace);
     }
     ssclose(ss);
   }

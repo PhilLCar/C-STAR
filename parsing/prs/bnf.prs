@@ -40,12 +40,18 @@
 ;;
 
 == Reserved ==
-raw
 integer
 decimal
 string
 char
 variable
 newline
+constant
+new-type
+
+== Constants ==
+raw
+forward
+anon
 
 == EOF ==

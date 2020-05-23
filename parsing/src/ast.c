@@ -115,6 +115,7 @@ void astnewchar(ASTNode *ast, BNFNode *bnf, ASTFlags flags, char c)
     case NODE_MANY_OR_NONE:
     case NODE_MANY_OR_ONE:
     case NODE_ONE_OR_NONE:
+    case NODE_NOT:
       /// UNIMPLEMENTED
       break;
     case NODE_LEAF:
@@ -357,6 +358,30 @@ void astnewsymbol(ASTNode *ast, BNFNode *bnf, ASTFlags flags, Symbol *s)
     case NODE_CONCAT:
       /// UNIMPLEMENTED
       break;
+    case NODE_NOT:
+      subast = astsubnode(ast, 0);
+      subbnf = bnfsubnode(bnf, 0);
+      if (!subast) subast = newASTNode(ast, NULL);
+      astnewsymbol(subast, subbnf, flags, s);
+      if (subast->status == STATUS_CONFIRMED) {
+        if (subast->ref == bnfsubnode(bnf, 1)) {
+          ast->status = STATUS_FAILED;
+          deleteAST(pop(ast));
+        } else {
+          ast->status = STATUS_CONFIRMED;
+          astupnode(ast, subast);
+        }
+      } else if (subast->status == STATUS_PARTIAL) {
+        for (int i = 0; i < subast->subnodes->size; i++) {
+          ASTNode *partial = astsubnode(subast, i);
+          if (partial->status == STATUS_CONFIRMED || partial->status == STATUS_REC) {
+            if (partial->ref == bnfsubnode(bnf, 1)) {
+              deleteAST(rem(subast, i));
+            } else                                    
+            break;
+          }
+        }
+      }
     case NODE_RAW:
       if (s) {
         if (s->type == SYMBOL_NEWLINE && s->type != (SymbolType)bnf->content) {

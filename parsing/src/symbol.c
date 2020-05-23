@@ -359,16 +359,27 @@ int nextsymbol(TrackedEntity *te, char (*tegetc)(void*), void (*teungetc)(char, 
         return 0;
       }
     }
-    if (!close && (symbol->type == SYMBOL_STRING ||
+    if (!close && (symbol->type == SYMBOL_STRING  ||
+                   symbol->type == SYMBOL_CHAR    ||
                   (symbol->type == SYMBOL_COMMENT && symbol->close))) {
-      symbol->close[0] = 0;
+      symbol->type = SYMBOL_ERROR_NON_CLOSING;
     }
     symbol->text = buf;
     if (symbol->type == SYMBOL_VARIABLE) {
+      int res = 0;
       for (int i = 0; parser->reserved[i]; i++) {
         if (!strcmp(buf, parser->reserved[i])) {
           symbol->type = SYMBOL_RESERVED;
+          res = 1;
           break;
+        }
+      }
+      if (!res) {
+        for (int i = 0; parser->constants[i]; i++) {
+          if (!strcmp(buf, parser->constants[i])) {
+            symbol->type = SYMBOL_CONSTANT;
+            break;
+          }
         }
       }
     }
@@ -466,7 +477,7 @@ Symbol *ssgets(SymbolStream *ss)
   return s;
 }
 
-void ssungets(SymbolStream *ss, Symbol *s)
+void ssungets(Symbol *s, SymbolStream *ss)
 {
   Symbol *t = newSymbol(s);
   push(ss->stack, t);
@@ -566,7 +577,7 @@ Symbol *sssgets(StringSymbolStream *sss)
   return s;
 }
 
-void sssungets(StringSymbolStream *sss, Symbol *s)
+void sssungets(Symbol *s, StringSymbolStream *sss)
 {
   Symbol *t = newSymbol(s);
   push(sss->stack, t);
