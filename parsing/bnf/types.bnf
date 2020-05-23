@@ -6,6 +6,7 @@
                                  <string-type>    | 
                                  <boolean-type>   |
                                  <file-type>      |
+                                 <pair-type>      |
                                  <raw: new-type> ) [ <dimension> ]
 <integer-type> ::= ([ "unsigned" ] ( "byte" | "short" | "int" | "long" )) | "integer"
 <decimal-type> ::= "mini" | "float" | "double" | "decimal"
@@ -13,7 +14,9 @@
 <character-type> ::= "char" | "utf16" | "utf32"
 <string-type> ::= "string" | "string16" | "string32"
 <file-type> ::= "file" | "dir"
+<pair-type> ::= "pair" [ <pair-dimension> ]
 <dimension> ::= ( "*" | "&" | <array-type> | <list-type> | <dict-type>) [ <dimension> ]
 <list-type> ::= "(" [ <expression> ] ")"
 <array-type> ::= "[" [ <expression> ] { "," <expression> } "]"
 <dict-type> ::= "{" [ <expression> ] "}"
+<pair-dimension> ::= "[" <type> ":" <type> "]"

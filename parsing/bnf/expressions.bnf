@@ -65,17 +65,18 @@
 <power> ::= <power> "**" <p2> | <p2>
 
 // PRIORITY 2 RL
-<p2> ::= <prefix> | <unary> | <not> | <cast> | <deref> | <ref> | <p1>
-<prefix>  ::= ( "++" | "--" | "!*" | "!/" ) <p1>
+<p2> ::= <prefix> | <unary> | <not> | <cast> | <deref> | <ref> | <pairing> | <p1>
+<prefix>  ::= ( "++" | "--" | "!*" | "!/" | "<:") <p1>
 <unary>   ::= ( "+" | "-" ) <p1>
 <not>     ::= ( "!" | "~" ) <p1>
-<cast>    ::= "(" (<raw: variable> | <type>) ")" <p1>
+<cast>    ::= "(" <type> ")" <p1>
 <deref>   ::= "*" <p1>
 <ref>     ::= "&" <p1>
+<pairing> ::= <p1> ":" <p2>
 
 // PRIORITY 1 LR
 <p1> ::= <postfix> | <call> | <index> | <access> | <p-access> | <parent> | <list> | <array> | <dict> | <lambda> | <value>
-<postfix>   ::= <expression> ( "++" | "--" | "!*" | "!/" | "!")
+<postfix>   ::= <expression> ( "++" | "--" | "!*" | "!/" | "!" | ":>")
 <call>      ::= <raw: variable> "(" <expression> ")"
 <index>     ::= ( <raw:variable> | <raw: string> ) "[" <expression> "]"
 <access>    ::= <expression> "."  <raw: variable>
