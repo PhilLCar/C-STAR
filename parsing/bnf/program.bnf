@@ -8,18 +8,17 @@
 <statement> ::= <block> | <special-blocks>
 
 <block>       ::= <line> | "{" { <statement> } "}"
-<line>        ::= [ <expression> | <declaration> | <control> ] ( ";" | <raw: newline> )
+<line>        ::= [ <expression> | <declaration> | <control> ] ";" | ( <expression> | <declaration> | <control> ) <raw: newline>
 <declaration> ::= <type> <expression>
 <control>     ::= "goto" <raw: variable> | "break" [ <expression> ] | "continue" [ <expression> ] | "finish" [ <expression> ]
 
 <special-blocks> ::= <if-block> | <while-block> | <for-block> | <foreach-block> | <switch-block> | <metafor-block>
-<condition>      ::= <raw:variable> | <log-or>
 <do-block>       ::= "do" <statement>
-<if-block>       ::= "if" <condition> <statement> [ "else" <statement> ]
-<while-block>    ::= [ <do-block> ] "while" <condition> <statement>
+<if-block>       ::= "if" <log-or> <statement> [ "else" <statement> ]
+<while-block>    ::= [ <do-block> ] "while" <log-or> <statement>
 <for-block>      ::= [ <do-block> ] "for" "(" [ <expression> | <declaration> ] ";" [ <expression> ] ";" [ <expression> ] ")" <statement>
 <foreach-block>  ::= [ <do-block> ] "for" "each" "(" [ <expression> ] ( "in" | "of" ) <expression> ")" <statement>
-<switch-block>   ::= "switch" <condition> "{" { <switch-label> ":" { <statement> } } "}"
+<switch-block>   ::= "switch" <log-or> "{" { <switch-label> ":" { <statement> } } "}"
 
 # var[10, 10, 10] a;
 #
