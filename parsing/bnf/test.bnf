@@ -1,4 +1,5 @@
-;; include ("parsing/bnf/program.bnf")
+#;; include ("parsing/bnf/program.bnf")
 
-#<program> ::= "1" | <parent>
-#<parent>  ::= "(" <program> ")"
+<statement> ::= "{" { <statement> } "}" | <if-block> | <raw: variable>
+
+<if-block> ::= "if" <raw: variable> <statement> [ "else" <statement> ]+

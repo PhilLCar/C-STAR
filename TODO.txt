@@ -5,3 +5,4 @@
 - PP: C-Mode
 - Fix leftmost expansion
 - Regularize AST
+- REDESIGN AST to have a lookahead symbol

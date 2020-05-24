@@ -254,6 +254,16 @@ int parsebnfstatement(SymbolStream *ss, BNFNode *basenode, BNFNode *parent, Arra
         node->type = NODE_ONE_OF;
         push(node->content, &empty);
       }
+      Symbol *t = newSymbol(s);
+      s = ssgets(ss);
+      if (s->text[0] == '+') {
+        node->type = NODE_GREEDY;
+      } else {
+        ssungets(s, ss);
+        ssungets(t, ss);
+        s = ssgets(ss);
+      }
+      deleteSymbol(&t);
       oplast = 0;
     } //////////////////////////////////////////////////////////////////////////////////////////
     else if (s->text[0] == '{') {

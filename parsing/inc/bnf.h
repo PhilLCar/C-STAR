@@ -29,6 +29,7 @@ typedef enum bnftype {
   NODE_REC,
   NODE_NOT,
   NODE_ANON,
+  NODE_GREEDY,
   NODE_ONE_OF,
   NODE_ONE_OR_NONE,
   NODE_MANY_OR_NONE,

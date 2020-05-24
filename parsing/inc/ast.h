@@ -47,9 +47,12 @@ typedef struct astnode {
   BNFNode        *ref;
   Array          *subnodes;
   String         *value;
-  ASTStatus       status;
-  int             pos;
-  int             rec;
+  ASTStatus       status : 16;
+  short           pointed;
+  short           pos;
+  short           rec;
+  int             sympos;
+  int             symline;
 } ASTNode;
 
 ASTNode *newASTNode(ASTNode*, BNFNode*);

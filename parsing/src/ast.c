@@ -245,6 +245,7 @@ void astnewchar(ASTNode *ast, BNFNode *bnf, ASTFlags flags, char c)
     case NODE_REC:
     case NODE_ONE_OF:
     case NODE_ANON:
+    case NODE_GREEDY:
     /////////////////////////////// ONE OF HEADER ///////////////////////////////////////
       superast = ast;
       if (bnf->refs->size > 1 && flags & ASTFLAGS_FRONT) {
@@ -516,6 +517,7 @@ void astnewsymbol(ASTNode *ast, BNFNode *bnf, ASTFlags flags, Symbol *s)
     case NODE_REC:
     case NODE_ONE_OF:
     case NODE_ANON:
+    case NODE_GREEDY:
     /////////////////////////////// ONE OF HEADER ///////////////////////////////////////
       superast = ast;
       if (bnf->refs->size > 1 && flags & ASTFLAGS_FRONT) {
@@ -555,7 +557,7 @@ void astnewsymbol(ASTNode *ast, BNFNode *bnf, ASTFlags flags, Symbol *s)
         if (bnf->type == NODE_ANON) {
           astupnode(superast, save);
         } else {
-          astupnode(ast,     save); // for the name
+          astupnode(ast, save);
           astupnode(superast, ast);
         }
         break;
@@ -622,6 +624,7 @@ ASTNode *parseast(char *filename)
 
   Symbol *s;
   int ignore= 0;
+  int i = 0;
   while ((s = ssgets(ss))->type != SYMBOL_EOF) {
     if (s->type == SYMBOL_NEWLINE && ignore) continue;
     if (s->type == SYMBOL_COMMENT)           continue;
@@ -634,12 +637,13 @@ ASTNode *parseast(char *filename)
       printsymbolmessage(ERRLVL_ERROR, trace, s, "Unexpected symbol!");
       break;
     }
+    if (++i > 4) break;
   }
-  if (!ignore) {
-    s->type = SYMBOL_NEWLINE;
-    astnewsymbol(ast, rootent, ASTFLAGS_NONE, s);
-  }
-  astnewsymbol(ast, rootent, ASTFLAGS_END, NULL);
+  // if (!ignore) {
+  //   s->type = SYMBOL_NEWLINE;
+  //   astnewsymbol(ast, rootent, ASTFLAGS_NONE, s);
+  // }
+  // astnewsymbol(ast, rootent, ASTFLAGS_END, NULL);
 
   deleteArray(&trace);
   ssclose(ss);
