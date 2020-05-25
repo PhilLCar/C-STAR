@@ -11,7 +11,7 @@
 #include <strings.h>
 
 #define INCLUDE_MAX_DEPTH   128
-#define EBNF_TO_BNF         1
+#define EBNF_TO_BNF         0
 
 typedef enum bnfdef {
   BNF_NOT_DEFINED,
@@ -29,7 +29,6 @@ typedef enum bnftype {
   NODE_REC,
   NODE_NOT,
   NODE_ANON,
-  NODE_GREEDY,
   NODE_ONE_OF,
   NODE_ONE_OR_NONE,
   NODE_MANY_OR_NONE,

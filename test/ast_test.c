@@ -15,6 +15,7 @@ char *printstatus(ASTNode *ast) {
       case STATUS_FAILED:
         return TEXT_RED"[F]"FONT_RESET;
       case STATUS_NOSTATUS:
+      case STATUS_NULL:
         return TEXT_WHITE"[N]"FONT_RESET;
       case STATUS_ONGOING:
         return TEXT_MAGENTA"[O]"FONT_RESET;
@@ -32,6 +33,7 @@ char *printstatus(ASTNode *ast) {
       case STATUS_FAILED:
         return FONT_BOLD""TEXT_RED"[F]"FONT_RESET;
       case STATUS_NOSTATUS:
+      case STATUS_NULL:
         return FONT_BOLD""TEXT_WHITE"[N]"FONT_RESET;
       case STATUS_ONGOING:
         return FONT_BOLD""TEXT_MAGENTA"[O]"FONT_RESET;

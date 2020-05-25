@@ -583,3 +583,38 @@ void sssungets(Symbol *s, StringSymbolStream *sss)
   push(sss->stack, t);
   free(t);
 }
+
+Stream *getStreamSS(SymbolStream *ss)
+{
+  Stream *stream = malloc(sizeof(Stream));
+  stream->stream = (Stream*)ss;
+  stream->parser = ss->parser;
+  stream->stack  = ss->stack;
+  stream->symbol = &ss->symbol;
+  stream->gets   = (Symbol*(*)(Stream*))ssgets;
+  stream->ungets = (Symbol*(*)(Symbol*, Stream*))ssungets;
+  return stream;
+}
+
+Stream *getStreamSSS(StringSymbolStream *sss)
+{
+  Stream *stream = malloc(sizeof(Stream));
+  stream->stream = (Stream*)sss;
+  stream->parser = sss->parser;
+  stream->stack  = sss->stack;
+  stream->symbol = &sss->symbol;
+  stream->gets   = (Symbol*(*)(Stream*))sssgets;
+  stream->ungets = (Symbol*(*)(Symbol*, Stream*))sssungets;
+  return stream;
+}
+
+void closeStream(Stream *stream)
+{
+  if (stream->gets == (Symbol*(*)(Stream*))ssgets) {
+    ssclose((SymbolStream*)stream->stream);
+  } else {
+    sssclose((StringSymbolStream*)stream->stream);
+  }
+  free(stream);
+}
+

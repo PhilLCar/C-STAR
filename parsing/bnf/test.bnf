@@ -2,4 +2,4 @@
 
 <statement> ::= "{" { <statement> } "}" | <if-block> | <raw: variable>
 
-<if-block> ::= "if" <raw: variable> <statement> [ "else" <statement> ]+
+<if-block> ::= "if" <raw: variable> <statement> [ "else" <statement> ]

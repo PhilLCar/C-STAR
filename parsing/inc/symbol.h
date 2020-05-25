@@ -54,14 +54,28 @@ typedef struct stringsymbolstream {
   Array         *stack;
 } StringSymbolStream;
 
-Symbol       *sparse(char*, Parser*);
+typedef struct stream {
+  struct stream *stream;
+  Parser        *parser;
+  Array         *stack;
+  Symbol        *symbol;
+  Symbol*      (*gets)(struct stream*);
+  Symbol*      (*ungets)(Symbol*, struct stream*);
+} Stream;
+
+Symbol *sparse(char*, Parser*);
+Symbol *newSymbol(Symbol*);
+void    deleteSymbol(Symbol**);
+void    freesymbol(Symbol*);
+
+Stream *getStreamSS(SymbolStream*);
+Stream *getStreamSSS(StringSymbolStream*);
+void    closeStream(Stream*);
+
 SymbolStream *ssopen(char*, Parser*);
 void          ssclose(SymbolStream*);
 Symbol       *ssgets(SymbolStream*);
 void          ssungets(Symbol*, SymbolStream*);
-Symbol       *newSymbol(Symbol*);
-void          deleteSymbol(Symbol**);
-void          freesymbol(Symbol*);
 
 StringSymbolStream *sssopen(String*, Parser*);
 void                sssclose(StringSymbolStream*);

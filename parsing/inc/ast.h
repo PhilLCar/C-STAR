@@ -8,7 +8,7 @@
 #include <strings.h>
 #include <array.h>
 
-#define AST_LOCK    0
+#define AST_LOCK 0
 
 typedef enum aststatus {
   STATUS_NOSTATUS = 0,
@@ -17,7 +17,8 @@ typedef enum aststatus {
   STATUS_FAILED,
   STATUS_PARTIAL,
   STATUS_REC,
-  STATUS_SKIP
+  STATUS_SKIP,
+  STATUS_NULL
 } ASTStatus;
 
 typedef enum asterrortype {
@@ -44,15 +45,14 @@ typedef struct asterror {
 
 typedef struct astnode {
   String         *name;
+  String         *value;
   BNFNode        *ref;
   Array          *subnodes;
-  String         *value;
+  Symbol         *symbol;
   ASTStatus       status : 16;
   short           pointed;
   short           pos;
   short           rec;
-  int             sympos;
-  int             symline;
 } ASTNode;
 
 ASTNode *newASTNode(ASTNode*, BNFNode*);

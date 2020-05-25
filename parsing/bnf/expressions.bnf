@@ -1,14 +1,14 @@
 <forward: statement>
 <forward: type>
 
-// PRIORITY 20 LR
-<expression> ::= <expression> "," <pairing> | <pairing>
+// PRIORITY 20 RL
+<expression> ::= [ <type> ] <raw: variable> <expression> - <parent> | <sequence>
 
-// PRIORITY 19 RL
-<pairing> ::= <func-assoc> ":" <pairing> | <func-assoc>
+// PRIORITY 19 LR
+<sequence> ::= <sequence> "," <pairing> | <pairing>
 
 // PRIORITY 18 RL
-<func-assoc> ::= [ <type> ] <raw: variable> <assignment> - <parent> | <assignment>
+<pairing> ::= <assignment> ":" <pairing> | <assignment>
 
 // PRIORITY 17 RL
 <assignment> ::= <ternary> ( "="    | 
@@ -65,11 +65,11 @@
 <multiplicative> ::= <multiplicative> ( "*" | "/" | "%" ) <power> | <power>
 
 // PRIORITY 3 LR
-<power> ::= <power> "!^" <p2> | <p2>
+<power> ::= <power> ( "*^" | "/^" ) <p2> | <p2>
 
 // PRIORITY 2 RL
 <p2> ::= <prefix> | <unary> | <not> | <cast> | <deref> | <ref> | <p1>
-<prefix>  ::= ( "++" | "--" | "!*" | "!/" | "<:") <p1>
+<prefix>  ::= ( "++" | "--" | "+^" | "-^" | "<:") <p1>
 <unary>   ::= ( "+" | "-" ) <p1>
 <not>     ::= ( "!" | "~" ) <p1>
 <cast>    ::= "(" <type> ")" <p1>
