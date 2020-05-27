@@ -1,5 +1,9 @@
+#;; include ("parsing/bnf/preprocessor.bnf")
 #;; include ("parsing/bnf/program.bnf")
 
-<statement> ::= "{" { <statement> } "}" | <if-block> | <raw: variable>
-
-<if-block> ::= "if" <raw: variable> <statement> [ "else" <statement> ]
+<operation2> ::= <operation2> <operator2> <operation1> | <operation1>
+<operation1> ::= <operation1> <operator1> <operation0> | <operation0>
+<operation0> ::= <operator0> <raw: variable> | <raw: variable>
+<operator0>  ::= "~" | "-" | "!"
+<operator1>  ::= "^" | "&" | "|"
+<operator2>  ::= "*" | "/" | "%"

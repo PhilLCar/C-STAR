@@ -55,12 +55,12 @@ typedef struct stringsymbolstream {
 } StringSymbolStream;
 
 typedef struct stream {
-  struct stream *stream;
-  Parser        *parser;
-  Array         *stack;
-  Symbol        *symbol;
-  Symbol*      (*gets)(struct stream*);
-  Symbol*      (*ungets)(Symbol*, struct stream*);
+  void     *stream;
+  Parser   *parser;
+  Array    *stack;
+  Symbol   *symbol;
+  Symbol *(*gets)(void*);
+  Symbol *(*ungets)(Symbol*, void*);
 } Stream;
 
 Symbol *sparse(char*, Parser*);

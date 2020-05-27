@@ -47,10 +47,10 @@ typedef struct astnode {
   String         *name;
   String         *value;
   BNFNode        *ref;
-  Array          *subnodes;
   Symbol         *symbol;
+  Array          *subnodes;
   ASTStatus       status : 16;
-  short           pointed;
+  short           continuations;
   short           pos;
   short           rec;
 } ASTNode;
