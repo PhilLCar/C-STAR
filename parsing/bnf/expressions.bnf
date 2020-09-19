@@ -2,7 +2,7 @@
 <forward: type>
 
 // PRIORITY 20 RL
-<expression> ::= [ <type> ] <raw: variable> <expression> - <parent> | <sequence>
+<expression> ::= [ <type> ] <raw: variable> <expression> - <parent> - <unary> - <ref> - <deref> - <cast> | <sequence>
 
 // PRIORITY 19 LR
 <sequence> ::= <sequence> "," <pairing> | <pairing>
@@ -17,7 +17,10 @@
                              "*="   |
                              "/="   |
                              "%="   |
-                             "**="  |
+                             "+^="  |
+                             "-^="  |
+                             "*^="  |
+                             "/^="  |
                              "<<="  |
                              ">>="  |
                              ">>>=" |
@@ -79,8 +82,8 @@
 // PRIORITY 1 LR
 <p1> ::= <postfix> | <call> | <index> | <access> | <p-access> | <parent> | <list> | <array> | <lambda> | <value>
 <postfix>   ::= <expression> ( "++" | "--" | "!*" | "!/" | "!" | ":>")
-<call>      ::= <raw: variable> "(" <expression> ")"
-<index>     ::= ( <raw:variable> | <raw: string> ) "[" <expression> "]"
+<call>      ::= <expression> "(" [ <expression> ] ")"
+<index>     ::= <expression> "[" <expression> "]"
 <access>    ::= <expression> "."  <raw: variable>
 <p-access>  ::= <expression> "->" <raw: variable>
 <parent>    ::= "(" <expression> ")"

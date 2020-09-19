@@ -4,8 +4,8 @@
 <operation3> ::= <operation3> <operator3> <operation2> | <operation2>
 <operation2> ::= <operation2> <operator2> <operation1> | <operation1>
 <operation1> ::= <operation1> <operator1> <operation0> | <operation0>
-<operation0> ::= <operator0> <value> | <value>
-<value>      ::= <raw: variable> | <raw: integer> | <raw: decimal> | <raw: string> | <function> | <parent>
+<operation0> ::= <operator0> <operation0> | <value>
+<value>      ::= <function> | <parent> | <raw: variable> | <raw: integer> | <raw: decimal> | <raw: string>
 <function>   ::= <raw: variable> "(" [ <operation6> { "," <operation6> } ] ")"
 <parent>     ::= "(" <operation6> ")"
 <operator0>  ::= "~" | "-" | "!"

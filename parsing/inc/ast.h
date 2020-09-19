@@ -35,7 +35,8 @@ typedef enum astflags {
   ASTFLAGS_STARTED  = 4,
   ASTFLAGS_NOREC    = 8,
   ASTFLAGS_FRONT    = 16,
-  ASTFLAGS_END      = 32
+  ASTFLAGS_END      = 32,
+  ASTFLAGS_RECLVL   = 0xFF00
 } ASTFlags;
 
 typedef struct asterror {

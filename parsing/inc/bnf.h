@@ -37,11 +37,12 @@ typedef enum bnftype {
 
 typedef struct bnfnode {
   char    *name;
+  void    *content;
+  Array   *refs;
   BNFDef   def;
   BNFType  type;
-  void    *content;
   int      rec;
-  Array   *refs;
+  int      order;
 } BNFNode;
 
 BNFNode *parsebnf(char*);
