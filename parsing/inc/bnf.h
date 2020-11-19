@@ -42,7 +42,6 @@ typedef struct bnfnode {
   BNFDef   def;
   BNFType  type;
   int      rec;
-  int      order;
 } BNFNode;
 
 BNFNode *parsebnf(char*);

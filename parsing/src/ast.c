@@ -252,7 +252,7 @@ void astparsestream(ASTNode *ast, BNFNode *bnf, Array *rejected, ASTFlags flags,
       ast->status = STATUS_CONFIRMED;
       ast->pos = 0;
       astupnode(ast, *(ASTNode**)last(ast->subnodes));
-      printf("ok\n");
+      //printf("ok\n");
     }
     ast->continuations = ast->pos;
     ast->pos = 0;

@@ -1,4 +1,4 @@
-;; include ("parsing/bnf/preprocessor.bnf")
+;; include ("parsing/bnf/program.bnf")
 #;; include ("parsing/bnf/types.bnf")
 
 #<program1> ::= "if" <raw: constant> <raw: integer> [ "else" <raw: integer> ]

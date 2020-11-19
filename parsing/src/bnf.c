@@ -45,7 +45,6 @@ BNFNode *newBNFNode(BNFNode *basenode, char *name, BNFType type)
     node->type    = type;
     node->content = a;
     node->rec     = 0;
-    node->order   = 1;
     node->refs    = newArray(sizeof(void*));
   } else {
     if (node) free(node);
@@ -500,25 +499,6 @@ void linkbnf(BNFNode *basenode, Array* trace) {
   }
 }
 
-int orderbnf(BNFNode *node, Array *ordered) {
-  if (!ordered) ordered = newArray(sizeof(BNFNode*));
-  if (!in(ordered, &node)) {
-    if (node->type != NODE_RAW && node->type != NODE_LEAF) {
-      push(ordered, &node);
-      Array *a = node->content;
-      int max = 1;
-      for (int i = 0; i < a->size; i++) {
-        int tmp = orderbnf(*(BNFNode**)at(a, i), ordered);
-        if (tmp > max) max = tmp;
-      }
-      node->order = max + 1;
-      pop(ordered);
-    }
-  }
-  if (!ordered->size) deleteArray(&ordered);
-  return node->order;
-}
-
 
 BNFNode *parsebnf(char *filename) 
 {
@@ -535,7 +515,6 @@ BNFNode *parsebnf(char *filename)
   parsebnfnode(filename, parser, basenode, trace, includes);
   push(trace, &filename);
   linkbnf(basenode, trace);
-  orderbnf(basenode, NULL);
   
   deleteParser(&parser);
   deleteArray(&trace);
