@@ -1,6 +1,6 @@
 ;; include ("parsing/bnf/preprocessor.bnf")
 #;; include ("parsing/bnf/types.bnf")
 
-<program1> ::= "if" <operation6> [ <raw: newline> ] <operation6> [ [ <raw: newline> ] "else" <operation6> ]
+#<program1> ::= "if" <raw: constant> <raw: integer> [ "else" <raw: integer> ]
 
 #<statement> ::= <expression>

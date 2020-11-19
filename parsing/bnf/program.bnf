@@ -8,20 +8,20 @@
 <statement> ::= <block> | <special-blocks> | <address> <statement> /*| <class-decl> | <operator-assoc>*/ 
 
 <block>       ::= <line> | "{" { <statement> } "}"
-<line>        ::= ( <expression> | <declaration> | <control> ) ( ";" | <raw: newline> ) | ";"
-<declaration> ::= <type> ( <expression> - <call> | <prototype> )
-<prototype>   ::= <raw:variable> "(" [ <type> <raw: variable> { "," <type> <raw: variable> } ] ")"
+<line>        ::= ( <expression> | <declaration> | <control> ) [ ";" ]
+<declaration> ::= <type> ( <expression> | <prototype> )
+<prototype>   ::= <raw:variable> "(" [ <type> [ <raw: variable> ] { "," <type> [ <raw: variable> ] } ] ")"
 <control>     ::= "goto" <raw: variable> | "break" [ <sequence> ] | "continue" [ <sequence> ] | "finish" [ <sequence> ]
 
 <special-blocks> ::= <if-block> | <switch-block> | <loop-block>
 <do-block>       ::= "do" <statement>
-<if-block>       ::= "if" <sequence> [ <raw: newline> ] <statement> [ "else" <statement> ]
+<if-block>       ::= "if" <sequence> <statement> [ "else" <statement> ]
 <loop-block>     ::= [ <do-block> ] ( <while-block> | <for-block> | <foreach-block> | <metafor-block> )
-<while-block>    ::= "while" <sequence> [ <raw: newline> ] <statement>
+<while-block>    ::= "while" <sequence> <statement>
 <for-block>      ::= "for" "(" [ <expression> | <declaration> ] ";" [ <expression> ] ";" [ <expression> ] ")" <statement>
-<foreach-block>  ::= "for" "each" "(" <sequence> ( "in" | "of" | "from" ) <sequence> ")" <statement>
-<switch-block>   ::= "switch" <sequence> [ <raw: newline> ] "{" { <switch-label> ":" { <statement> } } "}"
-<metafor-block> ::= [ <do-block> ] "meta" "for" "(" [ <declaration> ] "in" <sequence> ")" <block>
+<foreach-block>  ::= "for" "each" "(" [ <expression> | <declaration> ] ( "in" | "of" | "from" ) <expression> ")" <statement>
+<switch-block>   ::= "switch" <sequence> "{" { <switch-label> ":" { <statement> } } "}"
+<metafor-block> ::= [ <do-block> ] "meta" "for" "(" [ <expression> | <declaration> ] "in" <expression> ")" <block>
 # var[10, 10, 10] a;
 #
 # metafor (var x in a) {
@@ -31,5 +31,5 @@
 # 	a[meta x] = wtv;
 # }
 
-<address>      ::= <raw: variable> ":" <raw: newline>
-<switch-label> ::= ( "case" <expression> | "default" ) ":" [ <raw: newline> ]
+<address>      ::= <raw: variable> ":"
+<switch-label> ::= ( "case" <expression> | "default" ) ":"

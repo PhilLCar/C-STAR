@@ -45,6 +45,7 @@ int main() {
   deleteArray(&ints);
   
   CHECK_MEMORY;
+  STOP_WATCHING;
 
   return 0;
 }

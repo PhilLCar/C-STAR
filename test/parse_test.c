@@ -38,6 +38,7 @@ int main(void) {
   free(aboutc);
 
   CHECK_MEMORY;
+  STOP_WATCHING;
 
   return 0;
 }

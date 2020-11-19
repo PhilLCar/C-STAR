@@ -9,7 +9,7 @@
                                           <pair-type>      |
                                           <raw: new-type> ) [ <dimension> ]
 <integer-type> ::= ([ "unsigned" ] ( "byte" | "short" | "int" | "long" )) | "integer"
-<decimal-type> ::= "mini" | "float" | "double" | "decimal"
+<decimal-type> ::= "half" | "float" | "double" | "decimal"
 <boolean-type> ::= "bool"
 <character-type> ::= "char" | "utf16" | "utf32"
 <string-type> ::= "string" | "string16" | "string32"

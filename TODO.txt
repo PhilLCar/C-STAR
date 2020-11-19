@@ -6,3 +6,5 @@
 - Fix leftmost expansion
 - Regularize AST
 - REDESIGN AST to have a lookahead symbol
+- Include "self" keyword to reference own function within itself
+- Symbol stream must take into account special types like 0.f or 32Ub

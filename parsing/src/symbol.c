@@ -224,7 +224,7 @@ int nextsymbol(TrackedEntity *te, char (*tegetc)(void*), void (*teungetc)(char, 
           symbol->open   = malloc((parser->lookahead + 1) * sizeof(char));
           symbol->close  = malloc((parser->lookahead + 1) * sizeof(char));
           if (symbol->open != NULL && symbol->close != NULL) {
-            memcpy(symbol->open,  parser->strings[tmp],     ws                                  + 1);
+            memcpy(symbol->open,  parser->strings[tmp],     ws                               + 1);
             memcpy(symbol->close, parser->strings[tmp + 1], strlen(parser->strings[tmp + 1]) + 1);
           } else {
             goto next_fail;

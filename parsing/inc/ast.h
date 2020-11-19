@@ -57,8 +57,8 @@ typedef struct astnode {
 } ASTNode;
 
 ASTNode *newASTNode(ASTNode*, BNFNode*);
-void     astnewsymbol(ASTNode*, BNFNode*, ASTFlags, Symbol*);
-ASTNode *parseast(char*);
 void     deleteAST(ASTNode**);
+void     astparsestream(ASTNode*, BNFNode*, Array*, ASTFlags, Stream*);
+ASTNode *parseast(char*);
 
 #endif

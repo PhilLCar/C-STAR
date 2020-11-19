@@ -102,5 +102,6 @@ int main() {
   printnode(n, "", 0, 0, 0);
   deleteBNFTree(&n);
   CHECK_MEMORY;
+  STOP_WATCHING;
   return 0;
 }

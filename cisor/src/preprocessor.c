@@ -596,25 +596,15 @@ int preprocessfile(char *filename, Array *incpath, Array *trace, PPEnv *ppenv, i
         } else {
           exp = ppexpandmacro(ppenv, expr, trace, 1);
           if (exp) {
-            StringSymbolStream *sss = sssopen(exp, ppenv->parser);
-            while (valid && (s = sssgets(sss))->type != SYMBOL_EOF) {
-              astnewsymbol(ast, ppenv->tree, ASTFLAGS_NONE, NULL);
-              astnewsymbol(ast, ppenv->tree, ASTFLAGS_NONE, s);
-              if (ast->status == STATUS_FAILED) {
-                s->line     += t->line;
-                s->position += t->position;
-                printsymbolmessage(ERRLVL_ERROR, trace, s, "Badely formatted expression!");
-                valid = 0;
-              }
-            }
-            astnewsymbol(ast, ppenv->tree, ASTFLAGS_END, NULL);
-            if (ast->status != STATUS_CONFIRMED) {
-                s->line     += t->line;
-                s->position += t->position;
-              printsymbolmessage(ERRLVL_ERROR, trace, s, "Badely formatted expression!");
+            Stream *stream = getStreamSSS(sssopen(exp, ppenv->parser));
+            astparsestream(ast, ppenv->tree, NULL, ASTFLAGS_NONE, stream);
+            if (stream->symbol->type != SYMBOL_EOF || ast->status == STATUS_FAILED) {
+              stream->symbol->line     += t->line;
+              stream->symbol->position += t->position;
+              printsymbolmessage(ERRLVL_ERROR, trace, stream->symbol, "Unexpected symbol!");
               valid = 0;
             }
-            sssclose(sss);
+            closeStream(stream);
             deleteString(&exp);
           } else valid = 0;
         }
@@ -648,25 +638,15 @@ int preprocessfile(char *filename, Array *incpath, Array *trace, PPEnv *ppenv, i
         } else {
           exp = ppexpandmacro(ppenv, expr, trace, 1);
           if (exp) {
-            StringSymbolStream *sss = sssopen(exp, ppenv->parser);
-            while (valid && (s = sssgets(sss))->type != SYMBOL_EOF) {
-              astnewsymbol(ast, ppenv->tree, ASTFLAGS_NONE, NULL);
-              astnewsymbol(ast, ppenv->tree, ASTFLAGS_NONE, s);
-              if (ast->status == STATUS_FAILED) {
-                s->line     += t->line;
-                s->position += t->position;
-                printsymbolmessage(ERRLVL_ERROR, trace, s, "Badely formatted expression!");
-                valid = 0;
-              }
-            }
-            astnewsymbol(ast, ppenv->tree, ASTFLAGS_END, NULL);
-            if (ast->status != STATUS_CONFIRMED) {
-                s->line     += t->line;
-                s->position += t->position;
-              printsymbolmessage(ERRLVL_ERROR, trace, s, "Badely formatted expression!");
+            Stream *stream = getStreamSSS(sssopen(exp, ppenv->parser));
+            astparsestream(ast, ppenv->tree, NULL, ASTFLAGS_NONE, stream);
+            if (stream->symbol->type != SYMBOL_EOF || ast->status == STATUS_FAILED) {
+              stream->symbol->line     += t->line;
+              stream->symbol->position += t->position;
+              printsymbolmessage(ERRLVL_ERROR, trace, stream->symbol, "Unexpected symbol!");
               valid = 0;
             }
-            sssclose(sss);
+            closeStream(stream);
             deleteString(&exp);
           } else valid = 0;
         }

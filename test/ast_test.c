@@ -85,5 +85,6 @@ int main()
   printnode(n, "", 0, 0);
   deleteAST(&n);
   CHECK_MEMORY;
+  STOP_WATCHING;
   return 0;
 }

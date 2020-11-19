@@ -1,17 +1,14 @@
 <forward: statement>
 <forward: type>
 
-// PRIORITY 20 RL
-<expression> ::= [ <type> ] <raw: variable> <expression> - <parent> - <unary> - <ref> - <deref> - <cast> | <sequence>
+// PRIORITY 19 RL
+<expression> ::= <sequence> <expression> | <sequence>
 
-// PRIORITY 19 LR
-<sequence> ::= <sequence> "," <pairing> | <pairing>
-
-// PRIORITY 18 RL
-<pairing> ::= <assignment> ":" <pairing> | <assignment>
+// PRIORITY 18 LR
+<sequence> ::= <sequence> "," <assignment> | <assignment>
 
 // PRIORITY 17 RL
-<assignment> ::= <ternary> ( "="    | 
+<assignment> ::= <pairing> ( "="    | 
                              "+="   |
                              "-="   |
                              "*="   |
@@ -21,6 +18,7 @@
                              "-^="  |
                              "*^="  |
                              "/^="  |
+                             "<<<=" |
                              "<<="  |
                              ">>="  |
                              ">>>=" |
@@ -29,7 +27,10 @@
                              "&="   |
                              "^="   |
                              "|="   |
-                             "~=") <assignment> | <ternary>
+                             "~=") <assignment> | <pairing>
+
+// PRIORITY 16 RL
+<pairing> ::= <ternary> "::" <pairing> | <ternary>
 
 // PRIORITY 15 RL
 <ternary> ::= <ternary> "?" <log-or> ":" <log-or> | <log-or>
@@ -59,7 +60,7 @@
 <relational> ::= <relational> ( "<" | ">" | "<=" | ">=" ) <shift> | <shift>
 
 // PRIORITY 6 LR
-<shift> ::= <shift> ( "<<" | ">>" | ">>>" | "|>" | "<|" ) <additive> | <additive>
+<shift> ::= <shift> ( "<<<" | "<<" | ">>" | ">>>" | "|>" | "<|" ) <additive> | <additive>
 
 // PRIORITY 5 LR
 <additive> ::= <additive> ( "+" | "-" ) <multiplicative> | <multiplicative>
@@ -72,25 +73,25 @@
 
 // PRIORITY 2 RL
 <p2> ::= <prefix> | <unary> | <not> | <cast> | <deref> | <ref> | <p1>
-<prefix>  ::= ( "++" | "--" | "+^" | "-^" | "<:") <p1>
-<unary>   ::= ( "+" | "-" ) <p1>
-<not>     ::= ( "!" | "~" ) <p1>
-<cast>    ::= "(" <type> ")" <p1>
-<deref>   ::= "*" <p1>
-<ref>     ::= "&" <p1>
+<prefix>  ::= ( "++" | "--" | "+^" | "-^" | "<:") <p2>
+<unary>   ::= ( "+" | "-" ) <p2>
+<not>     ::= ( "!" | "~" ) <p2>
+<cast>    ::= "(" <type> ")" <p2>
+<deref>   ::= "*" <p2>
+<ref>     ::= "&" <p2>
 
 // PRIORITY 1 LR
 <p1> ::= <postfix> | <call> | <index> | <access> | <p-access> | <parent> | <list> | <array> | <lambda> | <value>
-<postfix>   ::= <expression> ( "++" | "--" | "!*" | "!/" | "!" | ":>")
-<call>      ::= <expression> "(" [ <expression> ] ")"
-<index>     ::= <expression> "[" <expression> "]"
-<access>    ::= <expression> "."  <raw: variable>
-<p-access>  ::= <expression> "->" <raw: variable>
+<postfix>   ::= <p1> ( "++" | "--" | "!*" | "!/" | "!" | ":>")
+<call>      ::= <p1> "(" [ <expression> ] ")"
+<index>     ::= <p1> "[" <expression> "]"
+<access>    ::= <p1> "."  <raw: variable>
+<p-access>  ::= <p1> "->" <raw: variable>
 <parent>    ::= "(" <expression> ")"
 <list>      ::= "[" [ <expression> ] "]"
 <array>     ::= "{" [ <expression> ] "}"
 <lambda>    ::= "(" [ <parameter> { "," <parameter> } ] ")" "{" { <statement> } "}"
-<parameter> ::= [ <type> ] <expression>
+<parameter> ::= [ <type> ] <raw: variable> [ "=" <expression> ]
 
 // BASE VALUE
 <value> ::= <raw: variable> | <raw: string> | <raw: integer> | <raw: decimal> | <raw: constant>
