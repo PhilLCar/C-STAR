@@ -1,0 +1,2 @@
+﻿  ast_test.c
+d:\program\c-star\utils\inc\error.h(12): fatal error C1083: Cannot open include file: 'macro.h': No such file or directory

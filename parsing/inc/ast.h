@@ -40,7 +40,7 @@ typedef enum astflags {
 } ASTFlags;
 
 typedef struct asterror {
-  ASTErrorType  errno;
+  ASTErrorType  errnum;
   BNFNode      *bnfref;
 } ASTError;
 
