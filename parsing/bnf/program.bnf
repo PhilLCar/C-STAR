@@ -21,7 +21,7 @@
 <for-block>      ::= "for" "(" [ <expression> | <declaration> ] ";" [ <expression> ] ";" [ <expression> ] ")" <statement>
 <foreach-block>  ::= "for" "each" "(" [ <expression> | <declaration> ] ( "in" | "of" | "from" ) <expression> ")" <statement>
 <switch-block>   ::= "switch" <sequence> "{" { <switch-label> ":" { <statement> } } "}"
-<metafor-block> ::= [ <do-block> ] "meta" "for" "(" [ <expression> | <declaration> ] "in" <expression> ")" <block>
+<metafor-block>  ::= [ <do-block> ] "meta" "for" "(" [ <expression> | <declaration> ] "in" <expression> ")" <block>
 # var[10, 10, 10] a;
 #
 # metafor (var x in a) {

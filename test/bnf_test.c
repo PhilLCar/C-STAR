@@ -4,6 +4,10 @@
 #include <bnf.h>
 #include <terminal.h>
 
+#ifdef WIN32
+#include <windows.h>
+#endif
+
 #define BRANCH    "│"
 #define NODE      "├"
 #define LAST_NODE "└"
@@ -97,6 +101,9 @@ void printnode(BNFNode *n, char *s, int base, int lvl, int last) {
 }
 
 int main() {
+  #ifdef WIN32
+  SetConsoleOutputCP(CP_UTF8);
+  #endif
   BNFNode *n = parsebnf("parsing/bnf/test.bnf");
   CHECK_MEMORY;
   printnode(n, "", 0, 0, 0);
