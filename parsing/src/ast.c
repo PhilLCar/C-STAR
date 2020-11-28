@@ -20,7 +20,6 @@ ASTNode *newASTNode(ASTNode *ast, BNFNode *bnf)
     new->status        = STATUS_NOSTATUS;
     new->continuations = 0;
     new->pos           = 0;
-    new->rec           = 0;
     if (ast) push(ast->subnodes, &new);
   }
   return new;
@@ -117,7 +116,7 @@ void astparsestream(ASTNode *ast, BNFNode *bnf, Array *rejected, ASTFlags flags,
       case NODE_ROOT:
       case NODE_REC:
       case NODE_CONCAT:
-        /// UNIMPLEMENTED
+        /// NOT APPLICABLE
         break;
       case NODE_NOT:
         if (!rejected) rejected = newArray(sizeof(BNFNode*));
@@ -193,7 +192,6 @@ void astparsestream(ASTNode *ast, BNFNode *bnf, Array *rejected, ASTFlags flags,
         subast = newASTNode(ast, NULL);
         for (int i = 0, f = bnf->name[0] ? flags | ASTFLAGS_FRONT : flags; i < size; i++) {
           subbnf = *(BNFNode**)at(bnf->content, i);
-          subast->rec = subbnf->refs->size;
           if (rejected && in(rejected, &subbnf)) continue;
           astparsestream(subast, subbnf, rejected, f, s);
           if (subast->status == STATUS_CONFIRMED) {
@@ -201,7 +199,7 @@ void astparsestream(ASTNode *ast, BNFNode *bnf, Array *rejected, ASTFlags flags,
               deleteString(&subast->name);
               subast->name = newString(bnf->name);
             }
-            subast->ref    = bnf; // Maybe to be deleted eventually
+            subast->ref = bnf; // Maybe to be deleted eventually
             ast->status = STATUS_CONFIRMED;
             break;
           } else if (subast->status == STATUS_NULL) {
@@ -224,7 +222,6 @@ void astparsestream(ASTNode *ast, BNFNode *bnf, Array *rejected, ASTFlags flags,
           subast = newASTNode(ast, NULL);
           for (int i = 0; i < size; i++) {
             subbnf = *(BNFNode**)at(bnf->content, i);
-            subast->rec = subbnf->refs->size;
             if (rejected && in(rejected, &subbnf)) continue;
             astparsestream(subast, subbnf, rejected, bnf->name[0] ? flags | ASTFLAGS_FRONT : flags, s);
             if (subast->status == STATUS_CONFIRMED) {
@@ -247,13 +244,13 @@ void astparsestream(ASTNode *ast, BNFNode *bnf, Array *rejected, ASTFlags flags,
     if (ast->continuations && !ast->pos && ast->subnodes->size == 1) {
       ast->status = STATUS_CONFIRMED;
       astupnode(ast, *(ASTNode**)last(ast->subnodes));
-    } else if (ast->continuations && ast->status == STATUS_FAILED && ast->subnodes->size == 1) {
-      /// TEMPORARY: the first case should handle every case
-      ast->status = STATUS_CONFIRMED;
-      ast->pos = 0;
-      astupnode(ast, *(ASTNode**)last(ast->subnodes));
-      //printf("ok\n");
-    }
+    }// else if (ast->continuations && ast->status == STATUS_FAILED && ast->subnodes->size == 1) {
+    //   /// TEMPORARY: the first case should handle every case
+    //   ast->status = STATUS_CONFIRMED;
+    //   ast->pos = 0;
+    //   astupnode(ast, *(ASTNode**)last(ast->subnodes));
+    //   //printf("ok\n");
+    // }
     ast->continuations = ast->pos;
     ast->pos = 0;
     flags |= ASTFLAGS_REC;

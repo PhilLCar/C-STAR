@@ -50,10 +50,9 @@ typedef struct astnode {
   BNFNode        *ref;
   Symbol         *symbol;
   Array          *subnodes;
-  ASTStatus       status : 16;
-  short           continuations;
-  short           pos;
-  short           rec;
+  ASTStatus       status;
+  int             continuations;
+  int             pos;
 } ASTNode;
 
 ASTNode *newASTNode(ASTNode*, BNFNode*);
