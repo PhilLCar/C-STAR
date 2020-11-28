@@ -8,7 +8,7 @@
 <statement> ::= <block> | <special-blocks> | <address> <statement> /*| <class-decl> | <operator-assoc>*/ 
 
 <block>       ::= <line> | "{" { <statement> } "}"
-<line>        ::= ( <expression> | <declaration> | <control> ) [ ";" ]
+<line>        ::= [ <expression> | <declaration> | <control> ] ( ";" | ";" <raw: newline> | <raw: newline> )
 <declaration> ::= <type> ( <expression> | <prototype> )
 <prototype>   ::= <raw:variable> "(" [ <type> [ <raw: variable> ] { "," <type> [ <raw: variable> ] } ] ")"
 <control>     ::= "goto" <raw: variable> | "break" [ <sequence> ] | "continue" [ <sequence> ] | "finish" [ <sequence> ]
