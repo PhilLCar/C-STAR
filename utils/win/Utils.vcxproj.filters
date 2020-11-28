@@ -1,0 +1,48 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source">
+      <UniqueIdentifier>{51616003-8784-47dd-a903-e8c07288c28b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Include">
+      <UniqueIdentifier>{8a9769e8-89d3-46f3-87e5-251eae86db20}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\src\array.c">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\diagnostic.c">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\error.c">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\raw.c">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\strings.c">
+      <Filter>Source</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\inc\array.h">
+      <Filter>Include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\inc\diagnostic.h">
+      <Filter>Include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\inc\error.h">
+      <Filter>Include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\inc\raw.h">
+      <Filter>Include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\inc\strings.h">
+      <Filter>Include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\inc\terminal.h">
+      <Filter>Include</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>

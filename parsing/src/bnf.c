@@ -199,7 +199,7 @@ int parsebnfstatement(SymbolStream *ss, BNFNode *basenode, BNFNode *parent, Arra
   int oplast = 0, ret = 1, concat = 0;
   Symbol  *s;
   BNFNode *subnode = newBNFNode(basenode, "", NODE_LIST);
-  Array   *content;
+  Array   *content = NULL;
   push(parent->content, &subnode);
 
   do {
@@ -354,7 +354,7 @@ int parsebnfstatement(SymbolStream *ss, BNFNode *basenode, BNFNode *parent, Arra
     }
   } while(ret);
 
-  if (!content->size) {
+  if (content && !content->size) {
     printsymbolmessage(ERRLVL_WARNING, trace, s, "Empty group ignored");
     deleteBNFNode(pop(parent->content));
   } else if (content->size == 1) {

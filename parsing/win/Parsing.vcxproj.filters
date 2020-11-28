@@ -1,0 +1,95 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Resources">
+      <UniqueIdentifier>{486538f6-c93f-4487-935e-ccb1d3aa7f6b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Resources\BNF">
+      <UniqueIdentifier>{5aaaf765-98a1-4051-af90-664e39f7f8f1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Resources\PRS">
+      <UniqueIdentifier>{a68a7ad4-f75f-46a8-8139-4301ddbde326}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source">
+      <UniqueIdentifier>{74ac46d5-a723-44ff-b793-a54a9e7a55ae}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Include">
+      <UniqueIdentifier>{feb4c677-5c8c-4753-84c0-32cb56baee1c}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\bnf\decimals.bnf">
+      <Filter>Resources\BNF</Filter>
+    </None>
+    <None Include="..\bnf\digits.bnf">
+      <Filter>Resources\BNF</Filter>
+    </None>
+    <None Include="..\bnf\expressions.bnf">
+      <Filter>Resources\BNF</Filter>
+    </None>
+    <None Include="..\bnf\integers.bnf">
+      <Filter>Resources\BNF</Filter>
+    </None>
+    <None Include="..\bnf\preprocessor.bnf">
+      <Filter>Resources\BNF</Filter>
+    </None>
+    <None Include="..\bnf\program.bnf">
+      <Filter>Resources\BNF</Filter>
+    </None>
+    <None Include="..\bnf\raw.bnf">
+      <Filter>Resources\BNF</Filter>
+    </None>
+    <None Include="..\bnf\test.bnf">
+      <Filter>Resources\BNF</Filter>
+    </None>
+    <None Include="..\bnf\types.bnf">
+      <Filter>Resources\BNF</Filter>
+    </None>
+    <None Include="..\prs\bnf.prs">
+      <Filter>Resources\PRS</Filter>
+    </None>
+    <None Include="..\prs\csr.prs">
+      <Filter>Resources\PRS</Filter>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\src\ast.c">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\bnf.c">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\generic_parser.c">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\symbol.c">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\tracked_file.c">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\tracked_string.c">
+      <Filter>Source</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\inc\ast.h">
+      <Filter>Include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\inc\bnf.h">
+      <Filter>Include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\inc\generic_parser.h">
+      <Filter>Include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\inc\symbol.h">
+      <Filter>Include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\inc\tracked_file.h">
+      <Filter>Include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\inc\tracked_string.h">
+      <Filter>Include</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>
