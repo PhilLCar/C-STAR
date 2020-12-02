@@ -11,8 +11,7 @@
 typedef enum aststatus {
   STATUS_FAILED = 0,
   STATUS_CONFIRMED,
-  STATUS_PARTIAL,
-  STATUS_NULL
+  STATUS_PARTIAL
 } ASTStatus;
 
 typedef enum astflags {
