@@ -32,4 +32,4 @@
 # }
 
 <address>      ::= <raw: variable> ":"
-<switch-label> ::= ( "case" <expression> | "default" ) ":"
+<switch-label> ::= ( "case" <sequence> | "default" ) ":"

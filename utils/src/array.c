@@ -109,13 +109,15 @@ void *rem(Array *array, int index)
   void *rem = NULL;
   if (index >= 0 && index < array->size) {
     void *tmp = malloc(array->element_size);
-    memcpy(tmp, (char*)array->content + (index * array->element_size), array->element_size);
-    memcpy((char*)array->content + (index       * array->element_size),
-           (char*)array->content + ((index + 1) * array->element_size),
-           (array->size - index) * array->element_size);
-    rem = (char*)array->content + (--array->size * array->element_size);
-    memcpy(rem, tmp, array->element_size);
-    free(tmp);
+    if (tmp) {
+      memcpy(tmp, (char*)array->content + (index * array->element_size), array->element_size);
+      memcpy((char*)array->content + (index       * array->element_size),
+             (char*)array->content + ((index + 1) * array->element_size),
+             (array->size - index) * array->element_size);
+      rem = (char*)array->content + (--array->size * array->element_size);
+      memcpy(rem, tmp, array->element_size);
+      free(tmp);
+    }
   }
   return rem;
 }

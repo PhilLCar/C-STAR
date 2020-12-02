@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.28307.106
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.29613.14
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Parsing", "..\parsing\win\Parsing.vcxproj", "{A91D5FD5-6838-4BD3-976B-EA37AF0B95A7}"
 EndProject
@@ -14,8 +14,24 @@ EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "BNFTest", "..\test\win\BNFTest\BNFTest.vcxproj", "{93FBCAD7-B0DE-4495-A6ED-A5F0BDCC4336}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ASTTest", "..\test\win\ASTTest\ASTTest.vcxproj", "{458BA0ED-F5F2-4449-A49D-CCC398CF109E}"
+	ProjectSection(ProjectDependencies) = postProject
+		{A91D5FD5-6838-4BD3-976B-EA37AF0B95A7} = {A91D5FD5-6838-4BD3-976B-EA37AF0B95A7}
+		{B99D3EEB-FE05-4E5E-97A2-08045E55B7CC} = {B99D3EEB-FE05-4E5E-97A2-08045E55B7CC}
+	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Utils", "..\utils\win\Utils.vcxproj", "{B99D3EEB-FE05-4E5E-97A2-08045E55B7CC}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Resources", "Resources", "{2AA96763-60BF-4FD5-A339-A1EACF5D8A76}"
+	ProjectSection(SolutionItems) = preProject
+		..\unit-tests\include-test.csr = ..\unit-tests\include-test.csr
+		..\unit-tests\include-test.hsr = ..\unit-tests\include-test.hsr
+		..\unit-tests\include-test.msr = ..\unit-tests\include-test.msr
+		..\unit-tests\include-test.psr = ..\unit-tests\include-test.psr
+		..\unit-tests\preprocessor-test.csr = ..\unit-tests\preprocessor-test.csr
+		..\unit-tests\preprocessor-test.hsr = ..\unit-tests\preprocessor-test.hsr
+		..\unit-tests\simple-add.csr = ..\unit-tests\simple-add.csr
+		..\unit-tests\test.csr = ..\unit-tests\test.csr
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -81,6 +97,7 @@ Global
 		{379D9959-EFB6-421F-BF6C-164C1BBF0FEF} = {716EEF8F-A406-4BA2-855F-DD02A447D7CF}
 		{93FBCAD7-B0DE-4495-A6ED-A5F0BDCC4336} = {716EEF8F-A406-4BA2-855F-DD02A447D7CF}
 		{458BA0ED-F5F2-4449-A49D-CCC398CF109E} = {716EEF8F-A406-4BA2-855F-DD02A447D7CF}
+		{2AA96763-60BF-4FD5-A339-A1EACF5D8A76} = {716EEF8F-A406-4BA2-855F-DD02A447D7CF}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {75416558-215E-4807-B59F-DD01B42FEC10}

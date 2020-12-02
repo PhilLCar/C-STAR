@@ -2,7 +2,7 @@
 <forward: type>
 
 // PRIORITY 19 RL
-<expression> ::= <sequence> | <sequence> <expression>
+<expression> ::= <sequence> [ <expression> ]
 
 // PRIORITY 18 LR
 <sequence> ::= <sequence> "," <assignment> | <assignment>
