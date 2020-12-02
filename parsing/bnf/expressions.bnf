@@ -8,7 +8,7 @@
 <sequence> ::= <sequence> "," <assignment> | <assignment>
 
 // PRIORITY 17 RL
-<assignment> ::= <pairing> ( "="    | 
+<assignment> ::= <pairing> ( "="    |
                              "+="   |
                              "-="   |
                              "*="   |
