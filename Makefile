@@ -22,7 +22,11 @@ PARSING=$(OBJECTS)/symbol.o         \
         $(OBJECTS)/bnf.o            \
         $(OBJECTS)/ast.o
 CISOR  =$(OBJECTS)/preprocessor.o \
-        $(OBJECTS)/macro.o
+        $(OBJECTS)/macro.o        \
+				$(OBJECTS)/intermediate.o \
+				$(OBJECTS)/cisor.o
+
+cisor: $(BINARIES)/cisor
 
 test: parse-test array-test bnf-test ast-test preprocessor-test
 
