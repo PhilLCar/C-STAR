@@ -344,7 +344,7 @@ int preprocessfile(char *filename, Array *incpath, Array *trace, PPEnv *ppenv, i
     return 0;
   }
 
-  SymbolStream *ss      = ssopen(filename, ppenv->parser);
+  SymbolStream *ss      = search ? NULL : ssopen(filename, ppenv->parser);
   Symbol       *s;
   char          error[1024];
   char         *ext     = fileext(filename);
@@ -743,11 +743,11 @@ int preprocessfile(char *filename, Array *incpath, Array *trace, PPEnv *ppenv, i
   return valid;
 }
 
-void preprocess(char *filename, Array *incpath)
+void preprocess(Options *options)
 {
   char  ppfile[INCLUDE_MAX_FILE_LENGTH];
   char  metafile[INCLUDE_MAX_FILE_LENGTH];
-  char *woext = filenamewoext(filename);
+  char *woext = filenamewoext(options->output);
   sprintf(ppfile,   "%s.psr", woext);
   sprintf(metafile, "%s.msr", woext);
   free(woext);
@@ -768,7 +768,10 @@ void preprocess(char *filename, Array *incpath)
   ppenv.stack      = stack;
   ppenv.tree       = *(BNFNode**)at(tree->content, 0);
 
-  preprocessfile(filename, incpath, trace, &ppenv, 0);
+
+  for (int i = 0; i < options->inputs->size; i++) {
+    preprocessfile(*(char**)at(options->inputs, i), options->includepath, trace, &ppenv, 0);
+  }
 
   for (int i = 0; i < env->size; i++) {
     freemacro(at(env, i));

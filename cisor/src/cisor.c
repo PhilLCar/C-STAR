@@ -65,15 +65,15 @@ void printversion() {
 void printhelp(char *name) {
   printf("Usage: %s [options] files...\n", name);
   printf("Options:\n");
-  printf("  -v, --version              Display the compiler version information.\n");
-  printf("  -h, --help                 Display this information.\n");
-  printf("  -g, --debug                Debug symbols.\n");
-  printf("  -o                         Specify output file.\n");
-  printf("  -I<path>                   Add path to include directory.\n");
-  printf("  -D<variable>               Defined a variable for the preprocessor.\n");
-  printf("  -E, -e                     Preprocess only.\n");
-  printf("  -S, -s                     Preprocess and compile only.\n");
-  printf("  -C, -c                     Preprocess, compile and assemble only.\n");
+  printf("  -v, --version        Display the compiler version information.\n");
+  printf("  -h, --help           Display this information.\n");
+  printf("  -g, --debug          Debug symbols.\n");
+  printf("  -o                   Specify output file.\n");
+  printf("  -I<path>             Add path to include directory.\n");
+  printf("  -D<variable>         Defined a variable for the preprocessor.\n");
+  printf("  -E, -e               Preprocess only.\n");
+  printf("  -S, -s               Preprocess and compile only.\n");
+  printf("  -C, -c               Preprocess, compile and assemble only.\n");
 }
 
 int main(int argc, char *argv[]) {

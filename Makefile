@@ -23,8 +23,7 @@ PARSING=$(OBJECTS)/symbol.o         \
         $(OBJECTS)/ast.o
 CISOR  =$(OBJECTS)/preprocessor.o \
         $(OBJECTS)/macro.o        \
-				$(OBJECTS)/intermediate.o \
-				$(OBJECTS)/cisor.o
+				$(OBJECTS)/intermediate.o
 
 cisor: $(BINARIES)/cisor
 

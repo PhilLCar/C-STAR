@@ -7,6 +7,7 @@
 #include <array.h>
 #include <bnf.h>
 #include <parser.h>
+#include <cisor.h>
 
 #define INCLUDE_MAX_DEPTH         128
 #define INCLUDE_MAX_FILE_LENGTH  1024
@@ -33,6 +34,6 @@ typedef struct ppresult {
   void   *value;
 } PPResult;
 
-void preprocess(char *filename, Array *includepath);
+void preprocess(Options *options);
 
 #endif
