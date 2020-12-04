@@ -140,6 +140,8 @@ BNFNode *parsebnfname(SymbolStream *ss, BNFNode *basenode, Array *trace, BNFDef 
             node->content = (void*)SYMBOL_CONSTANT;
           } else if (!strcmp(s->text, "new-type")) {
             node->content = NULL;
+          } else if (!strcmp(s->text, "no-newline")) {
+            node->content = (void*)SYMBOL_NO_NEWLINE;
           }
         }
       } else {

@@ -46,6 +46,7 @@ string
 char
 variable
 newline
+no-newline
 constant
 new-type
 

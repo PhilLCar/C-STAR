@@ -96,7 +96,6 @@ ASTStatus astparsestream(ASTNode *ast, BNFNode *bnf, Array *rejected, ASTFlags f
   ASTFlags   nflags;
   ASTStatus  status  = STATUS_FAILED;
   Symbol    *symbol  = s->symbol;
-  Symbol    *newline = NULL;
   int        size    = 0;
   char      *content = bnf->content;
   int        reclvl  = flags >> 8;
@@ -112,11 +111,6 @@ ASTStatus astparsestream(ASTNode *ast, BNFNode *bnf, Array *rejected, ASTFlags f
       push(ast->subnodes, &recnode);
     }
     return status;
-  }
-  if (symbol->type == SYMBOL_NEWLINE && ((bnf->type == NODE_RAW && (SymbolType)bnf->content != SYMBOL_NEWLINE) || bnf->type == NODE_LEAF)) {
-    // Ignore newlines when they would break the AST
-    newline = newSymbol(symbol);
-    astnextsymbol(s);
   }
 
   if (bnf->type != NODE_LEAF && bnf->type != NODE_RAW) size = ((Array*)bnf->content)->size;
@@ -164,10 +158,22 @@ ASTStatus astparsestream(ASTNode *ast, BNFNode *bnf, Array *rejected, ASTFlags f
       break;
     case NODE_LIST:
       {
-        int partial = 0;
-        nflags      = flags;
+        int partial  = 0;
+        nflags       = flags;
         for (int i = 0; i < size; i++) {
           subbnf = *(BNFNode**)at(bnf->content, i);
+          if ((SymbolType)subbnf->content == SYMBOL_NO_NEWLINE) {
+            subbnf = *(BNFNode**)at(bnf->content, ++i);
+          } else if (i > 0) {
+            // Ignore newlines when they would break the AST
+            while (symbol->type == SYMBOL_NEWLINE) {
+              subast = newASTNode(ast, NULL);
+              deleteString(&subast->name);
+              subast->name   = newString("<newline>");
+              subast->symbol = newSymbol(symbol);
+              astnextsymbol(s);
+            }
+          }
           subast = newASTNode(ast, subbnf);
           status = astparsestream(subast, subbnf, NULL, nflags, s);
           nflags &= ~ASTFLAGS_FRONT;
@@ -247,20 +253,6 @@ ASTStatus astparsestream(ASTNode *ast, BNFNode *bnf, Array *rejected, ASTFlags f
     flags |= ASTFLAGS_REC;
   } while (status == STATUS_CONFIRMED && ast->continuation);
   if (bnf->type != NODE_NOT) pop(bnf->refs);
-
-  if (newline) {
-    if (status == STATUS_FAILED) {
-      Symbol *t = newSymbol(newline);
-      if (symbol->text) {
-        push(s->stack, symbol);
-        memset(symbol, 0, sizeof(Symbol));
-      }
-      push(s->stack, t);
-      astnextsymbol(s);
-      free(t);
-    }
-    deleteSymbol(&newline);
-  }
 
   return status;
 }

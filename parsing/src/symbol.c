@@ -587,24 +587,28 @@ void sssungets(Symbol *s, StringSymbolStream *sss)
 Stream *getStreamSS(SymbolStream *ss)
 {
   Stream *stream = malloc(sizeof(Stream));
-  stream->stream = ss;
-  stream->parser = ss->parser;
-  stream->stack  = ss->stack;
-  stream->symbol = &ss->symbol;
-  stream->gets   = (Symbol*(*)(void*))ssgets;
-  stream->ungets = (Symbol*(*)(Symbol*, void*))ssungets;
+  if (stream) {
+    stream->stream = ss;
+    stream->parser = ss->parser;
+    stream->stack  = ss->stack;
+    stream->symbol = &ss->symbol;
+    stream->gets   = (Symbol*(*)(void*))ssgets;
+    stream->ungets = (Symbol*(*)(Symbol*, void*))ssungets;
+  }
   return stream;
 }
 
 Stream *getStreamSSS(StringSymbolStream *sss)
 {
   Stream *stream = malloc(sizeof(Stream));
-  stream->stream = sss;
-  stream->parser = sss->parser;
-  stream->stack  = sss->stack;
-  stream->symbol = &sss->symbol;
-  stream->gets   = (Symbol*(*)(void*))sssgets;
-  stream->ungets = (Symbol*(*)(Symbol*, void*))sssungets;
+  if (stream) {
+    stream->stream = sss;
+    stream->parser = sss->parser;
+    stream->stack  = sss->stack;
+    stream->symbol = &sss->symbol;
+    stream->gets   = (Symbol*(*)(void*))sssgets;
+    stream->ungets = (Symbol*(*)(Symbol*, void*))sssungets;
+  }
   return stream;
 }
 

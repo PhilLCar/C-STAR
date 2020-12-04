@@ -23,6 +23,7 @@ typedef enum symboltype {
   SYMBOL_RESERVED,
   SYMBOL_CONSTANT,
   SYMBOL_NEWLINE,
+  SYMBOL_NO_NEWLINE,
   SYMBOL_EOF,
 
   SYMBOL_ERROR                = 0x100,

@@ -15,10 +15,10 @@ typedef enum aststatus {
 } ASTStatus;
 
 typedef enum astflags {
-  ASTFLAGS_NONE   = 0,
-  ASTFLAGS_REC    = 2,
-  ASTFLAGS_FRONT  = 4,
-  ASTFLAGS_RECLVL = ~0xFF
+  ASTFLAGS_NONE       = 0,
+  ASTFLAGS_REC        = 2,
+  ASTFLAGS_FRONT      = 4,
+  ASTFLAGS_RECLVL     = ~0xFF
 } ASTFlags;
 
 typedef struct astnode {
