@@ -29,9 +29,9 @@ typedef struct astnode {
   int      recurse;
 } ASTNode;
 
-ASTNode   *newASTNode(ASTNode*, BNFNode*);
-void       deleteAST(ASTNode**);
-ASTStatus  astparsestream(ASTNode*, BNFNode*, Array*, ASTFlags, Stream*);
-ASTNode   *parseast(char*);
+ASTNode   *newASTNode(ASTNode *ast, BNFNode *bnf);
+void       deleteAST(ASTNode **ast);
+ASTStatus  astparsestream(ASTNode *ast, BNFNode *bnf, Array *rejected, ASTFlags flags, Stream *stream);
+ASTNode   *parseast(char *filename);
 
 #endif

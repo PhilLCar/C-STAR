@@ -1,6 +1,7 @@
 #include <macro.h>
 
 #include <stdlib.h>
+#include <string.h>
 
 #include <symbol.h>
 

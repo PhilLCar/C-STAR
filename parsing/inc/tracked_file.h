@@ -1,6 +1,8 @@
 #ifndef TRACKED_FILE_PARSING
 #define TRACKED_FILE_PARSING
 
+#include <stdio.h>
+
 #include <diagnostic.h>
 
 typedef struct trackedfile {
@@ -14,9 +16,9 @@ typedef struct trackedfile {
   int   stack_cap;
 } TrackedFile;
 
-TrackedFile *tfopen(char*, int);
-void         tfclose(TrackedFile*);
-char         tfgetc(TrackedFile*);
-void         tfungetc(char c, TrackedFile*);
+TrackedFile *tfopen(char *filename, int lookahead);
+void         tfclose(TrackedFile *tf);
+char         tfgetc(TrackedFile *tf);
+void         tfungetc(char c, TrackedFile *tf);
 
 #endif

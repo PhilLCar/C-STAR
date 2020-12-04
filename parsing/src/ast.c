@@ -1,7 +1,11 @@
 #include <ast.h>
 
+#include <string.h>
+#include <stdlib.h>
+
 #include <parser.h>
 #include <strings.h>
+#include <error.h>
 
 void freeastnode(ASTNode *node)
 {

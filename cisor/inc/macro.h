@@ -3,6 +3,7 @@
 
 #include <strings.h>
 #include <array.h>
+#include <parser.h>
 
 #define MACRO_NAME_MAX_LENGTH     256
 #define MACRO_EXPANSION_MAX_DEPTH 128
@@ -42,9 +43,9 @@ typedef struct parameter {
 } Parameter;
 
 Expansion *newExpansion();
-void       deleteExpansion(Expansion**);
-void       freemacro(Macro*);
-void       freeexpansion(Expansion*);
-void       macroexpand(Array*, Parser*, String*, Expansion*, Array*, int);
+void       deleteExpansion(Expansion **expansion);
+void       freemacro(Macro *macro);
+void       freeexpansion(Expansion *expansion);
+void       macroexpand(Array *env, Parser *parser, String *expr, Expansion *exp, Array *args, int pp);
 
 #endif

@@ -1,6 +1,7 @@
 #include <symbol.h>
 
 #include <stdlib.h>
+#include <string.h>
 
 typedef struct trackedEntity {
   void *ptr;

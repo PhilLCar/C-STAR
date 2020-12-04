@@ -6,6 +6,9 @@ TRANSLATION UNIT, OR IT WILL NOT WORK
 #ifndef UTILS_DIAGNOSTIC
 #define UTILS_DIAGNOSTIC
 
+#include <stdlib.h>
+#include <stdio.h>
+
 #ifndef UTILS_DIAGNOSTIC_INC
 #define  malloc(SIZE_T)       __malloc(SIZE_T, __FILE__, __LINE__)
 #define  free(PTR)            __free(PTR)

@@ -15,9 +15,9 @@ typedef struct trackedstring {
   int           stack_cap;
 } TrackedString;
 
-TrackedString *tsopen(String*, int);
-void           tsclose(TrackedString*);
-char           tsgetc(TrackedString*);
-void           tsungetc(char c, TrackedString*);
+TrackedString *tsopen(String *s, int lookahead);
+void           tsclose(TrackedString *ts);
+char           tsgetc(TrackedString *ts);
+void           tsungetc(char c, TrackedString *ts);
 
 #endif

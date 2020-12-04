@@ -1,11 +1,6 @@
 #ifdef MEMORY_WATCH
-
 #define UTILS_DIAGNOSTIC_INC
-
 #include <diagnostic.h>
-
-#include <stdlib.h>
-#include <stdio.h>
 
 size_t _mem_total_size = 0;
 int    _mem_table_size = 0;

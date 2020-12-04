@@ -20,11 +20,7 @@ typedef struct parser {
   int     lookahead;
 } Parser;
 
-char   *characters(FILE*);
-char  **word(FILE*);
-void    emptyline(FILE*);
-
-Parser *newParser(char*);
-void    deleteParser(Parser**);
+Parser *newParser(char *filename);
+void    deleteParser(Parser **parser);
 
 #endif

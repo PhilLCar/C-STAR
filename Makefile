@@ -13,9 +13,10 @@ UTILS  =$(OBJECTS)/error.o   \
         $(OBJECTS)/array.o   \
         $(OBJECTS)/strings.o \
 				$(OBJECTS)/raw.o     \
+				$(OBJECTS)/file.o    \
         $(OBJECTS)/diagnostic.o
 PARSING=$(OBJECTS)/symbol.o         \
-        $(OBJECTS)/generic_parser.o \
+        $(OBJECTS)/parser.o         \
         $(OBJECTS)/tracked_file.o   \
         $(OBJECTS)/tracked_string.o \
         $(OBJECTS)/bnf.o            \

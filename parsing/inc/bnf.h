@@ -38,7 +38,7 @@ typedef struct bnfnode {
   int      rec;
 } BNFNode;
 
-BNFNode *parsebnf(char*);
-void     deleteBNFTree(BNFNode**);
+BNFNode *parsebnf(char *filename);
+void     deleteBNFTree(BNFNode **bnf);
 
 #endif

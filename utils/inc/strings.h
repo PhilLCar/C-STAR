@@ -13,21 +13,21 @@ typedef struct stringstream {
   int     pos;
 } StringStream;
 
-String *newString(char*);
-void    deleteString(String**);
-void    freestring(String*);
-String *concat(String*, String*);
-String *append(String*, char);
-String *prepend(String*, char);
-String *inject(String*, int, char);
-String *substring(String*, int, int);
-String *trim(String*);
-int     equals(String*, String*);
-int     contains(String*, String*);
+String *newString(char *string);
+void    deleteString(String **s);
+void    freestring(String *s);
+String *concat(String *a, String *b);
+String *append(String *s, char c);
+String *prepend(String *s, char c);
+String *inject(String *s, int index, char c);
+String *substring(String *s, int start, int length);
+String *trim(String *s);
+int     equals(String *a, String *b);
+int     contains(String *a, String *b);
 
-StringStream *sopen(String*);
-void          sclose(StringStream*);
-char          sgetc(StringStream*);
-void          sungetc(char c, StringStream*);
+StringStream *sopen(String *s);
+void          sclose(StringStream *ss);
+char          sgetc(StringStream *ss);
+void          sungetc(char c, StringStream *ss);
 
 #endif

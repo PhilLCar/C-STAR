@@ -35,7 +35,7 @@ typedef struct parsedcharacter {
   int  valid;
 } ParsedCharacter;
 
-ParsedInteger parseinteger(String*);
-double parsedecimal(String*);
-char   parsecharacter(String*);
+ParsedInteger parseinteger(String *integer);
+double parsedecimal(String *decimal);
+char   parsecharacter(String *character);
 #endif

@@ -14,11 +14,11 @@ typedef enum messagetype {
   ERRLVL_ERROR
 } MessageType;
 
-void printmacromessage(MessageType, Array*, Array*, char*);
-void printnodemessage(MessageType, Array*, char*, char*);
-void printsymbolmessage(MessageType, Array*, Symbol*, char*);
-void printfilemessage(MessageType, Array*, char*);
-void printmessage(MessageType, char*);
-void printsuggest(char*, char*);
+void printmacromessage(MessageType type, Array *trace, Array *history, char *message);
+void printnodemessage(MessageType type, Array *trace, char *nodename, char *message);
+void printsymbolmessage(MessageType type, Array *trace, Symbol *symbol, char *message);
+void printfilemessage(MessageType type, Array *trace, char *message);
+void printmessage(MessageType type, char *message);
+void printsuggest(char *suggest, char *highlight);
 
 #endif

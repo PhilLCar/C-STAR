@@ -1,9 +1,12 @@
 #ifndef PREPROCESSOR_CISOR
 #define PREPROCESSOR_CISOR
 
+#include <stdio.h>
+
 #include <diagnostic.h>
 #include <array.h>
 #include <bnf.h>
+#include <parser.h>
 
 #define INCLUDE_MAX_DEPTH         128
 #define INCLUDE_MAX_FILE_LENGTH  1024
@@ -30,6 +33,6 @@ typedef struct ppresult {
   void   *value;
 } PPResult;
 
-void preprocess(char*, Array*);
+void preprocess(char *filename, Array *includepath);
 
 #endif

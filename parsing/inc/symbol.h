@@ -62,23 +62,23 @@ typedef struct stream {
   Symbol *(*ungets)(Symbol*, void*);
 } Stream;
 
-Symbol *sparse(char*, Parser*);
-Symbol *newSymbol(Symbol*);
-void    deleteSymbol(Symbol**);
-void    freesymbol(Symbol*);
+Symbol *sparse(char *filename, Parser *parser);
+Symbol *newSymbol(Symbol *symbol);
+void    deleteSymbol(Symbol **symbol);
+void    freesymbol(Symbol *symbol);
 
-Stream *getStreamSS(SymbolStream*);
-Stream *getStreamSSS(StringSymbolStream*);
-void    closeStream(Stream*);
+Stream *getStreamSS(SymbolStream *ss);
+Stream *getStreamSSS(StringSymbolStream *sss);
+void    closeStream(Stream *s);
 
-SymbolStream *ssopen(char*, Parser*);
-void          ssclose(SymbolStream*);
-Symbol       *ssgets(SymbolStream*);
-void          ssungets(Symbol*, SymbolStream*);
+SymbolStream *ssopen(char *filename, Parser *parser);
+void          ssclose(SymbolStream *ss);
+Symbol       *ssgets(SymbolStream *ss);
+void          ssungets(Symbol *symbol, SymbolStream *s);
 
-StringSymbolStream *sssopen(String*, Parser*);
-void                sssclose(StringSymbolStream*);
-Symbol             *sssgets(StringSymbolStream*);
-void                sssungets(Symbol*, StringSymbolStream*);
+StringSymbolStream *sssopen(String *string, Parser *parser);
+void                sssclose(StringSymbolStream *sss);
+Symbol             *sssgets(StringSymbolStream *sss);
+void                sssungets(Symbol *symbol, StringSymbolStream *sss);
 
 #endif
