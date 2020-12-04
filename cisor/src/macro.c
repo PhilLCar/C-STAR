@@ -1,5 +1,9 @@
 #include <macro.h>
 
+#include <stdlib.h>
+
+#include <symbol.h>
+
 Expansion *newExpansion()
 {
   Expansion *e = malloc(sizeof(Expansion));

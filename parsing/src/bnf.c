@@ -1,5 +1,12 @@
 #include <bnf.h>
 
+#include <string.h>
+
+#include <symbol.h>
+#include <terminal.h>
+#include <error.h>
+#include <strings.h>
+
 BNFNode *parsebnfnode(char*, Parser*, BNFNode*, Array*, Array*);
 
 BNFNode *getnode(BNFNode *basenode, BNFNode *node, char *name)

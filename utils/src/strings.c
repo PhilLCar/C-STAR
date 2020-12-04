@@ -1,5 +1,9 @@
 #include <strings.h>
 
+#include <string.h>
+#include <stdlib.h>
+#include <stdio.h>
+
 String *newString(char *content)
 {
   String *s = malloc(sizeof(String));

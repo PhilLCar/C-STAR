@@ -10,7 +10,7 @@ if (true) {
   print(COMBINE(test))
 } 
 #if A + B == 473
-else print("false");
+else print("false""ok");
 #endif
 #elif 1
 print("Allo")

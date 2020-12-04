@@ -1,5 +1,7 @@
 #include <symbol.h>
 
+#include <stdlib.h>
+
 typedef struct trackedEntity {
   void *ptr;
   char *buffer;

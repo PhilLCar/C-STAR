@@ -1,9 +1,6 @@
 #ifndef ARRAY_UTILS
 #define ARRAY_UTILS
 
-#include <string.h>
-#include <stdlib.h>
-
 #include <diagnostic.h>
 
 #define F void(*)(void*)

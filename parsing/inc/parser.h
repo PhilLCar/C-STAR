@@ -1,12 +1,9 @@
 #ifndef GENERIC_PARSING
 #define GENERIC_PARSING
 
-#include <stdlib.h>
 #include <stdio.h>
-#include <string.h>
 
 #include <diagnostic.h>
-#include <tracked_file.h>
 
 typedef struct parser {
   char   *whitespaces;

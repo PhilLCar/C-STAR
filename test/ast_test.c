@@ -2,6 +2,7 @@
 
 #include <diagnostic.h>
 #include <ast.h>
+#include <terminal.h>
 
 #ifdef WIN
 #include <windows.h>

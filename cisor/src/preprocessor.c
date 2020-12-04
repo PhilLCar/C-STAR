@@ -1,5 +1,15 @@
 #include <preprocessor.h>
 
+#include <string.h>
+#include <stdlib.h>
+
+#include <error.h>
+#include <strings.h>
+#include <symbol.h>
+#include <macro.h>
+#include <ast.h>
+#include <raw.h>
+
 char *filenamewoext(char *filename)
 {
   int   len = strlen(filename);
@@ -596,9 +606,9 @@ int preprocessfile(char *filename, Array *incpath, Array *trace, PPEnv *ppenv, i
         } else {
           exp = ppexpandmacro(ppenv, expr, trace, 1);
           if (exp) {
-            Stream *stream = getStreamSSS(sssopen(exp, ppenv->parser));
-            astparsestream(ast, ppenv->tree, NULL, ASTFLAGS_NONE, stream);
-            if (stream->symbol->type != SYMBOL_EOF || ast->status == STATUS_FAILED) {
+            Stream    *stream = getStreamSSS(sssopen(exp, ppenv->parser));
+            ASTStatus  status = astparsestream(ast, ppenv->tree, NULL, ASTFLAGS_NONE, stream);
+            if (stream->symbol->type != SYMBOL_EOF || status == STATUS_FAILED) {
               stream->symbol->line     += t->line;
               stream->symbol->position += t->position;
               printsymbolmessage(ERRLVL_ERROR, trace, stream->symbol, "Unexpected symbol!");
@@ -638,9 +648,9 @@ int preprocessfile(char *filename, Array *incpath, Array *trace, PPEnv *ppenv, i
         } else {
           exp = ppexpandmacro(ppenv, expr, trace, 1);
           if (exp) {
-            Stream *stream = getStreamSSS(sssopen(exp, ppenv->parser));
-            astparsestream(ast, ppenv->tree, NULL, ASTFLAGS_NONE, stream);
-            if (stream->symbol->type != SYMBOL_EOF || ast->status == STATUS_FAILED) {
+            Stream    *stream = getStreamSSS(sssopen(exp, ppenv->parser));
+            ASTStatus  status = astparsestream(ast, ppenv->tree, NULL, ASTFLAGS_NONE, stream);
+            if (stream->symbol->type != SYMBOL_EOF || status == STATUS_FAILED) {
               stream->symbol->line     += t->line;
               stream->symbol->position += t->position;
               printsymbolmessage(ERRLVL_ERROR, trace, stream->symbol, "Unexpected symbol!");

@@ -3,10 +3,8 @@
 
 #include <diagnostic.h>
 #include <bnf.h>
-#include <generic_parser.h>
-#include <symbol.h>
-#include <strings.h>
 #include <array.h>
+#include <symbol.h>
 
 typedef enum aststatus {
   STATUS_FAILED = 0,

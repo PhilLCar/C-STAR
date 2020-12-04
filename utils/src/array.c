@@ -1,5 +1,8 @@
 #include <array.h>
 
+#include <string.h>
+#include <stdlib.h>
+
 Array *newArray(size_t element_size)
 {
   Array *array = malloc(sizeof(Array));

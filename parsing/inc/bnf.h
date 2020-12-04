@@ -1,14 +1,8 @@
 #ifndef BNF_PARSING
 #define BNF_PARSING
 
-#include <string.h>
-
 #include <diagnostic.h>
-#include <symbol.h>
-#include <terminal.h>
-#include <error.h>
 #include <array.h>
-#include <strings.h>
 
 #define INCLUDE_MAX_DEPTH   128
 #define EBNF_TO_BNF         0

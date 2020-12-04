@@ -1,10 +1,6 @@
 #ifndef TRACKED_STRING_PARSING
 #define TRACKED_STRING_PARSING
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-
 #include <diagnostic.h>
 #include <strings.h>
 

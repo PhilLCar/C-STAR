@@ -1,15 +1,9 @@
 #ifndef ERROR_UTILS
 #define ERROR_UTILS
 
-#include <stdio.h>
-#include <string.h>
-#include <stdlib.h>
-
 #include <diagnostic.h>
 #include <array.h>
-#include <terminal.h>
 #include <symbol.h>
-#include <macro.h>
 
 #define CONTEXT_LENGTH 35
 

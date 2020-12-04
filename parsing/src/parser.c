@@ -1,4 +1,7 @@
-#include <generic_parser.h>
+#include <parser.h>
+
+#include <stdlib.h>
+#include <string.h>
 
 // Gets characters one by one from a line in the input file
 char *readchar(FILE *fptr)

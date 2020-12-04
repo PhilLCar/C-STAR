@@ -1,5 +1,12 @@
 #include <error.h>
 
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
+
+#include <macro.h>
+#include <terminal.h>
+
 // find better algorithm for no memory r-rotation
 void rotate(char *buffer, int s, int r) {
   char c;

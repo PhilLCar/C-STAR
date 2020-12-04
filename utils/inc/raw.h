@@ -1,8 +1,6 @@
 #ifndef RAW_UTILS
 #define RAW_UTILS
 
-#include <math.h>
-
 #include <strings.h>
 
 typedef enum rawtype {

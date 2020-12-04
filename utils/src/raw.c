@@ -1,5 +1,7 @@
 #include <raw.h>
 
+#include <math.h>
+
 long intpow(int base, int power)
 {
   long acc = 1;

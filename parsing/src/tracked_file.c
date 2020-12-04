@@ -1,5 +1,9 @@
 #include <tracked_file.h>
 
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
 void tfpush(TrackedFile *tf)
 {
   if (tf->linestack) {

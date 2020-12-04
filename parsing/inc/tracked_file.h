@@ -1,10 +1,6 @@
 #ifndef TRACKED_FILE_PARSING
 #define TRACKED_FILE_PARSING
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-
 #include <diagnostic.h>
 
 typedef struct trackedfile {

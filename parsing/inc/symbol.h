@@ -1,13 +1,11 @@
 #ifndef SYMBOL_PARSING
 #define SYMBOL_PARSING
 
-#include <stdlib.h>
-
 #include <diagnostic.h>
-#include <generic_parser.h>
+#include <parser.h>
+#include <array.h>
 #include <tracked_file.h>
 #include <tracked_string.h>
-#include <array.h>
 
 typedef enum symboltype {
   SYMBOL_NONE,

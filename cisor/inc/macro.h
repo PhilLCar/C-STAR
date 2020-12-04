@@ -1,11 +1,8 @@
 #ifndef MACRO_CISOR
 #define MACRO_CISOR
 
-#include <stdlib.h>
-
 #include <strings.h>
 #include <array.h>
-#include <symbol.h>
 
 #define MACRO_NAME_MAX_LENGTH     256
 #define MACRO_EXPANSION_MAX_DEPTH 128

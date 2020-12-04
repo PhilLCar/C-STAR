@@ -1,10 +1,6 @@
 #ifndef STRINGS_UTILS
 #define STRINGS_UTILS
 
-#include <string.h>
-#include <stdlib.h>
-#include <stdio.h>
-
 #include <diagnostic.h>
 
 typedef struct string {

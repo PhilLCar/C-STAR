@@ -1,5 +1,8 @@
 #include <ast.h>
 
+#include <parser.h>
+#include <strings.h>
+
 void freeastnode(ASTNode *node)
 {
   deleteString(&node->name);
@@ -116,7 +119,7 @@ ASTStatus astparsestream(ASTNode *ast, BNFNode *bnf, Array *rejected, ASTFlags f
   if (bnf->type != NODE_LEAF && bnf->type != NODE_RAW) size = ((Array*)bnf->content)->size;
   if (!symbol->text) astnextsymbol(s);
 
-  flags = flags & ~ASTFLAGS_RECLVL | (bnf->refs->size << 8);
+  flags = (flags & ~ASTFLAGS_RECLVL) | (bnf->refs->size << 8);
   if (bnf->type != NODE_NOT) push(bnf->refs, &ast);
   do {
     switch (bnf->type) {
