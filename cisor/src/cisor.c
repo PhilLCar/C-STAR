@@ -4,11 +4,22 @@
 
 #include <preprocessor.h>
 #include <intermediate.h>
-#include <file.h>
+#include <compiler.h>
+#include <assembler.h>
+#include <linker.h>
 
 Options *parseargs(int argc, char *argv[]) {
   Options *options = malloc(sizeof(Options));
   memset(options, 0, sizeof(Options));
+
+  options->includepath = newArray(sizeof(char*));
+  options->inputs      = newArray(sizeof(char*));
+  options->definitions = newArray(sizeof(char*));
+
+  options->preprocess = 1;
+  options->compile    = 1;
+  options->assemble   = 1;
+  options->link       = 1;
 
   for (int i = 0; i < argc; i++) {
     if (argv[i][0] == '-') {
@@ -32,23 +43,52 @@ Options *parseargs(int argc, char *argv[]) {
         options->debug = 1;
         break;
       case 'o':
-
+        if (++i >= argc) {
+          fprintf(stderr, "Expected filename after '-o'!\n");
+        } else {
+          options->output = argv[i];
+        }
+        break;
+      case 'I':
+        {
+          char *inc = argv[i] + 2;
+          push(options->includepath, &inc);
+        }
+        break;
+      case 'D':
+        {
+          char *def = argv[i] + 2;
+          push(options->definitions, &def);
+        }
         break;
       case 'E':
       case 'e':
-        options->preprocessed = 1;
+        options->preprocess = 1;
+        options->compile    = 0;
+        options->assemble   = 0;
+        options->link       = 0;
         break;
       case 'S':
       case 's':
-        options->assembly = 1;
+        options->preprocess = 1;
+        options->compile    = 1;
+        options->assemble   = 0;
+        options->link       = 0;
         break;
       case 'C':
       case 'c':
-        options->compiled = 1;
+        options->preprocess = 1;
+        options->compile    = 1;
+        options->assemble   = 1;
+        options->link       = 0;
+        break;
+      default:
+        push(options->inputs, &argv[i]);
         break;
       }
     }
   }
+  if (!options->output) options->output = "a.out";
   return options;
 }
 
@@ -83,8 +123,25 @@ int main(int argc, char *argv[]) {
     printversion();
   } else if (options->help) {
     printhelp(argv[0]);
+  } else {
+    if (options->preprocess) {
+      preprocess(options);
+    }
+    if (options->compile) {
+      intermediate(options);
+      compile(options);
+    }
+    if (options->assemble) {
+      assemble(options);
+    }
+    if (options->link) {
+      link(options);
+    }
   }
 
+  deleteArray(&options->inputs);
+  deleteArray(&options->includepath);
+  deleteArray(&options->definitions);
   free(options);
   return 0;
 }

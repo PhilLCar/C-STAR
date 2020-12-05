@@ -7,12 +7,14 @@ typedef struct {
   int    help;
   int    debug;
   int    version;
-  int    preprocessed;
-  int    assembly;
-  int    compiled;
+  int    preprocess;
+  int    compile;
+  int    assemble;
+  int    link;
   char  *output;
   Array *inputs;
   Array *includepath;
+  Array *definitions;
 } Options;
 
 #endif

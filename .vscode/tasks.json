@@ -4,6 +4,16 @@
     "version": "2.0.0",
     "tasks": [
         {
+            "label": "array-debug",
+            "type": "shell",
+            "command": "make array-debug"
+        },
+        {
+            "label": "parse-debug",
+            "type": "shell",
+            "command": "make parse-debug"
+        },
+        {
             "label": "bnf-debug",
             "type": "shell",
             "command": "make bnf-debug"
@@ -14,9 +24,9 @@
             "command": "make ast-debug"
         },
         {
-            "label": "preprocessor-debug",
+            "label": "cisor-debug",
             "type": "shell",
-            "command": "make preprocessor-debug"
+            "command": "make debug=1 cisor"
         }
     ]
 }

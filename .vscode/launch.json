@@ -5,6 +5,46 @@
     "version": "0.2.0",
     "configurations": [
         {
+            "name": "Array Test",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/bin/array_test",
+            "args": [],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ],
+            "preLaunchTask": "array-debug"
+        },
+        {
+            "name": "Parse Test",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/bin/parse_test",
+            "args": [],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ],
+            "preLaunchTask": "parse-debug"
+        },
+        {
             "name": "BNF Test",
             "type": "cppdbg",
             "request": "launch",
@@ -45,11 +85,15 @@
             "preLaunchTask": "ast-debug"
         },
         {
-            "name": "PP Test",
+            "name": "CISOR",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/bin/preprocessor_test",
-            "args": [],
+            "program": "${workspaceFolder}/bin/cisor",
+            "args": [
+                "unit-tests/include-test.csr",
+                "-o",
+                "out/include-test"
+            ],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [],
@@ -62,7 +106,7 @@
                     "ignoreFailures": true
                 }
             ],
-            "preLaunchTask": "preprocessor-debug"
+            "preLaunchTask": "cisor-debug"
         }
     ]
 }

@@ -21,9 +21,12 @@ PARSING=$(OBJECTS)/symbol.o         \
         $(OBJECTS)/tracked_string.o \
         $(OBJECTS)/bnf.o            \
         $(OBJECTS)/ast.o
-CISOR  =$(OBJECTS)/preprocessor.o \
-        $(OBJECTS)/macro.o        \
-				$(OBJECTS)/intermediate.o
+CISOR  =$(OBJECTS)/macro.o        \
+				$(OBJECTS)/preprocessor.o \
+				$(OBJECTS)/intermediate.o \
+				$(OBJECTS)/compiler.o     \
+				$(OBJECTS)/assembler.o    \
+				$(OBJECTS)/linker.o
 
 cisor: $(BINARIES)/cisor
 

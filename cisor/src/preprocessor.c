@@ -768,6 +768,16 @@ void preprocess(Options *options)
   ppenv.stack      = stack;
   ppenv.tree       = *(BNFNode**)at(tree->content, 0);
 
+  for (int i = 0; i < options->definitions->size; i++) {
+    Macro m;
+    m.filename = newString("");
+    m.name     = newString(*(char**)at(options->definitions, i));
+    m.value    = newString("");
+    m.params   = newArray(sizeof(String*));
+    m.line     = -1;
+    m.position = -1;
+    push(ppenv.env, &m);
+  }
 
   for (int i = 0; i < options->inputs->size; i++) {
     preprocessfile(*(char**)at(options->inputs, i), options->includepath, trace, &ppenv, 0);
