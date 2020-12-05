@@ -4,3 +4,5 @@ rm -r ~/.vscode/extensions/c-star
 rm -r ~/.vscode/extensions/bnf
 cp -r ./c-star ~/.vscode/extensions/
 cp -r ./bnf    ~/.vscode/extensions/
+cp ./seti/seti.woff               ~/.vscode/extensions/theme-seti/icons/
+cp ./seti/vs-seti-icon-theme.json ~/.vscode/extensions/theme-seti/icons/

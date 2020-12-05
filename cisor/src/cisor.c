@@ -21,7 +21,7 @@ Options *parseargs(int argc, char *argv[]) {
   options->assemble   = 1;
   options->link       = 1;
 
-  for (int i = 0; i < argc; i++) {
+  for (int i = 1; i < argc; i++) {
     if (argv[i][0] == '-') {
       switch (argv[i][1]) {
       case '-':
@@ -83,10 +83,11 @@ Options *parseargs(int argc, char *argv[]) {
         options->link       = 0;
         break;
       default:
-        push(options->inputs, &argv[i]);
+        fprintf(stderr, "Unknown option: '%s'!", argv[i]);
         break;
       }
     }
+    push(options->inputs, & argv[i]);
   }
   if (!options->output) options->output = "a.out";
   return options;
