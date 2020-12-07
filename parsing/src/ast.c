@@ -96,6 +96,7 @@ void astnextsymbol(Stream *s) {
   while (s->gets(s->stream) && s->symbol->type == SYMBOL_COMMENT);
 }
 
+int depth = 0;
 ASTStatus astparsestream(ASTNode *ast, BNFNode *bnf, Array *rejected, ASTFlags flags, Stream *s)
 {
   BNFNode   *subbnf;
@@ -106,6 +107,7 @@ ASTStatus astparsestream(ASTNode *ast, BNFNode *bnf, Array *rejected, ASTFlags f
   int        size    = 0;
   char      *content = bnf->content;
   int        reclvl  = flags >> 8;
+  int        partial = -1;
 
   if (rejected && in(rejected, &bnf)) {
     return status;
@@ -119,7 +121,11 @@ ASTStatus astparsestream(ASTNode *ast, BNFNode *bnf, Array *rejected, ASTFlags f
     }
     return status;
   }
-
+  if (bnf->name[0]) {
+    for (int i = 0; i < depth; i++) printf("  ");
+    printf("%s\n", bnf->name);
+  }
+  depth++;
   if (bnf->type != NODE_LEAF && bnf->type != NODE_RAW) size = ((Array*)bnf->content)->size;
   if (!symbol->text) astnextsymbol(s);
 
@@ -164,43 +170,55 @@ ASTStatus astparsestream(ASTNode *ast, BNFNode *bnf, Array *rejected, ASTFlags f
       }
       break;
     case NODE_LIST:
-      {
-        int partial  = 0;
-        nflags       = flags;
-        for (int i = 0; i < size; i++) {
-          subbnf = *(BNFNode**)at(bnf->content, i);
-          if ((SymbolType)subbnf->content == SYMBOL_NO_NEWLINE) {
-            subbnf = *(BNFNode**)at(bnf->content, ++i);
-          } else if (i > 0) {
-            // Ignore newlines when they would break the AST
-            while (symbol->type == SYMBOL_NEWLINE) {
-              subast = newASTNode(ast, NULL);
-              deleteString(&subast->name);
-              subast->name   = newString("<newline>");
-              subast->symbol = newSymbol(symbol);
-              astnextsymbol(s);
-            }
+      partial  = 0;
+      nflags   = flags;
+      for (int i = 0; i < size; i++) {
+        subbnf = *(BNFNode**)at(bnf->content, i);
+        if ((SymbolType)subbnf->content == SYMBOL_NO_NEWLINE) {
+          subbnf = *(BNFNode**)at(bnf->content, ++i);
+          nflags |= ASTFLAGS_NO_NEWLINE;
+        } else if (!(flags & ASTFLAGS_NO_NEWLINE)) {
+          // Ignore newlines when they would break the AST
+          while (symbol->type == SYMBOL_NEWLINE) {
+            subast = newASTNode(ast, NULL);
+            deleteString(&subast->name);
+            subast->name   = newString("<newline>");
+            subast->symbol = newSymbol(symbol);
+            astnextsymbol(s);
           }
-          subast = newASTNode(ast, subbnf);
-          status = astparsestream(subast, subbnf, NULL, nflags, s);
-          nflags &= ~ASTFLAGS_FRONT;
-          if (status == STATUS_PARTIAL) {
-            nflags &= ~ASTFLAGS_REC;
-            partial = 1;
-          } else if (status != STATUS_CONFIRMED) {
-            while (ast->subnodes->size) revertAST(pop(ast->subnodes), s);
-            if (!symbol->text) astnextsymbol(s);
-            break;
-          }
+          nflags &= ~ASTFLAGS_NO_NEWLINE;
         }
-        if (status != STATUS_CONFIRMED) status = STATUS_FAILED;
-        // Can be optimized: returning status partial so NODE_ONE_OF doesn't have to check all other possibilities
-        if (status == STATUS_CONFIRMED && partial) {
+        subast = newASTNode(ast, subbnf);
+        status = astparsestream(subast, subbnf, NULL, nflags, s);
+        nflags &= ~ASTFLAGS_FRONT;
+        if (status == STATUS_PARTIAL) {
+          nflags &= ~ASTFLAGS_REC;
+          partial = 1;
+        } else if (status != STATUS_CONFIRMED) {
+          while (ast->subnodes->size) revertAST(pop(ast->subnodes), s);
+          if (!symbol->text) astnextsymbol(s);
+          break;
+        }
+      }
+      if (status != STATUS_CONFIRMED) status = STATUS_FAILED;
+      if (status == STATUS_CONFIRMED) {
+        ASTNode *lastnode;
+        if (partial) {
           ASTNode *recnode;
           subast  = *(ASTNode**)at(ast->subnodes, 0);
           recnode = *(ASTNode**)pop(subast->subnodes);
           set(ast->subnodes, 0, rem(recnode->subnodes, 0));
           deleteAST(&subast);
+        }
+        while (!(lastnode = *(ASTNode**)last(ast->subnodes))->name->content[0] && !lastnode->value->content[0]) {
+          deleteAST(pop(ast->subnodes));
+        }
+        for (int i = 0; i < ast->subnodes->size; i++) {
+          lastnode = *(ASTNode**)at(ast->subnodes, i);
+          if (!strcmp(lastnode->name->content, "<newline>")) rem(ast->subnodes, i--);
+        }
+        if (ast->subnodes->size == 1) {
+          astupnode(ast, lastnode);
         }
       }
       break;
@@ -209,10 +227,15 @@ ASTStatus astparsestream(ASTNode *ast, BNFNode *bnf, Array *rejected, ASTFlags f
     case NODE_ONE_OR_NONE:
       subast   = newASTNode(ast, NULL);
       nflags   = bnf->name[0] ? flags | ASTFLAGS_FRONT : flags;
+      if (!strcmp(bnf->name, "call") && !(flags & ASTFLAGS_REC)) {
+        printf("===============================ok\n");
+      }
       for (int i = 0; i < size; i++) {
+        if (i == partial) continue;
         subbnf = *(BNFNode**)at(bnf->content, i);
         status = astparsestream(subast, subbnf, rejected, nflags, s);
         if (status == STATUS_CONFIRMED) {
+          if (partial < 0) partial = i;
           if (bnf->name[0] && bnf->type != NODE_ANON && !subast->name->length) {
             deleteString(&subast->name);
             subast->name = newString(bnf->name);
@@ -260,7 +283,7 @@ ASTStatus astparsestream(ASTNode *ast, BNFNode *bnf, Array *rejected, ASTFlags f
     flags |= ASTFLAGS_REC;
   } while (status == STATUS_CONFIRMED && ast->continuation);
   if (bnf->type != NODE_NOT) pop(bnf->refs);
-
+  depth--;
   return status;
 }
 

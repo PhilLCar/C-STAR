@@ -2,6 +2,8 @@
 
 #include <string.h>
 #include <stdlib.h>
+#include <stdio.h>
+
 
 #include <error.h>
 #include <strings.h>
@@ -10,6 +12,37 @@
 #include <ast.h>
 #include <raw.h>
 #include <file.h>
+#include <diagnostic.h>
+#include <array.h>
+#include <bnf.h>
+#include <parser.h>
+
+#define INCLUDE_MAX_DEPTH         128
+#define INCLUDE_MAX_FILE_LENGTH  1024
+
+typedef enum pptype {
+  PPTYPE_INT,
+  PPTYPE_DEC,
+  PPTYPE_STRING,
+  PPTYPE_CHAR,
+  PPTYPE_ERROR
+} PPType;
+
+typedef struct ppenv {
+  int      line;
+  int      position;
+  FILE    *output;
+  FILE    *metadata;
+  Parser  *parser;
+  Array   *env;
+  Array   *stack;
+  BNFNode *tree;
+} PPEnv;
+
+typedef struct ppresult {
+  PPType  type;
+  void   *value;
+} PPResult;
 
 PPResult ppeval(ASTNode *ast, PPEnv *ppenv) {
   PPResult result;
@@ -301,12 +334,22 @@ String *ppexpandmacro(PPEnv *ppenv, String *expr, Array *trace, int pp) {
   return value;
 }
 
-Symbol *ppconsume(SymbolStream *ss, FILE *output) {
+void ppputc(char c, PPEnv *ppenv) {
+  if (c == '\n') {
+    ppenv->line++;
+    ppenv->position = 0;
+  } else {
+    ppenv->position++;
+  }
+  fputc(c, ppenv->output);
+}
+
+Symbol *ppconsume(SymbolStream *ss, PPEnv *ppenv) {
   char c;
   while ((c = tfgetc(ss->tfptr)) != EOF) {
     for (int i = 0; ss->parser->whitespaces[i]; i++) {
       if (c == ss->parser->whitespaces[i]) {
-        fputc(c, output);
+        ppputc(c, ppenv);
         c = 0;
         break;
       }
@@ -378,7 +421,11 @@ int preprocessfile(char *filename, Array *incpath, Array *trace, PPEnv *ppenv, i
     }
   }
 
-  while (valid && (s = ppconsume(ss, ppenv->output))->type != SYMBOL_EOF) {
+  if (valid) {
+    fprintf(ppenv->metadata, "#file %s\n", filename);
+  }
+
+  while (valid && (s = ppconsume(ss, ppenv))->type != SYMBOL_EOF) {
     /////////////////////////////////////////////////////////////////////////////////////
     if (!strcmp(s->text, "#include") && !ignore) {
       char fnwext[INCLUDE_MAX_FILE_LENGTH];
@@ -701,7 +748,8 @@ int preprocessfile(char *filename, Array *incpath, Array *trace, PPEnv *ppenv, i
     /////////////////////////////////////////////////////////////////////////////////////
     } else if (!ignore) {
       while (s->type != SYMBOL_EOF && s->type != SYMBOL_NEWLINE) {
-        if (s->open) for (int i = 0; s->open[i]; i++) fputc(s->open[i], ppenv->output);
+        fprintf(ppenv->metadata, "%d:%d<-%d:%d\n", ppenv->line, ppenv->position, s->line, s->position);
+        if (s->open) for (int i = 0; s->open[i]; i++) ppputc(s->open[i], ppenv);
         if (s->type == SYMBOL_VARIABLE) {
           String *str = newString(s->text);
           String *exp;
@@ -718,16 +766,16 @@ int preprocessfile(char *filename, Array *incpath, Array *trace, PPEnv *ppenv, i
           } else tfungetc(c, ss->tfptr);
           exp = ppexpandmacro(ppenv, str, trace, 0);
           if (exp) {
-            for (int i = 0; i < exp->length; i++) fputc(exp->content[i], ppenv->output);
+            for (int i = 0; i < exp->length; i++) ppputc(exp->content[i], ppenv);
             deleteString(&exp);
           } else valid = 0;
           deleteString(&str);
         }
-        else for (int i = 0; s->text[i]; i++)           fputc(s->text[i],      ppenv->output);
-        if (s->close) for (int i = 0; s->close[i]; i++) fputc(s->close[i],     ppenv->output);
-        s = ppconsume(ss, ppenv->output);
+        else for (int i = 0; s->text[i]; i++)           ppputc(s->text[i],  ppenv);
+        if (s->close) for (int i = 0; s->close[i]; i++) ppputc(s->close[i], ppenv);
+        s = ppconsume(ss, ppenv);
       }
-      fputc('\n', ppenv->output);
+      ppputc('\n', ppenv);
     } else {
       char c;
       while ((c = tfgetc(ss->tfptr)) != '#' && c != EOF);
@@ -740,6 +788,10 @@ int preprocessfile(char *filename, Array *incpath, Array *trace, PPEnv *ppenv, i
     pop(trace);
     ssclose(ss);
   }
+  if (valid) {
+    fprintf(ppenv->metadata, "#pop\n");
+  }
+
   return valid;
 }
 
@@ -751,46 +803,49 @@ void preprocess(Options *options)
   sprintf(ppfile,   "%s.psr", woext);
   sprintf(metafile, "%s.msr", woext);
   free(woext);
-  //////////////////////////////////////////
-  Parser       *parser   = newParser("parsing/prs/csr.prs");
-  FILE         *output   = fopen(ppfile,   "w+");
-  FILE         *metadata = fopen(metafile, "w+");
-  Array        *env      = newArray(sizeof(Macro));
-  Array        *stack    = newArray(sizeof(PPResult));
-  BNFNode      *tree     = parsebnf("parsing/bnf/preprocessor.bnf");
-  Array        *trace    = newArray(sizeof(char*));
-  PPEnv         ppenv;
+  {
+    Parser       *parser   = newParser("parsing/prs/csr.prs");
+    FILE         *output   = fopen(ppfile,   "w+");
+    FILE         *metadata = fopen(metafile, "w+");
+    Array        *env      = newArray(sizeof(Macro));
+    Array        *stack    = newArray(sizeof(PPResult));
+    BNFNode      *tree     = parsebnf("parsing/bnf/preprocessor.bnf");
+    Array        *trace    = newArray(sizeof(char*));
+    PPEnv         ppenv;
 
-  ppenv.output     = output;
-  ppenv.metadata   = metadata;
-  ppenv.parser     = parser;
-  ppenv.env        = env;
-  ppenv.stack      = stack;
-  ppenv.tree       = *(BNFNode**)at(tree->content, 0);
+    ppenv.line       = 0;
+    ppenv.position   = 0;
+    ppenv.output     = output;
+    ppenv.metadata   = metadata;
+    ppenv.parser     = parser;
+    ppenv.env        = env;
+    ppenv.stack      = stack;
+    ppenv.tree       = *(BNFNode**)at(tree->content, 0);
 
-  for (int i = 0; i < options->definitions->size; i++) {
-    Macro m;
-    m.filename = newString("");
-    m.name     = newString(*(char**)at(options->definitions, i));
-    m.value    = newString("");
-    m.params   = newArray(sizeof(String*));
-    m.line     = -1;
-    m.position = -1;
-    push(ppenv.env, &m);
+    for (int i = 0; i < options->definitions->size; i++) {
+      Macro m;
+      m.filename = newString("");
+      m.name     = newString(*(char**)at(options->definitions, i));
+      m.value    = newString("");
+      m.params   = newArray(sizeof(String*));
+      m.line     = -1;
+      m.position = -1;
+      push(ppenv.env, &m);
+    }
+
+    for (int i = 0; i < options->inputs->size; i++) {
+      preprocessfile(*(char**)at(options->inputs, i), options->includepath, trace, &ppenv, 0);
+    }
+
+    for (int i = 0; i < env->size; i++) {
+      freemacro(at(env, i));
+    }
+    if (parser)   deleteParser(&parser);
+    if (output)   fclose(output);
+    if (metadata) fclose(metadata);
+    if (env)      deleteArray(&env);
+    if (stack)    deleteArray(&stack);
+    if (tree)     deleteBNFTree(&tree);
+    if (trace)    deleteArray(&trace);
   }
-
-  for (int i = 0; i < options->inputs->size; i++) {
-    preprocessfile(*(char**)at(options->inputs, i), options->includepath, trace, &ppenv, 0);
-  }
-
-  for (int i = 0; i < env->size; i++) {
-    freemacro(at(env, i));
-  }
-  if (parser)   deleteParser(&parser);
-  if (output)   fclose(output);
-  if (metadata) fclose(metadata);
-  if (env)      deleteArray(&env);
-  if (stack)    deleteArray(&stack);
-  if (tree)     deleteBNFTree(&tree);
-  if (trace)    deleteArray(&trace);
 }

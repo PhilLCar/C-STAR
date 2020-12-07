@@ -1,6 +1,7 @@
 #include <cisor.h>
 
 #include <string.h>
+#include <stdio.h>
 
 #include <preprocessor.h>
 #include <intermediate.h>

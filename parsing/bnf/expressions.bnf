@@ -8,32 +8,32 @@
 <sequence> ::= <sequence> "," <assignment> | <assignment>
 
 // PRIORITY 17 RL
-<assignment> ::= <pairing> ( "="    |
-                             "+="   |
-                             "-="   |
-                             "*="   |
-                             "/="   |
-                             "%="   |
-                             "+^="  |
-                             "-^="  |
-                             "*^="  |
-                             "/^="  |
-                             "<<<=" |
-                             "<<="  |
-                             ">>="  |
-                             ">>>=" |
-                             "|>="  |
-                             "<|="  |
-                             "&="   |
-                             "^="   |
-                             "|="   |
-                             "~=") <assignment> | <pairing>
+<assignment> ::= <pairing> [ ( "="    |
+                               "+="   |
+                               "-="   |
+                               "*="   |
+                               "/="   |
+                               "%="   |
+                               "+^="  |
+                               "-^="  |
+                               "*^="  |
+                               "/^="  |
+                               "<<<=" |
+                               "<<="  |
+                               ">>="  |
+                               ">>>=" |
+                               "|>="  |
+                               "<|="  |
+                               "&="   |
+                               "^="   |
+                               "|="   |
+                               "~=") <assignment> ]
 
 // PRIORITY 16 RL
-<pairing> ::= <ternary> "::" <pairing> | <ternary>
+<pairing> ::= <ternary> [ "::" <pairing> ]
 
 // PRIORITY 15 RL
-<ternary> ::= <ternary> "?" <log-or> ":" <log-or> | <log-or>
+<ternary> ::= <log-or> [ "?" <ternary> ":" <ternary> ]
 
 // PRIORITY 14 LR
 <log-or>  ::= <log-or> "||" <log-xor> | <log-xor>
@@ -45,7 +45,7 @@
 <log-and> ::= <log-and> "&&" <bit-or> | <bit-or>
 
 // PRIORITY 11 LR
-<bit-or>  ::= <bit-or> "|" <bit-xor> | <bit-xor>
+<bit-or>  ::= [ <bit-or> "|" ] <bit-xor>
 
 // PRIORITY 10 LR
 <bit-xor> ::= <bit-xor> "^" <bit-and> | <bit-and>
@@ -81,13 +81,16 @@
 <ref>     ::= "&" <p2>
 
 // PRIORITY 1 LR
-<p1> ::= <postfix> | <call> | <index> | <access> | <p-access> | <parent> | <list> | <array> | <lambda> | <value>
-<postfix>   ::= <p1> ( "++" | "--" | "!*" | "!/" | "!" | ":>")
-<call>      ::= <p1> "(" [ <expression> ] ")"
-<index>     ::= <p1> "[" <expression> "]"
-<access>    ::= <p1> "."  <raw: variable>
-<p-access>  ::= <p1> "->" <raw: variable>
-<parent>    ::= "(" <expression> ")"
+<p1> ::= <postfix> | <call> | <index> | <access> | <p-access> | <parent> | <structures> | <value>
+<postfix>  ::= <p1> ( "++" | "--" | "!*" | "!/" | "!" | ":>")
+<call>     ::= <p1> "(" [ <expression> ] ")"
+<index>    ::= <p1> "[" <expression> "]"
+<access>   ::= <p1> "."  <raw: variable>
+<p-access> ::= <p1> "->" <raw: variable>
+<parent>   ::= "(" <expression> ")"
+
+// STRUCTURES
+<structures> ::= <list> | <array> | <lambda>
 <list>      ::= "[" [ <expression> ] "]"
 <array>     ::= "{" [ <expression> ] "}"
 <lambda>    ::= "(" [ <parameter> { "," <parameter> } ] ")" "{" { <statement> } "}"

@@ -1,6 +1,5 @@
 #include <error.h>
 
-#include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
 
@@ -152,12 +151,65 @@ void printcontext(MessageType type, Symbol *symbol, char *filename) {
   free(context);
 }
 
-void printnodemessage(MessageType type, Array *trace, char *nodename, char* message) {
-  printtrace(trace);
-  printmessagetype(type);
-  printfilename(*(char**)at(trace, trace->size - 1));
-  printnodename(nodename);
-  fprintf(stderr, "%s\n", message);
+void printirmessage(MessageType type, char *metadata, Symbol *symbol, char *message) {
+  Symbol       *tmp      = newSymbol(symbol);
+  Parser       *parser   = newParser("parsing/prs/meta.prs");
+  Array        *trace    = newArray(sizeof(char*));
+  SymbolStream *ss       = ssopen(metadata, parser);
+  int           found    = 0;
+
+  while (!found) {
+    ssgets(ss);
+    switch(ss->symbol.type) {
+      case SYMBOL_RESERVED:
+        if (!strcmp(ss->symbol.text, "#file")) {
+          String *s;
+          ssgets(ss);
+          s = newString(ss->symbol.text);
+          push(trace, &s->content);
+          s->content = NULL;
+          deleteString(&s);
+        } else { // #pop
+          free(*(char**)pop(trace));
+        }
+        ssgets(ss); // newline
+        break;
+      case SYMBOL_INTEGER:
+        {
+          int fline = atoi(ss->symbol.text);
+          int fposition, nline, nposition;
+          ssgets(ss); // :
+          ssgets(ss);
+          fposition = atoi(ss->symbol.text);
+          ssgets(ss); // <-
+          ssgets(ss);
+          nline     = atoi(ss->symbol.text);
+          ssgets(ss); // :
+          ssgets(ss);
+          nposition = atoi(ss->symbol.text);
+          ssgets(ss); // newline
+          if (fposition >= tmp->position && fline >= tmp->line) {
+            tmp->line     = nline;
+            tmp->position = nposition;
+            printsymbolmessage(type, trace, tmp, message);
+            found = 1;
+          }
+        }
+        break;
+      default:
+        fprintf(stderr, "There was an error parsing metadata, the help messages might not be accurate...\n");
+        break;
+    }
+  }
+
+  while (trace->size) {
+    free(*(char**)pop(trace));
+  }
+
+  ssclose(ss);
+  deleteArray(&trace);
+  deleteParser(&parser);
+  deleteSymbol(&tmp);
 }
 
 void printmacromessage(MessageType type, Array *trace, Array *hist, char *message) {
@@ -177,6 +229,14 @@ void printmacromessage(MessageType type, Array *trace, Array *hist, char *messag
   fprintf(stderr, "%s\n", message);
   printcontext(type, s, macro->filename->content);
   free(s);
+}
+
+void printnodemessage(MessageType type, Array *trace, char *nodename, char* message) {
+  printtrace(trace);
+  printmessagetype(type);
+  printfilename(*(char**)at(trace, trace->size - 1));
+  printnodename(nodename);
+  fprintf(stderr, "%s\n", message);
 }
 
 void printsymbolmessage(MessageType type, Array *trace, Symbol *symbol, char *message) {

@@ -1,0 +1,27 @@
+== Whitespaces ==
+ 	
+== Escape chars ==
+
+== Strings ==
+
+== Chars ==
+
+== Line comments ==
+
+== Multiline comments ==
+
+== Operators ==
+<-
+:
+
+== Delimiters ==
+
+== BreakSymbols ==
+
+== Reserved ==
+#file
+#pop
+
+== Constants ==
+
+== EOF ==

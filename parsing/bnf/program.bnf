@@ -11,7 +11,7 @@
 <line>        ::= ( <expression> | <declaration> | <control> ) [ ";" ]
 <declaration> ::= <type> ( <expression> | <prototype> )
 <prototype>   ::= <raw:variable> "(" [ <type> [ <raw: variable> ] { "," <type> [ <raw: variable> ] } ] ")"
-<control>     ::= "goto" <raw: variable> | "break" [ <sequence> ] | "continue" [ <sequence> ] | "finish" [ <sequence> ]
+<control>     ::= "goto" <raw: variable> | ("break" | "continue" | "finish" | "return") [ <sequence> ]
 
 <special-blocks> ::= <if-block> | <switch-block> | <loop-block>
 <do-block>       ::= "do" <statement>
