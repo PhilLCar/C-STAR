@@ -2,10 +2,10 @@
 <forward: type>
 
 // PRIORITY 19 RL
-<expression> ::= <sequence> <raw: no-newline> [ <expression> ]
+<expression> ::= <sequence> - <structures> <raw: no-newline> [ <expression> ]
 
 // PRIORITY 18 LR
-<sequence> ::= <sequence> "," <assignment> | <assignment>
+<sequence> ::= [ <sequence> "," ] <assignment>
 
 // PRIORITY 17 RL
 <assignment> ::= <pairing> [ ( "="    |
@@ -27,7 +27,7 @@
                                "&="   |
                                "^="   |
                                "|="   |
-                               "~=") <assignment> ]
+                               "~=" ) <assignment> ]
 
 // PRIORITY 16 RL
 <pairing> ::= <ternary> [ "::" <pairing> ]
@@ -36,40 +36,40 @@
 <ternary> ::= <log-or> [ "?" <ternary> ":" <ternary> ]
 
 // PRIORITY 14 LR
-<log-or>  ::= <log-or> "||" <log-xor> | <log-xor>
+<log-or>  ::= [ <log-or> "||" ] <log-xor>
 
 // PRIORITY 13 LR
-<log-xor> ::= <log-xor> "^^" <log-and> | <log-and>
+<log-xor> ::= [ <log-xor> "^^" ] <log-and>
 
 // PRIORITY 12 LR
-<log-and> ::= <log-and> "&&" <bit-or> | <bit-or>
+<log-and> ::= [ <log-and> "&&" ] <bit-or>
 
 // PRIORITY 11 LR
 <bit-or>  ::= [ <bit-or> "|" ] <bit-xor>
 
 // PRIORITY 10 LR
-<bit-xor> ::= <bit-xor> "^" <bit-and> | <bit-and>
+<bit-xor> ::= [ <bit-xor> "^" ] <bit-and>
 
 // PRIORITY 9 LR
-<bit-and> ::= <bit-and> "&" <comparative> | <comparative>
+<bit-and> ::= [ <bit-and> "&" ] <comparative>
 
 // PRIORITY 8 LR
-<comparative> ::= <comparative> ( "==" | "===" | "!=" | "!==" ) <relational> | <relational>
+<comparative> ::= [ <comparative> ( "==" | "===" | "!=" | "!==" ) ] <relational>
 
 // PRIORITY 7 LR
-<relational> ::= <relational> ( "<" | ">" | "<=" | ">=" ) <shift> | <shift>
+<relational> ::= [ <relational> ( "<" | ">" | "<=" | ">=" ) ] <shift>
 
 // PRIORITY 6 LR
-<shift> ::= <shift> ( "<<<" | "<<" | ">>" | ">>>" | "|>" | "<|" ) <additive> | <additive>
+<shift> ::= [ <shift> ( "<<<" | "<<" | ">>" | ">>>" | "|>" | "<|" ) ] <additive>
 
 // PRIORITY 5 LR
-<additive> ::= <additive> ( "+" | "-" ) <multiplicative> | <multiplicative>
+<additive> ::= [ <additive> ( "+" | "-" ) ] <multiplicative>
 
 // PRIORITY 4 LR
-<multiplicative> ::= <multiplicative> ( "*" | "/" | "%" ) <power> | <power>
+<multiplicative> ::= [ <multiplicative> ( "*" | "/" | "%" ) ] <power>
 
 // PRIORITY 3 LR
-<power> ::= <power> ( "*^" | "/^" ) <p2> | <p2>
+<power> ::= [ <power> ( "*^" | "/^" ) ] <p2>
 
 // PRIORITY 2 RL
 <p2> ::= <prefix> | <unary> | <not> | <cast> | <deref> | <ref> | <p1>

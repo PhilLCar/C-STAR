@@ -35,7 +35,7 @@ void intermediate(Options *options) {
 
     if (preprocessed) {
       status = astparsestream(ast, tree, NULL, ASTFLAGS_NONE, preprocessed);
-      if (status != STATUS_CONFIRMED) {
+      if (preprocessed->symbol->type != SYMBOL_EOF || status != STATUS_CONFIRMED) {
         printirmessage(ERRLVL_ERROR, metafile, preprocessed->symbol, "Unexpected symbol!");
       }
       closeStream(preprocessed);

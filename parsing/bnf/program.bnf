@@ -18,10 +18,10 @@
 <if-block>       ::= "if" <sequence> <statement> [ "else" <statement> ]
 <loop-block>     ::= [ <do-block> ] ( <while-block> | <for-block> | <foreach-block> | <metafor-block> )
 <while-block>    ::= "while" <sequence> <statement>
-<for-block>      ::= "for" "(" [ <expression> | <declaration> ] ";" [ <expression> ] ";" [ <expression> ] ")" <statement>
-<foreach-block>  ::= "for" "each" "(" [ <expression> | <declaration> ] ( "in" | "of" | "from" ) <expression> ")" <statement>
+<for-block>      ::= "for" "(" [ <sequence> | <declaration> ] ";" [ <sequence> ] ";" [ <sequence> ] ")" <statement>
+<foreach-block>  ::= "for" "each" "(" [ <sequence> | <declaration> ] ( "in" | "of" | "from" ) <sequence> ")" <statement>
 <switch-block>   ::= "switch" <sequence> "{" { <switch-label> ":" { <statement> } } "}"
-<metafor-block>  ::= [ <do-block> ] "meta" "for" "(" [ <expression> | <declaration> ] "in" <expression> ")" <block>
+<metafor-block>  ::= [ <do-block> ] "meta" "for" "(" [ <sequence> | <declaration> ] "in" <sequence> ")" <block>
 # var[10, 10, 10] a;
 #
 # metafor (var x in a) {
