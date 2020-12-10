@@ -624,7 +624,7 @@ int preprocessfile(char *filename, Array *incpath, Array *trace, PPEnv *ppenv, i
           exp = ppexpandmacro(ppenv, expr, trace, 1);
           if (exp) {
             Stream    *stream = getStreamSSS(sssopen(exp, ppenv->parser));
-            ASTStatus  status = astparsestream(ast, ppenv->tree, NULL, ASTFLAGS_NONE, stream);
+            ASTStatus  status = astparsestream(ast, ppenv->tree, stream);
             if (stream->symbol->type != SYMBOL_EOF || status == STATUS_FAILED) {
               stream->symbol->line     += t->line;
               stream->symbol->position += t->position;
@@ -666,7 +666,7 @@ int preprocessfile(char *filename, Array *incpath, Array *trace, PPEnv *ppenv, i
           exp = ppexpandmacro(ppenv, expr, trace, 1);
           if (exp) {
             Stream    *stream = getStreamSSS(sssopen(exp, ppenv->parser));
-            ASTStatus  status = astparsestream(ast, ppenv->tree, NULL, ASTFLAGS_NONE, stream);
+            ASTStatus  status = astparsestream(ast, ppenv->tree, stream);
             if (stream->symbol->type != SYMBOL_EOF || status == STATUS_FAILED) {
               stream->symbol->line     += t->line;
               stream->symbol->position += t->position;

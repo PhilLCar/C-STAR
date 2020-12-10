@@ -75,6 +75,7 @@
 .
 ->
 ?
+:
 ::
 ,
 <:
@@ -99,6 +100,8 @@ while
 do
 meta
 in
+of
+from
 each
 switch
 const
@@ -127,6 +130,12 @@ file
 dir
 pair
 void
+return
+break
+continue
+finish
+push
+pop
 
 == Constants ==
 true

@@ -5,31 +5,22 @@
 
 <program> ::= { <statement> }
 
-<statement> ::= <block> | <special-blocks> | <address> <statement> /*| <class-decl> | <operator-assoc>*/ 
+<statement> ::= <address> <statement> | <special-block> | <block> /*| <class-decl> | <op-assoc>*/ 
 
-<block>       ::= <line> | "{" { <statement> } "}"
-<line>        ::= ( <expression> | <declaration> | <control> ) [ ";" ]
-<declaration> ::= <type> ( <expression> | <prototype> )
-<prototype>   ::= <raw:variable> "(" [ <type> [ <raw: variable> ] { "," <type> [ <raw: variable> ] } ] ")"
-<control>     ::= "goto" <raw: variable> | ("break" | "continue" | "finish" | "return") [ <sequence> ]
+<block>       ::= "{" { <statement> } "}" | <line>
+<line>        ::= ( <declaration> | <control> | <func-assoc> ) [ ";" ]
+<declaration> ::= <type> <raw: variable> ( <prototype> | [ "=" ] <sequence> ) /*| <class-type> | <proto-op>*/
+<prototype>   ::= "(" [ <type> [ <raw: variable> ] { "," <type> [ <raw: variable> ] } ] ")"
+<control>     ::= "goto" <raw: variable> | ("break" | "continue" | "finish" | "return" | "push") [ <sequence> ] | "pop"
 
-<special-blocks> ::= <if-block> | <switch-block> | <loop-block>
-<do-block>       ::= "do" <statement>
-<if-block>       ::= "if" <sequence> <statement> [ "else" <statement> ]
-<loop-block>     ::= [ <do-block> ] ( <while-block> | <for-block> | <foreach-block> | <metafor-block> )
-<while-block>    ::= "while" <sequence> <statement>
-<for-block>      ::= "for" "(" [ <sequence> | <declaration> ] ";" [ <sequence> ] ";" [ <sequence> ] ")" <statement>
-<foreach-block>  ::= "for" "each" "(" [ <sequence> | <declaration> ] ( "in" | "of" | "from" ) <sequence> ")" <statement>
-<switch-block>   ::= "switch" <sequence> "{" { <switch-label> ":" { <statement> } } "}"
-<metafor-block>  ::= [ <do-block> ] "meta" "for" "(" [ <sequence> | <declaration> ] "in" <sequence> ")" <block>
-# var[10, 10, 10] a;
-#
-# metafor (var x in a) {
-# 	// normal access, if you know a's structure
-# 	a[x[0], x[1], x[2]] = wtv;
-# 	// meta access, if a's structure is unknown
-# 	a[meta x] = wtv;
-# }
+<special-block> ::= <if-block> | <switch-block> | <loop-block>
+<do-block>      ::= "do" <statement>
+<if-block>      ::= "if" <sequence> <statement> [ "else" <statement> ]
+<loop-block>    ::= [ <do-block> ] ( <while-block> | <for-block> | <foreach-block> | <metafor-block> )
+<while-block>   ::= "while" <sequence> <statement>
+<for-block>     ::= "for" "(" [ [ <type> ] <sequence> ] ";" [ <sequence> ] ";" [ <sequence> ] ")" <statement>
+<foreach-block> ::= "for" "each" "(" [ <type> ] <sequence> ( "in" | "of" | "from" ) <sequence> ")" <statement>
+<switch-block>  ::= "switch" <sequence> "{" { ( "case" <sequence> | "default" ) ":" { <statement> } } "}"
+<metafor-block> ::= [ <do-block> ] "meta" "for" "(" [ <type> ] <sequence> "in" <sequence> ")" <statement>
 
-<address>      ::= <raw: variable> ":"
-<switch-label> ::= ( "case" <sequence> | "default" ) ":"
+<address> ::= <raw: variable> ":"

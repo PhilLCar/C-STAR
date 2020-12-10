@@ -14,10 +14,7 @@ typedef enum aststatus {
 
 typedef enum astflags {
   ASTFLAGS_NONE       = 0,
-  ASTFLAGS_REC        = 2,
-  ASTFLAGS_FRONT      = 4,
-  ASTFLAGS_NO_NEWLINE = 8,
-  ASTFLAGS_RECLVL     = ~0xFF
+  ASTFLAGS_NO_NEWLINE = 1
 } ASTFlags;
 
 typedef struct astnode {
@@ -28,11 +25,12 @@ typedef struct astnode {
   Array   *subnodes;
   int      continuation;
   int      recurse;
+  int      scope;
 } ASTNode;
 
 ASTNode   *newASTNode(ASTNode *ast, BNFNode *bnf);
 void       deleteAST(ASTNode **ast);
-ASTStatus  astparsestream(ASTNode *ast, BNFNode *bnf, Array *rejected, ASTFlags flags, Stream *stream);
+ASTStatus  astparsestream(ASTNode *ast, BNFNode *bnf, Stream *stream);
 ASTNode   *parseast(char *filename);
 
 #endif

@@ -26,6 +26,7 @@ ASTNode *newASTNode(ASTNode *ast, BNFNode *bnf)
     new->symbol        = NULL;
     new->continuation  = 0;
     new->recurse       = 0;
+    new->scope         = 0;
     if (ast) push(ast->subnodes, &new);
   }
   return new;
@@ -105,7 +106,7 @@ void astnextsymbol(Stream *s) {
   while (s->gets(s->stream) && s->symbol->type == SYMBOL_COMMENT);
 }
 
-ASTStatus astparsestream(ASTNode *ast, BNFNode *bnf, Array *rejected, ASTFlags flags, Stream *s)
+ASTStatus _astparsestream(ASTNode *ast, BNFNode *bnf, Array *rejected, ASTNode **parsed, ASTFlags flags, Stream *s)
 {
   BNFNode   *subbnf;
   ASTNode   *subast;
@@ -114,31 +115,32 @@ ASTStatus astparsestream(ASTNode *ast, BNFNode *bnf, Array *rejected, ASTFlags f
   Symbol    *symbol  = s->symbol;
   int        size    = 0;
   char      *content = bnf->content;
-  int        reclvl  = flags >> 8;
   int        partial = -1;
-  int        refs    = bnf->refs->size;
 
+  // Special cases
   if (rejected && in(rejected, &bnf)) {
-    return status;
+    return STATUS_FAILED;
   }
-  if (flags & ASTFLAGS_FRONT && bnf->refs->size > reclvl) {
+  if (bnf->refs->size) {
     ASTNode *recnode = *(ASTNode**)last(bnf->refs);
-    recnode->recurse = 1;
-    if (recnode->continuation) {
-      status = STATUS_PARTIAL;
-      push(ast->subnodes, &recnode);
+    if (recnode->scope == ast->scope) {
+      recnode->recurse = 1;
+      if (recnode->continuation) {
+        status = STATUS_PARTIAL;
+        push(ast->subnodes, &recnode);
+      }
+      return status;
     }
-    return status;
+  }
+  if (*parsed && !strcmp(bnf->name, (*parsed)->name->content)) {
+    astupnode(ast, *parsed);
+    *parsed = NULL;
+    return STATUS_CONFIRMED;
   }
 
-  if (bnf->name[0]) printf("%s\n", bnf->name);
-  
   if (bnf->type != NODE_LEAF && bnf->type != NODE_RAW) size = ((Array*)bnf->content)->size;
   if (!symbol->text) astnextsymbol(s);
 
-  while (bnf->refs->size < reclvl) 
-    push(bnf->refs, &ast);
-  flags = (flags & ~ASTFLAGS_RECLVL) | (bnf->refs->size << 8);
   push(bnf->refs, &ast);
   do {
     switch (bnf->type) {
@@ -150,12 +152,12 @@ ASTStatus astparsestream(ASTNode *ast, BNFNode *bnf, Array *rejected, ASTFlags f
     case NODE_NOT:
       if (!rejected) rejected = newArray(sizeof(BNFNode*));
       push(rejected, at(bnf->content, 1));
-      status = astparsestream(ast, *(BNFNode**)at(bnf->content, 0), rejected, flags, s);
+      status = _astparsestream(ast, *(BNFNode**)at(bnf->content, 0), rejected, parsed, flags, s);
       pop(rejected);
       if (rejected && !rejected->size) deleteArray(&rejected);
       break;
     case NODE_RAW:
-      if (symbol->type == (SymbolType)bnf->content) {
+      if (!*parsed && symbol->type == (SymbolType)bnf->content) {
         deleteString(&ast->name);
         deleteString(&ast->value);
         ast->name   = newString(bnf->name);
@@ -167,7 +169,7 @@ ASTStatus astparsestream(ASTNode *ast, BNFNode *bnf, Array *rejected, ASTFlags f
       break;
     case NODE_LEAF:
       if (content) {
-        if (symbol->text && !strcmp(symbol->text, content)) {
+        if (!*parsed && symbol->text && !strcmp(symbol->text, content)) {
           deleteString(&ast->value);
           ast->value  = newString(content);
           ast->symbol = newSymbol(symbol);
@@ -194,24 +196,25 @@ ASTStatus astparsestream(ASTNode *ast, BNFNode *bnf, Array *rejected, ASTFlags f
             astnextsymbol(s);
           }
           // Don't put the newlines back on the stream if reached EOF
-          if (symbol->type == SYMBOL_EOF) {
-            ASTNode *lastnode;
-            for (int i = 0; i < ast->subnodes->size; i++) {
-              lastnode = *(ASTNode**)at(ast->subnodes, i);
-              if (!strcmp(lastnode->name->content, "\\n")) deleteAST(rem(ast->subnodes, i--));
-            }
-          }
+          // if (symbol->type == SYMBOL_EOF) {
+          //   ASTNode *lastnode;
+          //   while (ast->subnodes->size && !strcmp((lastnode = *(ASTNode**)last(ast->subnodes))->name->content, "\\n")) {
+          //     deleteAST(pop(ast->subnodes));
+          //   }
+          // }
           nflags &= ~ASTFLAGS_NO_NEWLINE;
         }
         subast = newASTNode(ast, subbnf);
-        status = astparsestream(subast, subbnf, NULL, nflags, s);
-        nflags &= ~ASTFLAGS_FRONT;
+        subast->scope = ast->scope + i;
+        status = _astparsestream(subast, subbnf, rejected, parsed, nflags, s);
         if (status == STATUS_PARTIAL) {
           partial = 1;
-        } else if (status != STATUS_CONFIRMED) {
+        } else if (status == STATUS_FAILED) {
           while (ast->subnodes->size) revertAST(pop(ast->subnodes), s);
           if (!symbol->text) astnextsymbol(s);
           break;
+        } else if (subast->name->length || subast->value->length || subast->subnodes->size) {
+          rejected = NULL;
         }
       }
       if (status != STATUS_CONFIRMED) {
@@ -228,8 +231,10 @@ ASTStatus astparsestream(ASTNode *ast, BNFNode *bnf, Array *rejected, ASTFlags f
         // Remove empty nodes
         for (int i = 0; i < ast->subnodes->size; i++) {
           lastnode = *(ASTNode**)at(ast->subnodes, i);
-          if ((!lastnode->name->length && !lastnode->value->length) || !strcmp(lastnode->name->content, "\\n")) {
-            if (lastnode->subnodes->size) astflatten(ast, i);
+          if ((!lastnode->name->length && !lastnode->value->length) || 
+               !strcmp(lastnode->name->content, "\\n")              ||
+               (lastnode->symbol && lastnode->symbol->type == SYMBOL_BREAK)) {
+            if (lastnode->subnodes->size) astflatten(ast, i--);
             else                          deleteAST(rem(ast->subnodes, i--));
           }
         }
@@ -241,15 +246,12 @@ ASTStatus astparsestream(ASTNode *ast, BNFNode *bnf, Array *rejected, ASTFlags f
     case NODE_ONE_OF:
     case NODE_ANON:
     case NODE_ONE_OR_NONE:
-      subast   = newASTNode(ast, NULL);
-      nflags   = bnf->name[0] ? flags | ASTFLAGS_FRONT : flags;
-      if (!strcmp(bnf->name, "parent")) {
-        printf("ok\n");
-      }
+      subast = newASTNode(ast, NULL);
+      subast->scope = ast->scope;
       for (int i = 0; i < size; i++) {
         if (i == partial) continue;
         subbnf = *(BNFNode**)at(bnf->content, i);
-        status = astparsestream(subast, subbnf, rejected, nflags, s);
+        status = _astparsestream(subast, subbnf, rejected, parsed, nflags, s);
         if (status == STATUS_CONFIRMED) {
           if (partial < 0 && size > 1) partial = i;
           if (bnf->name[0] && bnf->type != NODE_ANON && !subast->name->length) {
@@ -264,18 +266,21 @@ ASTStatus astparsestream(ASTNode *ast, BNFNode *bnf, Array *rejected, ASTFlags f
         if (status == STATUS_PARTIAL)           status = STATUS_FAILED;
         else if (bnf->type == NODE_ONE_OR_NONE) status = STATUS_CONFIRMED;
         deleteAST(pop(ast->subnodes));
-      } else if (!ast->recurse) {
-        astupnode(ast, subast);
+      } else {
+        if (ast->subnodes->size > 1) {
+          *parsed = *(ASTNode**)pop(ast->subnodes);
+        }
+        if (!ast->recurse) astupnode(ast, *(ASTNode**)last(ast->subnodes));
       }
       break;
     case NODE_MANY_OR_NONE:
     case NODE_MANY_OR_ONE:
       do {
         subast = newASTNode(ast, NULL);
-        nflags = bnf->name[0] ? flags | ASTFLAGS_FRONT : flags;
+        subast->scope = ast->scope;
         for (int i = 0; i < size; i++) {
           subbnf = *(BNFNode**)at(bnf->content, i);
-          status = astparsestream(subast, subbnf, rejected, nflags, s);
+          status = _astparsestream(subast, subbnf, rejected, parsed, nflags, s);
           if (status == STATUS_CONFIRMED) {
             subast->ref = bnf;
             break;
@@ -297,11 +302,17 @@ ASTStatus astparsestream(ASTNode *ast, BNFNode *bnf, Array *rejected, ASTFlags f
     }
     ast->continuation = ast->recurse;
     ast->recurse = 0;
+    rejected = NULL;
   } while (status == STATUS_CONFIRMED && ast->continuation);
   pop(bnf->refs);
-  while (bnf->refs->size > refs) pop(bnf->refs);
 
   return status;
+}
+
+ASTStatus astparsestream(ASTNode *ast, BNFNode *bnf, Stream *s)
+{
+  ASTNode *parsed = NULL;
+  return _astparsestream(ast, bnf, NULL, &parsed, ASTFLAGS_NONE, s);
 }
 
 ASTNode *parseast(char *filename)
@@ -314,7 +325,7 @@ ASTNode *parseast(char *filename)
   Array        *trace    = newArray(sizeof(char*));
   ASTStatus     status;
 
-  status = astparsestream(ast, rootent, NULL, ASTFLAGS_NONE, s);
+  status = astparsestream(ast, rootent, s);
   if (s->symbol->type != SYMBOL_EOF || status == STATUS_FAILED) {
     push(trace, &filename);
     printsymbolmessage(ERRLVL_ERROR, trace, s->symbol, "Unexpected symbol!");

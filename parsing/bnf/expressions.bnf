@@ -1,8 +1,9 @@
-<forward: statement>
+<forward: loop-block>
+<forward: block>
 <forward: type>
 
 // PRIORITY 19 RL
-<expression> ::= <sequence> - <structures> <raw: no-newline> [ <expression> ]
+<func-assoc> ::= <sequence> <raw: no-newline> [ <func-assoc> ]
 
 // PRIORITY 18 LR
 <sequence> ::= [ <sequence> "," ] <assignment>
@@ -81,20 +82,20 @@
 <ref>     ::= "&" <p2>
 
 // PRIORITY 1 LR
-<p1> ::= <postfix> | <call> | <index> | <access> | <p-access> | <parent> | <structures> | <value>
+<p1> ::= <structure> | <postfix> | <call> | <index> | <access> | <p-access> | <value>
 <postfix>  ::= <p1> ( "++" | "--" | "!*" | "!/" | "!" | ":>")
-<call>     ::= <p1> "(" [ <expression> ] ")"
-<index>    ::= <p1> "[" <expression> "]"
+<call>     ::= <p1> "(" [ <sequence> ] ")"
+<index>    ::= <p1> "[" <sequence> "]"
 <access>   ::= <p1> "."  <raw: variable>
 <p-access> ::= <p1> "->" <raw: variable>
-<parent>   ::= "(" <expression> ")"
 
 // STRUCTURES
-<structures> ::= <list> | <array> | <lambda>
-<list>      ::= "[" [ <expression> ] "]"
-<array>     ::= "{" [ <expression> ] "}"
-<lambda>    ::= "(" [ <parameter> { "," <parameter> } ] ")" "{" { <statement> } "}"
-<parameter> ::= [ <type> ] <raw: variable> [ "=" <expression> ]
+<structure> ::= <list> | <array> | <lambda> | <parent>
+<list>      ::= "[" [ <sequence> | <loop-block> ] "]"
+<array>     ::= "{" [ <sequence> | <loop-block> ] "}"
+<lambda>    ::= "(" [ <parameter> { "," <parameter> } ] ")" <block>
+<parameter> ::= [ <type> ] <raw: variable> [ "=" <sequence> ]
+<parent>    ::= "(" <func-assoc> ")"
 
 // BASE VALUE
 <value> ::= <raw: variable> | <raw: string> | <raw: integer> | <raw: decimal> | <raw: constant>

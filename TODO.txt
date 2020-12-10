@@ -4,3 +4,4 @@
 - PP: C-Mode
 - Include "self" keyword to reference own function within itself
 - Symbol stream must take into account special types like 0.f or 32Ub
+- AST: revert AST on ONE_OF failure too -- to be thought of
