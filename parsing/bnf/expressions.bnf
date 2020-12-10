@@ -1,5 +1,5 @@
 <forward: loop-block>
-<forward: block>
+<forward: statement>
 <forward: type>
 
 // PRIORITY 19 RL
@@ -82,9 +82,9 @@
 <ref>     ::= "&" <p2>
 
 // PRIORITY 1 LR
-<p1> ::= <structure> | <postfix> | <call> | <index> | <access> | <p-access> | <value>
+<p1> ::= <postfix> | <call> | <index> | <access> | <p-access> | <structure> | <value>
 <postfix>  ::= <p1> ( "++" | "--" | "!*" | "!/" | "!" | ":>")
-<call>     ::= <p1> "(" [ <sequence> ] ")"
+<call>     ::= <p1> "(" [ <sequence> ] ")" ! "{"
 <index>    ::= <p1> "[" <sequence> "]"
 <access>   ::= <p1> "."  <raw: variable>
 <p-access> ::= <p1> "->" <raw: variable>
@@ -93,7 +93,7 @@
 <structure> ::= <list> | <array> | <lambda> | <parent>
 <list>      ::= "[" [ <sequence> | <loop-block> ] "]"
 <array>     ::= "{" [ <sequence> | <loop-block> ] "}"
-<lambda>    ::= "(" [ <parameter> { "," <parameter> } ] ")" <block>
+<lambda>    ::= "(" [ <parameter> { "," <parameter> } ] ")" "{" { <statement> } "}"
 <parameter> ::= [ <type> ] <raw: variable> [ "=" <sequence> ]
 <parent>    ::= "(" <func-assoc> ")"
 

@@ -157,6 +157,13 @@ ASTStatus _astparsestream(ASTNode *ast, BNFNode *bnf, Array *rejected, ASTNode *
     case NODE_CONCAT:
       /// NOT APPLICABLE (legacy)
       break;
+    case NODE_PEAK:
+    case NODE_PEAK_NOT:
+      subbnf = *(BNFNode**)at(bnf->content, 0);
+      if ((bnf->type == NODE_PEAK) == !strcmp(symbol->text, subbnf->content)) {
+        status = STATUS_CONFIRMED;
+      }
+      break;
     case NODE_CONTIGUOUS:
       deleteString(&ast->name);
       ast->name = newString("");

@@ -355,6 +355,31 @@ int parsebnfstatement(SymbolStream *ss, BNFNode *basenode, BNFNode *parent, Arra
       } else ret = 0;
       oplast = 0;
     } //////////////////////////////////////////////////////////////////////////////////////////
+    else if (s->text[0] == '!' || s->text[0] == '?') {
+      char c = s->text[0];
+      s = ssgets(ss);
+      if (s->type != SYMBOL_STRING) {
+        printsymbolmessage(ERRLVL_ERROR, trace, s, "Peaking only works with constant leafs!");
+      }
+      BNFNode *node = newBNFNode(basenode, "", c == '!' ? NODE_PEAK_NOT : NODE_PEAK);
+      if (node) {
+        BNFNode *sub;
+        char    *value = s->text[0] ? malloc((strlen(s->text) + 1) * sizeof(char)) : NULL;
+        if (value) sprintf(value, "%s", s->text);
+        if (!strcmp(s->open, "\"")) {
+          if (strcmp(s->close, "\"")) printsymbolmessage(ERRLVL_ERROR, trace, s, "Expected closing '"FONT_BOLD"\""FONT_RESET"'!");
+        } else if (!strcmp(s->open, "'")) {
+          if (strcmp(s->close, "\'")) printsymbolmessage(ERRLVL_ERROR, trace, s, "Expected closing '"FONT_BOLD"'"FONT_RESET"'!");
+        }
+        sub = newBNFNode(basenode, "", NODE_LEAF);
+        if (sub) {
+          sub->content = value;
+          push(node->content, &sub);
+        }
+        push(content, &node);
+      } else ret = 0;
+      oplast = 0;
+    } //////////////////////////////////////////////////////////////////////////////////////////
     else if (!strcmp(s->text, stop) || (stop[0] == '\n' && s->type == SYMBOL_NEWLINE && !oplast)) {
       break;
     } //////////////////////////////////////////////////////////////////////////////////////////
