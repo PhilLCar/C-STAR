@@ -21,7 +21,6 @@ typedef enum symboltype {
   SYMBOL_RESERVED,
   SYMBOL_CONSTANT,
   SYMBOL_NEWLINE,
-  SYMBOL_NO_NEWLINE,
   SYMBOL_EOF,
 
   SYMBOL_ERROR                = 0x100,
@@ -39,6 +38,7 @@ typedef struct symbol {
 
 typedef struct symbolstream {
   char        *filename;
+  int          newline;
   TrackedFile *tfptr;
   Parser      *parser;
   Symbol       symbol;
@@ -47,14 +47,17 @@ typedef struct symbolstream {
 
 typedef struct stringsymbolstream {
   String        *str;
+  int            newline;
   TrackedString *tsptr;
   Parser        *parser;
   Symbol         symbol;
+  SymbolType     previous;
   Array         *stack;
 } StringSymbolStream;
 
 typedef struct stream {
   void     *stream;
+  int      *newline;
   Parser   *parser;
   Array    *stack;
   Symbol   *symbol;

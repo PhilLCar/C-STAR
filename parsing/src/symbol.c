@@ -465,6 +465,7 @@ void ssclose(SymbolStream *ss)
 Symbol *ssgets(SymbolStream *ss)
 {
   Symbol *s = &ss->symbol;
+  ss->newline = s->type == SYMBOL_NEWLINE;
   freesymbol(s);
   if (ss->stack->size) {
     *s = *(Symbol*)pop(ss->stack);
@@ -565,6 +566,7 @@ void sssclose(StringSymbolStream *sss)
 Symbol *sssgets(StringSymbolStream *sss)
 {
   Symbol *s = &sss->symbol;
+  sss->newline = s->type == SYMBOL_NEWLINE;
   freesymbol(s);
   if (sss->stack->size) {
     *s = *(Symbol*)pop(sss->stack);
@@ -591,12 +593,13 @@ Stream *getStreamSS(SymbolStream *ss)
 {
   Stream *stream = malloc(sizeof(Stream));
   if (stream) {
-    stream->stream = ss;
-    stream->parser = ss->parser;
-    stream->stack  = ss->stack;
-    stream->symbol = &ss->symbol;
-    stream->gets   = (Symbol*(*)(void*))ssgets;
-    stream->ungets = (Symbol*(*)(Symbol*, void*))ssungets;
+    stream->stream  = ss;
+    stream->newline = &ss->newline;
+    stream->parser  = ss->parser;
+    stream->stack   = ss->stack;
+    stream->symbol  = &ss->symbol;
+    stream->gets    = (Symbol*(*)(void*))ssgets;
+    stream->ungets  = (Symbol*(*)(Symbol*, void*))ssungets;
   }
   return stream;
 }
@@ -605,12 +608,13 @@ Stream *getStreamSSS(StringSymbolStream *sss)
 {
   Stream *stream = malloc(sizeof(Stream));
   if (stream) {
-    stream->stream = sss;
-    stream->parser = sss->parser;
-    stream->stack  = sss->stack;
-    stream->symbol = &sss->symbol;
-    stream->gets   = (Symbol*(*)(void*))sssgets;
-    stream->ungets = (Symbol*(*)(Symbol*, void*))sssungets;
+    stream->stream  = sss;
+    stream->newline = &sss->newline;
+    stream->parser  = sss->parser;
+    stream->stack   = sss->stack;
+    stream->symbol  = &sss->symbol;
+    stream->gets    = (Symbol*(*)(void*))sssgets;
+    stream->ungets  = (Symbol*(*)(Symbol*, void*))sssungets;
   }
   return stream;
 }

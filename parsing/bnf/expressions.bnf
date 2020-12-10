@@ -3,7 +3,7 @@
 <forward: type>
 
 // PRIORITY 19 RL
-<func-assoc> ::= <sequence> <raw: no-newline> [ <func-assoc> ]
+<func-assoc> ::= <sequence> [ <contiguous> <func-assoc> ]
 
 // PRIORITY 18 LR
 <sequence> ::= [ <sequence> "," ] <assignment>

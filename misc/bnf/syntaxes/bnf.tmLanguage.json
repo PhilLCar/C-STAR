@@ -94,7 +94,7 @@
 				}
 			},
 			{
-				"match": "(<)\\s*((raw|anon|forward)\\s*(:))?\\s*(.*?)\\s*(>)",
+				"match": "(<)\\s*((contiguous|raw|anon|forward)\\s*(:)?)?\\s*(.*?)\\s*(>)",
 				"captures": {
 					"1": { "name": "keyword.operator.bnf" },
 					"3": { "name": "constant.language.bnf" },

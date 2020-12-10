@@ -12,20 +12,16 @@ typedef enum aststatus {
   STATUS_PARTIAL
 } ASTStatus;
 
-typedef enum astflags {
-  ASTFLAGS_NONE       = 0,
-  ASTFLAGS_NO_NEWLINE = 1
-} ASTFlags;
-
 typedef struct astnode {
   String  *name;
   String  *value;
   BNFNode *ref;
   Symbol  *symbol;
   Array   *subnodes;
-  int      continuation;
-  int      recurse;
   int      scope;
+  char     continuation;
+  char     recurse;
+  char     newline;
 } ASTNode;
 
 ASTNode   *newASTNode(ASTNode *ast, BNFNode *bnf);

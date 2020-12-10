@@ -46,7 +46,6 @@ string
 char
 variable
 newline
-no-newline
 constant
 new-type
 
@@ -54,5 +53,6 @@ new-type
 raw
 forward
 anon
+contiguous
 
 == EOF ==

@@ -26,7 +26,8 @@ typedef enum bnftype {
   NODE_ONE_OF,
   NODE_ONE_OR_NONE,
   NODE_MANY_OR_NONE,
-  NODE_MANY_OR_ONE
+  NODE_MANY_OR_ONE,
+  NODE_CONTIGUOUS
 } BNFType;
 
 typedef struct bnfnode {
