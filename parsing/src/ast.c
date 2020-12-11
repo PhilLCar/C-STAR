@@ -201,15 +201,16 @@ ASTStatus _astparsestream(ASTNode *ast, BNFNode *bnf, Array *rejected, int recur
         subbnf = *(BNFNode**)at(bnf->content, i);
         subast = newASTNode(ast, subbnf);
         subast->scope = ast->scope + i;
-        status = _astparsestream(subast, subbnf, rejected, recurse, s);
+        status  = _astparsestream(subast, subbnf, rejected, recurse, s);
+        recurse = 0;
         if (status == STATUS_PARTIAL) {
           partial = 1;
-          recurse = 0;
         } else if (status == STATUS_FAILED) {
           while (ast->subnodes->size) revertAST(pop(ast->subnodes), s);
           if (!symbol->text) astnextsymbol(s);
           break;
-        } else if (subast->name->length || subast->value->length || subast->subnodes->size) {
+        } 
+        if (subast->name->length || subast->value->length || subast->subnodes->size) {
           rejected = NULL;
         }
       }

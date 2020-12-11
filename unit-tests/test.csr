@@ -1,1 +1,3 @@
-if (test) { ok } else { ok }
+if a < b { 
+  a = [for (int i = 0; i < 3; i++) push i]
+}
