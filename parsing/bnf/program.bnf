@@ -19,9 +19,9 @@
 <if-block>      ::= "if" <condition> <statement> [ "else" <statement> ]
 <loop-block>    ::= [ <do-block> ] ( <while-block> | <for-block> | <foreach-block> | <metafor-block> )
 <while-block>   ::= "while" <condition> <statement>
-<for-block>     ::= "for" "(" [ [ <type> ] <func-assoc> ] ";" [ <func-assoc> ] ";" [ <func-assoc> ] ")" <statement>
-<foreach-block> ::= "for" "(" [ <type> ] <raw: variable> ( "in" | "of" | "from" ) <func-assoc> ")" <statement>
+<for-block>     ::= "for" "(" [ [ <type> ] <func-assoc> ] ";" [ <condition> ] ";" [ <func-assoc> ] ")" <statement>
+<foreach-block> ::= "for" "(" [ <type> ] <raw: variable> ( "in" | "of" | "from" ) <condition> ")" <statement>
 <switch-block>  ::= "switch" <condition> "{" { ( "case" <condition> | "default" ) ":" { <statement> } } "}"
-<metafor-block> ::= "meta" "for" "(" [ <type> ] <raw: variable> "in" <func-assoc> ")" <statement>
+<metafor-block> ::= "meta" "for" "(" [ <type> ] <raw: variable> "in" <condition> ")" <statement>
 
 <address> ::= <raw: variable> ":"
