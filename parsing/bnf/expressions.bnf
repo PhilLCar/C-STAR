@@ -74,7 +74,7 @@
 
 // PRIORITY 2 RL
 <p2> ::= <prefix> | <unary> | <not> | <cast> | <deref> | <ref> | <p1>
-<prefix>  ::= ( "++" | "--" | "+^" | "-^" | "<:") <p2>
+<prefix>  ::= ( "++" | "--" | "+^" | "-^" | "<:" | "sizeof" | "typeof" ) <p2>
 <unary>   ::= ( "+" | "-" ) <p2>
 <not>     ::= ( "!" | "~" ) <p2>
 <cast>    ::= "(" <type> ")" <p2>
@@ -83,7 +83,7 @@
 
 // PRIORITY 1 LR
 <p1> ::= <postfix> | <call> | <index> | <access> | <p-access> | <structure> | <value>
-<postfix>  ::= <p1> ( "++" | "--" | "!*" | "!/" | "!" | ":>")
+<postfix>  ::= <p1> ( "++" | "--" | "!*" | "!/" | "!" | ":>" )
 <call>     ::= <p1> "(" [ <sequence> ] ")" ! "{"
 <index>    ::= <p1> "[" <sequence> "]"
 <access>   ::= <p1> "."  <raw: variable>

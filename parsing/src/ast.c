@@ -248,11 +248,9 @@ ASTStatus _astparsestream(ASTNode *ast, BNFNode *bnf, Array *rejected, ASTNode *
       subast = newASTNode(ast, NULL);
       subast->scope = ast->scope;
       for (int i = 0; i < size; i++) {
-        if (i == partial) continue;
         subbnf = *(BNFNode**)at(bnf->content, i);
         status = _astparsestream(subast, subbnf, rejected, parsed, s);
         if (status == STATUS_CONFIRMED) {
-          if (partial < 0 && size > 1) partial = i;
           if (bnf->name[0] && bnf->type != NODE_ANON && !subast->name->length) {
             deleteString(&subast->name);
             subast->name = newString(bnf->name);
@@ -276,7 +274,7 @@ ASTStatus _astparsestream(ASTNode *ast, BNFNode *bnf, Array *rejected, ASTNode *
     case NODE_MANY_OR_ONE:
       do {
         subast = newASTNode(ast, NULL);
-        subast->scope = ast->scope;
+        subast->scope = ast->scope + ast->subnodes->size - 1;
         for (int i = 0; i < size; i++) {
           subbnf = *(BNFNode**)at(bnf->content, i);
           status = _astparsestream(subast, subbnf, rejected, parsed, s);

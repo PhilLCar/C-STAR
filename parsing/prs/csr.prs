@@ -102,7 +102,6 @@ meta
 in
 of
 from
-each
 switch
 const
 var
@@ -136,6 +135,8 @@ continue
 finish
 push
 pop
+sizeof
+typeof
 
 == Constants ==
 true

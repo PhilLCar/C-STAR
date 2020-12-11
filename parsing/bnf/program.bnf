@@ -5,22 +5,23 @@
 
 <program> ::= { <statement> }
 
-<statement> ::= <address> <statement> | <special-block> | <block> /*| <class-decl> | <op-assoc>*/ 
+<statement> ::= ";" | <address> <statement> | <special-block> | <block> /*| <class-decl> | <op-assoc>*/ 
 
 <block>       ::= "{" { <statement> } "}" | <line>
-<line>        ::= ( <declaration> | <control> | <func-assoc> ) [ ";" ] | ";"
-<declaration> ::= <type> <raw: variable> ( <prototype> | [ "=" ] <sequence> ) /*| <class-type> | <proto-op>*/
+<line>        ::= ( <declaration> | <control> | <func-assoc> ) [ ";" ]
+<declaration> ::= <type> <raw: variable> ( <prototype> | [ "=" ] <func-assoc> ) /*| <class-type> | <proto-op>*/
 <prototype>   ::= "(" [ <type> [ <raw: variable> ] { "," <type> [ <raw: variable> ] } ] ")"
-<control>     ::= "goto" <raw: variable> | ("break" | "continue" | "finish" | "return" | "push") [ <sequence> ] | "pop"
+<control>     ::= "goto" <raw: variable> | ("break" | "continue" | "finish" | "return" | "push") [ <func-assoc> ] | "pop"
 
 <special-block> ::= <if-block> | <switch-block> | <loop-block>
+<condition>     ::= <sequence> - <lambda>
 <do-block>      ::= "do" <statement>
-<if-block>      ::= "if" <sequence> <statement> [ "else" <statement> ]
+<if-block>      ::= "if" <condition> <statement> [ "else" <statement> ]
 <loop-block>    ::= [ <do-block> ] ( <while-block> | <for-block> | <foreach-block> | <metafor-block> )
-<while-block>   ::= "while" <sequence> <statement>
-<for-block>     ::= "for" "(" [ [ <type> ] <sequence> ] ";" [ <sequence> ] ";" [ <sequence> ] ")" <statement>
-<foreach-block> ::= "for" "each" "(" [ <type> ] <sequence> ( "in" | "of" | "from" ) <sequence> ")" <statement>
-<switch-block>  ::= "switch" <sequence> "{" { ( "case" <sequence> | "default" ) ":" { <statement> } } "}"
-<metafor-block> ::= [ <do-block> ] "meta" "for" "(" [ <type> ] <sequence> "in" <sequence> ")" <statement>
+<while-block>   ::= "while" <condition> <statement>
+<for-block>     ::= "for" "(" [ [ <type> ] <func-assoc> ] ";" [ <func-assoc> ] ";" [ <func-assoc> ] ")" <statement>
+<foreach-block> ::= "for" "(" [ <type> ] <raw: variable> ( "in" | "of" | "from" ) <func-assoc> ")" <statement>
+<switch-block>  ::= "switch" <condition> "{" { ( "case" <condition> | "default" ) ":" { <statement> } } "}"
+<metafor-block> ::= "meta" "for" "(" [ <type> ] <raw: variable> "in" <func-assoc> ")" <statement>
 
 <address> ::= <raw: variable> ":"

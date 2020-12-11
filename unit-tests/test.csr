@@ -1,1 +1,1 @@
-if (test) { a };
+if test { ok }
