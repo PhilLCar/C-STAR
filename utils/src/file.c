@@ -33,3 +33,33 @@ char *fileext(char *filename) {
   while (ext[0] && ext[0] != '.') ext++;
   return ext;
 }
+
+char *filenamewopath(char *filename) {
+  char *last = filename;
+  #ifdef WIN
+  char marker = '\\';
+  #else
+  char marker = '/';
+  #endif
+  for (int i = 0; filename[i]; i++) {
+    if (filename[i] == marker) last = &filename[i + 1];
+  }
+  return last;
+}
+
+char *filepath(char *filename) {
+  char *path = NULL;
+  int   size = 0;
+  #ifdef WIN
+  char marker = '\\';
+  #else
+  char marker = '/';
+  #endif
+  for (int i = 0; filename[i]; i++) {
+    if (filename[i] == marker) size = i + 1;
+  }
+  path = malloc((size + 1) * sizeof(char));
+  memcpy(path, filename, size);
+  path[size] = 0;
+  return path;
+}

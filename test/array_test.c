@@ -3,7 +3,7 @@
 #include <diagnostic.h>
 #include <array.h>
 
-int main() {
+int main(void) {
   Array *chars = newArray(sizeof(char));
   Array *ints  = newArray(sizeof(int));
   char a = 'a', b = 'b', c = 'c';

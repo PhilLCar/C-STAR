@@ -10,7 +10,7 @@
 <block>       ::= "{" { <statement> } "}" | <line>
 <line>        ::= ( <declaration> | <control> | <func-assoc> ) [ ";" ]
 <declaration> ::= <type> <raw: variable> ( <prototype> | [ "=" ] <func-assoc> ) /*| <class-type> | <proto-op>*/
-<prototype>   ::= "(" [ <type> [ <raw: variable> ] { "," <type> [ <raw: variable> ] } ] ")"
+<prototype>   ::= "(" [ <type> [ <raw: variable> ] { "," <type> [ <raw: variable> ] } ] ")" ! "{"
 <control>     ::= "goto" <raw: variable> | ("break" | "continue" | "finish" | "return" | "push") [ <func-assoc> ] | "pop"
 
 <special-block> ::= <if-block> | <switch-block> | <loop-block>

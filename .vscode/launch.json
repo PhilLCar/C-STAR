@@ -85,6 +85,26 @@
             "preLaunchTask": "ast-debug"
         },
         {
+            "name": "UNIT-TESTS",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/bin/unit_test",
+            "args": [],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ],
+            "preLaunchTask": "unit-debug"
+        },
+        {
             "name": "CISOR",
             "type": "cppdbg",
             "request": "launch",

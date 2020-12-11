@@ -24,6 +24,11 @@
             "command": "make ast-debug"
         },
         {
+            "label": "unit-debug",
+            "type": "shell",
+            "command": "make unit-debug"
+        },
+        {
             "label": "cisor-debug",
             "type": "shell",
             "command": "make debug=1 cisor"

@@ -115,11 +115,11 @@ void printnode(BNFNode *n, char *s, int base, int lvl, int last) {
   }
 }
 
-int main() {
+int main(void) {
+  BNFNode *n = parsebnf("parsing/bnf/test.bnf");
   #ifdef WIN
   SetConsoleOutputCP(CP_UTF8);
   #endif
-  BNFNode *n = parsebnf("parsing/bnf/test.bnf");
   CHECK_MEMORY;
   printnode(n, "", 0, 0, 0);
   deleteBNFTree(&n);

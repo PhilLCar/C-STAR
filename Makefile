@@ -9,11 +9,13 @@ ifdef debug
 	C-FLAGS += -DDEBUG -g
 endif
 
-UTILS  =$(OBJECTS)/error.o   \
-        $(OBJECTS)/array.o   \
-        $(OBJECTS)/strings.o \
-				$(OBJECTS)/raw.o     \
-				$(OBJECTS)/file.o    \
+UTILS  =$(OBJECTS)/error.o    \
+        $(OBJECTS)/array.o    \
+        $(OBJECTS)/strings.o  \
+				$(OBJECTS)/raw.o      \
+				$(OBJECTS)/file.o     \
+				$(OBJECTS)/dir.o      \
+				$(OBJECTS)/terminal.o \
         $(OBJECTS)/diagnostic.o
 PARSING=$(OBJECTS)/symbol.o         \
         $(OBJECTS)/parser.o         \

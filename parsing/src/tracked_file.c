@@ -66,15 +66,19 @@ char tfgetc(TrackedFile *tf)
 {
   if (tf->line < 0) {
     for (int i = 0; i < tf->size; i++) {
-      tf->buffer[i] = fgetc(tf->fptr);
+      char c;
+      do { c = fgetc(tf->fptr); } while (c == '\r');
+      tf->buffer[i] = c;
     }
     tf->line = 0;
   }
   else {
+    char c;
     for (int i = 0; i < tf->size - 1; i++) {
       tf->buffer[i] = tf->buffer[i + 1];
     }
-    tf->buffer[tf->size - 1] = fgetc(tf->fptr);
+    do { c = fgetc(tf->fptr); } while (c == '\r');
+    tf->buffer[tf->size - 1] = c;
   }
   if (tf->buffer[0] == '\n') {
     tf->line++;

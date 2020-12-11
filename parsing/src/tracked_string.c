@@ -67,15 +67,19 @@ char tsgetc(TrackedString *ts)
 {
   if (ts->line < 0) {
     for (int i = 0; i < ts->size; i++) {
-      ts->buffer[i] = sgetc(ts->sptr);
+      char c;
+      do { c = sgetc(ts->sptr); } while (c == '\r');
+      ts->buffer[i] = c;
     }
     ts->line = 0;
   }
   else {
+    char c;
     for (int i = 0; i < ts->size - 1; i++) {
       ts->buffer[i] = ts->buffer[i + 1];
     }
-    ts->buffer[ts->size - 1] = sgetc(ts->sptr);
+    do { c = sgetc(ts->sptr); } while (c == '\r');
+    ts->buffer[ts->size - 1] = c;
   }
   if (ts->buffer[0] == '\n') {
     ts->line++;

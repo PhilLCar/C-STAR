@@ -73,8 +73,9 @@
 <power> ::= [ <power> ( "*^" | "/^" ) ] <p2>
 
 // PRIORITY 2 RL
-<p2> ::= <prefix> | <unary> | <not> | <cast> | <deref> | <ref> | <p1>
-<prefix>  ::= ( "++" | "--" | "+^" | "-^" | "<:" | "sizeof" | "typeof" ) <p2>
+<p2> ::= <prefix> | <type-op> | <unary> | <not> | <cast> | <deref> | <ref> | <p1>
+<prefix>  ::= ( "++" | "--" | "+^" | "-^" | "<:" ) <p2>
+<type-op> ::= ( "sizeof" | "typeof" ) ( "(" <type> | <func-assoc> ")" | <type> | <p2> )
 <unary>   ::= ( "+" | "-" ) <p2>
 <not>     ::= ( "!" | "~" ) <p2>
 <cast>    ::= "(" <type> ")" <p2>

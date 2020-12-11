@@ -48,6 +48,6 @@ void intermediate(Options *options) {
     if (output) fclose(output);
     if (parser) deleteParser(&parser);
   }
-  //remove(ppfile);
-  //remove(metafile);
+  remove(ppfile);
+  remove(metafile);
 }
