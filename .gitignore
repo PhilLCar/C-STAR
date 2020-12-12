@@ -4,4 +4,5 @@ obj
 lib
 *.ipch
 win/.vs
+out
 

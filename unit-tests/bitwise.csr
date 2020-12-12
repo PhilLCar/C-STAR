@@ -1,0 +1,11 @@
+/* Expected output:
+15
+4
+11
+ */
+int a = 7
+int b = 12
+
+print(a | b)
+print(a & b)
+print(a ^ b)

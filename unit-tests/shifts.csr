@@ -1,0 +1,9 @@
+/* Expected output:
+8
+256
+ */
+unsigned byte a = 1
+unsigned byte b = 3
+
+print(a << b)
+print(a |> 1)

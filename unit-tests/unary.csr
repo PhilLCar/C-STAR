@@ -1,0 +1,12 @@
+/* Expected output:
+-3
+4
+false
+ */
+int  a = 3
+int  b = -4
+bool c = true
+
+print(-a)
+print(+b)
+print(!c)

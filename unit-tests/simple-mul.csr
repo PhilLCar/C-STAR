@@ -1,7 +1,7 @@
 /* Expected output:
-7
+12
  */
 int a = 3
 int b = 4
 
-print(a + b)
+print(a * b)

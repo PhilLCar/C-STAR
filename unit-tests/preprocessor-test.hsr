@@ -1,7 +1,6 @@
 #define ALPHA 3
 #define BETA  0b101
-#define CONCAT(X, Y) #ALPHA ## \
-                     #BETA
+#define CONCAT(X, Y) #ALPHA ## #BETA
 
 #ifdef ALPHA
 print(CONCAT(ALPHA, BETA)"\n")

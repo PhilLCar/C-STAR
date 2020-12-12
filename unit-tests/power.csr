@@ -1,0 +1,9 @@
+/* Expect:
+81
+2
+ */
+int a = 3
+int b = 4
+
+print(a *^ b)
+print(b /^ 2)

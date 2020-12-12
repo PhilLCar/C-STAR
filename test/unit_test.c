@@ -164,7 +164,7 @@ void executeUT(Coordinate *coord, char *version, Results *results, char *test) {
     if (!access(output, X_OK)) {
       FILE *expected = fopen(test,   "r");
       FILE *actual   = popen(output, "r");
-      char *tag      = "/* Expect: ";
+      char *tag      = "/* Expected output:\n";
 
       if (expected && actual) {
         for (int i = 0; tag[i]; i++) {
