@@ -1,4 +1,5 @@
-// Expect: 7
+/* Expect: 7
+ */
 int a = 3
 int b = 4
 
