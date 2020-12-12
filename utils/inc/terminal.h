@@ -42,34 +42,34 @@
 #define CORNER_TL           "┌"
 #define CORNER_TL_BOLD_T    "┍"
 #define CORNER_TL_BOLD_L    "┎"
-#define CORNER_TL_BOLD_TL   "┏"
+#define CORNER_TL_BOLD      "┏"
 #define CORNER_TL_DOUBLE_T  "╒"
 #define CORNER_TL_DOUBLE_L  "╓"
-#define CORNER_TL_DOUBLE_TL "╔"
+#define CORNER_TL_DOUBLE    "╔"
 #define CORNER_TL_ROUND     "╭"
 #define CORNER_TR           "┐"
 #define CORNER_TR_BOLD_T    "┑"
 #define CORNER_TR_BOLD_R    "┒"
-#define CORNER_TR_BOLD_TR   "┓"
+#define CORNER_TR_BOLD      "┓"
 #define CORNER_TR_DOUBLE_T  "╕"
 #define CORNER_TR_DOUBLE_R  "╖"
-#define CORNER_TR_DOUBLE_TR "╗"
+#define CORNER_TR_DOUBLE    "╗"
 #define CORNER_TR_ROUND     "╮"
 #define CORNER_BL           "└"
 #define CORNER_BL_BOLD_B    "┕"
 #define CORNER_BL_BOLD_L    "┖"
-#define CORNER_BL_BOLD_BL   "┗"
+#define CORNER_BL_BOLD      "┗"
 #define CORNER_BL_DOUBLE_B  "╘"
 #define CORNER_BL_DOUBLE_L  "╙"
-#define CORNER_BL_DOUBLE_BL "╚"
+#define CORNER_BL_DOUBLE    "╚"
 #define CORNER_BL_ROUND     "╰"
 #define CORNER_BR           "┘"
 #define CORNER_BR_BOLD_B    "┙"
 #define CORNER_BR_BOLD_R    "┚"
-#define CORNER_BR_BOLD_BR   "┛"
+#define CORNER_BR_BOLD      "┛"
 #define CORNER_BR_DOUBLE_B  "╛"
 #define CORNER_BR_DOUBLE_R  "╜"
-#define CORNER_BR_DOUBLE_BR "╝"
+#define CORNER_BR_DOUBLE    "╝"
 #define CORNER_BR_ROUND     "╯"
 #define TEE_T               "┬"
 #define TEE_T_BOLD_L        "┭"
@@ -141,7 +141,9 @@ typedef struct coordinate {
 } Coordinate;
 
 Coordinate getTerminalSize();
+void       clearTerminal();
 void       placeCursor(int x, int y);
+void       moveCursor(int x, int y);
 void       pushCursor();
 void       popCursor();
 
