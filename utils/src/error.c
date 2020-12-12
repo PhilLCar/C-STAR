@@ -158,7 +158,7 @@ void printirmessage(MessageType type, char *metadata, Symbol *symbol, char *mess
   SymbolStream *ss       = ssopen(metadata, parser);
   int           found    = 0;
 
-  while (!found) {
+  while (!found && ss->symbol.type != SYMBOL_EOF) {
     ssgets(ss);
     switch(ss->symbol.type) {
       case SYMBOL_RESERVED:
