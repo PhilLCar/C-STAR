@@ -123,10 +123,12 @@ int getDescription(char *version) {
 }
 
 int makeBuild(char *version) {
-  int success = 0;
+  int  success = 0;
+  char command[512];
   system("make clean");
   if (!system("make cisor")) {
-    success = !system("make unit-test output=misc/version/description/%s.ver");
+    sprintf(command, "make unit-test output=misc/version/description/%s.ver", version);
+    success = !system(command);
   }
   if (!success) {
     char c;
