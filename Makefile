@@ -31,17 +31,29 @@ CISOR  =$(OBJECTS)/macro.o        \
 				$(OBJECTS)/assembler.o    \
 				$(OBJECTS)/linker.o
 
-major: clean cisor version
+major: version
 	@misc/version/version major
+	@make clean
+	@make cisor
+	@make unit-test
 
-minor: clean cisor version
+minor: version
 	@misc/version/version minor
+	@make clean
+	@make cisor
+	@make unit-test
 
-revision: clean cisor version
+revision: version
 	@misc/version/version revision
+	@make clean
+	@make cisor
+	@make unit-test
 
-build: clean cisor version
+build: version
 	@misc/version/version
+	@make clean
+	@make cisor
+	@make unit-test
 
 version:
 	@gcc $(C-FLAGS) misc/version/version.c -o misc/version/version
