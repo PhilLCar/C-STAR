@@ -131,6 +131,8 @@ void gitUpdate(char *version) {
   sprintf(command, "git tag -a %s $(git log --format=\"%%H\" -n 1) -m \"Version %s\"", version, version);
   system(command);
   system("git push");
+  sprintf(command, "git push origin %s", version);
+  system(command);
 }
 
 void updateVersion(int level) {
