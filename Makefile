@@ -31,16 +31,16 @@ CISOR  =$(OBJECTS)/macro.o        \
 				$(OBJECTS)/assembler.o    \
 				$(OBJECTS)/linker.o
 
-major: cisor version
+major: clean cisor version
 	@misc/version/version major
 
-minor: cisor version
+minor: clean cisor version
 	@misc/version/version minor
 
-revision: cisor version
+revision: clean cisor version
 	@misc/version/version revision
 
-build: cisor version
+build: clean cisor version
 	@misc/version/version
 
 version:
