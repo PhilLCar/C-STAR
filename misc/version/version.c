@@ -13,7 +13,7 @@ typedef struct userinfo {
 } UserInfo;
 
 void getDate(char *date, int full) {
-  FILE *datefile = popen(full ? "date +\"%Y-%m-%d %H:%M:%S\"" : "date +%F", "r");
+  FILE *datefile = popen(full ? "date +\"%%Y-%%m-%%d %%H:%%M:%%S\"" : "date +%%F", "r");
   for (int i = 0; ; i++) {
     char c = fgetc(datefile);
     if (c == '\n' || c == EOF) {
@@ -122,7 +122,7 @@ int getDescription(char *version) {
     system("git add .");
     sprintf(command, "git commit -F misc/version/description/%s.ver", version);
     system(command);
-    sprintf(command, "git tag -a %s $(git log --format=\"%H\" -n 1) -m \"Version %s\"", version, version);
+    sprintf(command, "git tag -a %s $(git log --format=\"%%H\" -n 1) -m \"Version %s\"", version, version);
     system("git push");
   }
 
