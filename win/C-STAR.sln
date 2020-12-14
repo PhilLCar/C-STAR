@@ -21,17 +21,36 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ASTTest", "..\test\win\ASTT
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Utils", "..\utils\win\Utils.vcxproj", "{B99D3EEB-FE05-4E5E-97A2-08045E55B7CC}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Resources", "Resources", "{2AA96763-60BF-4FD5-A339-A1EACF5D8A76}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Unit-tests", "Unit-tests", "{2AA96763-60BF-4FD5-A339-A1EACF5D8A76}"
 	ProjectSection(SolutionItems) = preProject
+		..\unit-tests\bitwise.csr = ..\unit-tests\bitwise.csr
+		..\unit-tests\closure.csr = ..\unit-tests\closure.csr
+		..\unit-tests\double-add.csr = ..\unit-tests\double-add.csr
+		..\unit-tests\double-div.csr = ..\unit-tests\double-div.csr
+		..\unit-tests\double-mul.csr = ..\unit-tests\double-mul.csr
+		..\unit-tests\double-sub.csr = ..\unit-tests\double-sub.csr
+		..\unit-tests\function.csr = ..\unit-tests\function.csr
 		..\unit-tests\include-test.csr = ..\unit-tests\include-test.csr
 		..\unit-tests\include-test.hsr = ..\unit-tests\include-test.hsr
 		..\unit-tests\include-test.msr = ..\unit-tests\include-test.msr
 		..\unit-tests\include-test.psr = ..\unit-tests\include-test.psr
+		..\unit-tests\logic.csr = ..\unit-tests\logic.csr
+		..\unit-tests\pointers.csr = ..\unit-tests\pointers.csr
+		..\unit-tests\power.csr = ..\unit-tests\power.csr
 		..\unit-tests\preprocessor-test.csr = ..\unit-tests\preprocessor-test.csr
 		..\unit-tests\preprocessor-test.hsr = ..\unit-tests\preprocessor-test.hsr
+		..\unit-tests\shifts.csr = ..\unit-tests\shifts.csr
 		..\unit-tests\simple-add.csr = ..\unit-tests\simple-add.csr
+		..\unit-tests\simple-div.csr = ..\unit-tests\simple-div.csr
+		..\unit-tests\simple-mul.csr = ..\unit-tests\simple-mul.csr
+		..\unit-tests\simple-sub.csr = ..\unit-tests\simple-sub.csr
 		..\unit-tests\test.csr = ..\unit-tests\test.csr
+		..\unit-tests\unary.csr = ..\unit-tests\unary.csr
 	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ArrayTest", "..\test\win\ArrayTest\ArrayTest.vcxproj", "{56B2AD0F-7672-411D-924F-8A34C44BC2AE}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "UnitTest", "..\test\win\UnitTest\UnitTest.vcxproj", "{9FDFB99B-D11D-4D7E-AC26-F872FDAD72F9}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -89,6 +108,22 @@ Global
 		{B99D3EEB-FE05-4E5E-97A2-08045E55B7CC}.Release|x64.Build.0 = Release|x64
 		{B99D3EEB-FE05-4E5E-97A2-08045E55B7CC}.Release|x86.ActiveCfg = Release|Win32
 		{B99D3EEB-FE05-4E5E-97A2-08045E55B7CC}.Release|x86.Build.0 = Release|Win32
+		{56B2AD0F-7672-411D-924F-8A34C44BC2AE}.Debug|x64.ActiveCfg = Debug|x64
+		{56B2AD0F-7672-411D-924F-8A34C44BC2AE}.Debug|x64.Build.0 = Debug|x64
+		{56B2AD0F-7672-411D-924F-8A34C44BC2AE}.Debug|x86.ActiveCfg = Debug|Win32
+		{56B2AD0F-7672-411D-924F-8A34C44BC2AE}.Debug|x86.Build.0 = Debug|Win32
+		{56B2AD0F-7672-411D-924F-8A34C44BC2AE}.Release|x64.ActiveCfg = Release|x64
+		{56B2AD0F-7672-411D-924F-8A34C44BC2AE}.Release|x64.Build.0 = Release|x64
+		{56B2AD0F-7672-411D-924F-8A34C44BC2AE}.Release|x86.ActiveCfg = Release|Win32
+		{56B2AD0F-7672-411D-924F-8A34C44BC2AE}.Release|x86.Build.0 = Release|Win32
+		{9FDFB99B-D11D-4D7E-AC26-F872FDAD72F9}.Debug|x64.ActiveCfg = Debug|x64
+		{9FDFB99B-D11D-4D7E-AC26-F872FDAD72F9}.Debug|x64.Build.0 = Debug|x64
+		{9FDFB99B-D11D-4D7E-AC26-F872FDAD72F9}.Debug|x86.ActiveCfg = Debug|Win32
+		{9FDFB99B-D11D-4D7E-AC26-F872FDAD72F9}.Debug|x86.Build.0 = Debug|Win32
+		{9FDFB99B-D11D-4D7E-AC26-F872FDAD72F9}.Release|x64.ActiveCfg = Release|x64
+		{9FDFB99B-D11D-4D7E-AC26-F872FDAD72F9}.Release|x64.Build.0 = Release|x64
+		{9FDFB99B-D11D-4D7E-AC26-F872FDAD72F9}.Release|x86.ActiveCfg = Release|Win32
+		{9FDFB99B-D11D-4D7E-AC26-F872FDAD72F9}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -98,6 +133,8 @@ Global
 		{93FBCAD7-B0DE-4495-A6ED-A5F0BDCC4336} = {716EEF8F-A406-4BA2-855F-DD02A447D7CF}
 		{458BA0ED-F5F2-4449-A49D-CCC398CF109E} = {716EEF8F-A406-4BA2-855F-DD02A447D7CF}
 		{2AA96763-60BF-4FD5-A339-A1EACF5D8A76} = {716EEF8F-A406-4BA2-855F-DD02A447D7CF}
+		{56B2AD0F-7672-411D-924F-8A34C44BC2AE} = {716EEF8F-A406-4BA2-855F-DD02A447D7CF}
+		{9FDFB99B-D11D-4D7E-AC26-F872FDAD72F9} = {716EEF8F-A406-4BA2-855F-DD02A447D7CF}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {75416558-215E-4807-B59F-DD01B42FEC10}

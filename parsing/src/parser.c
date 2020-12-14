@@ -137,31 +137,31 @@ Parser *newParser(char *filename)
 		{
 			int lookahead = 0;
 			for (int i = 0; parser->strings[i]; i++) {
-				int l = strlen(parser->strings[i]);
+				int l = (int)strlen(parser->strings[i]);
 				if (l > lookahead) lookahead = l;
 			}
 			for (int i = 0; parser->chars[i]; i++) {
-				int l = strlen(parser->chars[i]);
+				int l = (int)strlen(parser->chars[i]);
 				if (l > lookahead) lookahead = l;
 			}
 			for (int i = 0; parser->linecom[i]; i++) {
-				int l = strlen(parser->linecom[i]);
+				int l = (int)strlen(parser->linecom[i]);
 				if (l > lookahead) lookahead = l;
 			}
 			for (int i = 0; parser->multicom[i]; i++) {
-				int l = strlen(parser->multicom[i]);
+				int l = (int)strlen(parser->multicom[i]);
 				if (l > lookahead) lookahead = l;
 			}
 			for (int i = 0; parser->operators[i]; i++) {
-				int l = strlen(parser->operators[i]);
+				int l = (int)strlen(parser->operators[i]);
 				if (l > lookahead) lookahead = l;
 			}
 			for (int i = 0; parser->delimiters[i]; i++) {
-				int l = strlen(parser->delimiters[i]);
+				int l = (int)strlen(parser->delimiters[i]);
 				if (l > lookahead) lookahead = l;
 			}
 			for (int i = 0; parser->breaksymbols[i]; i++) {
-				int l = strlen(parser->breaksymbols[i]);
+				int l = (int)strlen(parser->breaksymbols[i]);
 				if (l > lookahead) lookahead = l;
 			}
 			parser->lookahead = lookahead;

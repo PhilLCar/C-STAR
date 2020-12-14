@@ -8,7 +8,7 @@ String *newString(char *content)
 {
   String *s = malloc(sizeof(String));
   if (s) {
-    s->length = strlen(content);
+    s->length = (int)strlen(content);
     s->content = malloc((s->length + 1) * sizeof(char));
     if (s->content) {
       memcpy(s->content, content, s->length + 1);

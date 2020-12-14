@@ -129,7 +129,7 @@ void macroexpand(Array *env, Parser *parser, String *expr, Expansion *e, Array *
   if (e->hist->size >= MACRO_EXPANSION_MAX_DEPTH) e->invalid = MACRO_ERROR_MAX_DEPTH;
   while (!e->invalid && (s = macroconsumestring(sss, e->value))->type != SYMBOL_EOF) {
     if (s->type == SYMBOL_VARIABLE) {
-      Macro *m;
+      Macro *m   = NULL;
       int    exp = 0;
       int    arg = 0;
       if (pp && !strcmp(s->text, "defined")) {
@@ -184,7 +184,7 @@ void macroexpand(Array *env, Parser *parser, String *expr, Expansion *e, Array *
         }
       }
       if (exp) {
-        if (m->params->size) {
+        if (m && m->params->size) {
           char c = tsgetc(sss->tsptr);
           if (c == '(') {
             Array *nargs = newArray(sizeof(Parameter));

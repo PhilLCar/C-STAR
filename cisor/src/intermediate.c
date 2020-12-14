@@ -27,7 +27,7 @@ void intermediate(Options *options) {
   free(woext);
   {
     Parser    *parser       = newParser("parsing/prs/csr.prs");
-    FILE      *output       = fopen(irfile,   "w+");
+    FILE      *output       = fopen(irfile, "w+");
     Stream    *preprocessed = getStreamSS(ssopen(ppfile, parser));
     BNFNode   *tree         = parsebnf("parsing/bnf/program.bnf");
     ASTNode   *ast          = newASTNode(NULL, NULL);

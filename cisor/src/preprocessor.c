@@ -20,6 +20,10 @@
 #define INCLUDE_MAX_DEPTH         128
 #define INCLUDE_MAX_FILE_LENGTH  1024
 
+#ifdef WIN
+#define long long long
+#endif
+
 typedef enum pptype {
   PPTYPE_INT,
   PPTYPE_DEC,
@@ -45,7 +49,7 @@ typedef struct ppresult {
 } PPResult;
 
 PPResult ppeval(ASTNode *ast, PPEnv *ppenv) {
-  PPResult result;
+  PPResult result = { PPTYPE_ERROR, 0 };
   if (!strcmp(ast->name->content, "operation4") ||
       !strcmp(ast->name->content, "operation3") ||
       !strcmp(ast->name->content, "operation2") ||
@@ -300,7 +304,7 @@ PPResult ppeval(ASTNode *ast, PPEnv *ppenv) {
     ParsedInteger p = parseinteger(ast->value);
     if (p.valid) {
       result.type  = PPTYPE_INT;
-      result.value = (void*)p.integer;
+      result.value = (void*)(long)p.integer;
     } else {
       result.type  = PPTYPE_ERROR;
       result.value = "Wrong number format!";

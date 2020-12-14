@@ -24,6 +24,15 @@
     <ClCompile Include="..\src\strings.c">
       <Filter>Source</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\dir.c">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\file.c">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\terminal.c">
+      <Filter>Source</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\inc\array.h">
@@ -42,6 +51,12 @@
       <Filter>Include</Filter>
     </ClInclude>
     <ClInclude Include="..\inc\terminal.h">
+      <Filter>Include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\inc\dir.h">
+      <Filter>Include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\inc\file.h">
       <Filter>Include</Filter>
     </ClInclude>
   </ItemGroup>

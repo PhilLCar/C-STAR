@@ -70,22 +70,22 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <OutDir>$(SolutionDir)..\lib\</OutDir>
+    <OutDir>$(SolutionDir)..\lib\bin\</OutDir>
     <IntDir>$(SolutionDir)..\obj\utils\</IntDir>
     <TargetExt>.lib</TargetExt>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <OutDir>$(SolutionDir)..\lib\</OutDir>
+    <OutDir>$(SolutionDir)..\lib\bin\</OutDir>
     <IntDir>$(SolutionDir)..\obj\utils\</IntDir>
     <TargetExt>.lib</TargetExt>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <OutDir>$(SolutionDir)..\lib\</OutDir>
+    <OutDir>$(SolutionDir)..\lib\bin\</OutDir>
     <IntDir>$(SolutionDir)..\obj\utils\</IntDir>
     <TargetExt>.lib</TargetExt>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <OutDir>$(SolutionDir)..\lib\</OutDir>
+    <OutDir>$(SolutionDir)..\lib\bin\</OutDir>
     <IntDir>$(SolutionDir)..\obj\utils\</IntDir>
     <TargetExt>.lib</TargetExt>
   </PropertyGroup>
@@ -96,7 +96,7 @@
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>$(SolutionDir)..\parsing\inc;$(SolutionDir)..\cisor\inc;$(SolutionDir)..\utils\inc;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;WIN;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -106,7 +106,7 @@
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>$(SolutionDir)..\parsing\inc;$(SolutionDir)..\cisor\inc;$(SolutionDir)..\utils\inc;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;WIN;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -118,7 +118,7 @@
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>$(SolutionDir)..\parsing\inc;$(SolutionDir)..\cisor\inc;$(SolutionDir)..\utils\inc;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;WIN;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
@@ -134,7 +134,7 @@
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>$(SolutionDir)..\parsing\inc;$(SolutionDir)..\cisor\inc;$(SolutionDir)..\utils\inc;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;WIN;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
@@ -144,14 +144,19 @@
   <ItemGroup>
     <ClCompile Include="..\src\array.c" />
     <ClCompile Include="..\src\diagnostic.c" />
+    <ClCompile Include="..\src\dir.c" />
     <ClCompile Include="..\src\error.c" />
+    <ClCompile Include="..\src\file.c" />
     <ClCompile Include="..\src\raw.c" />
     <ClCompile Include="..\src\strings.c" />
+    <ClCompile Include="..\src\terminal.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\inc\array.h" />
     <ClInclude Include="..\inc\diagnostic.h" />
+    <ClInclude Include="..\inc\dir.h" />
     <ClInclude Include="..\inc\error.h" />
+    <ClInclude Include="..\inc\file.h" />
     <ClInclude Include="..\inc\raw.h" />
     <ClInclude Include="..\inc\strings.h" />
     <ClInclude Include="..\inc\terminal.h" />

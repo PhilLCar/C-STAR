@@ -1,11 +1,15 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
-#include <unistd.h>
 
 #include <dir.h>
 #include <file.h>
 #include <terminal.h>
+
+#ifdef WIN
+#include <windows.h>
+#define  popen _popen
+#endif
 
 typedef enum status {
   STATUS_COMPILING,
@@ -25,7 +29,11 @@ typedef struct results {
 } Results;
 
 void getVersion(char *version) {
+  #ifdef WIN
+  FILE *v   = popen("bin\\CISOR.exe -v", "r");
+  #else
   FILE *v   = popen("bin/cisor -v", "r");
+  #endif
   char *tag = "Version: ";
   int   found;
 
@@ -95,7 +103,7 @@ void printReport(Coordinate *coord, char *version, Results *results) {
     int    mstart, mend, bend;
     if (completion == 1.0) sprintf(message, "COMPLETED");
     else                   sprintf(message, "PROGRESS %.2f%%", 100.0 * completion);
-    mend   = strlen(message);
+    mend   = (int)strlen(message);
     mstart = (coord->x - 2 - mend) / 2;
     mend   += mstart;
     bend   = (int)((double)(coord->x - 2) * completion);
@@ -155,13 +163,18 @@ void executeUT(Coordinate *coord, char *version, Results *results, char *test) {
     char *filename = filenamewoext(test);
     char  output[1024]; 
     char  command[1024];
-    sprintf(output, "out/%s.out", filenamewopath(filename));
+    #ifdef WIN
+    sprintf(output,  "out\\%s.exe", filenamewopath(filename));
+    sprintf(command, "bin\\CISOR.exe %s -o %s >nul 2>&1", test, output);
+    #else
+    sprintf(output,  "out/%s.out", filenamewopath(filename));
     sprintf(command, "bin/cisor %s -o %s >/dev/null 2>&1", test, output);
+    #endif
     pushCursor();
     system(command);
     popCursor();
     printStatus(coord, version, results, test, STATUS_EXECUTING);
-    if (!access(output, X_OK)) {
+    if (fileexists(output, FILE_EXECUTE)) {
       FILE *expected = fopen(test,   "r");
       FILE *actual   = popen(output, "r");
       char *tag      = "/* Expected output:\n";
@@ -206,6 +219,10 @@ int main(void) {
   Coordinate  coord      = getTerminalSize();
   Results     results    = { tests->size, 0, 0, 0, 0 };
   char        version[8] = { '\0' };
+
+  #ifdef WIN
+  SetConsoleOutputCP(CP_UTF8);
+  #endif
 
   getVersion(version);
   printReport(&coord, version, &results);

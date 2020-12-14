@@ -70,22 +70,22 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <OutDir>$(SolutionDir)..\lib\</OutDir>
+    <OutDir>$(SolutionDir)..\lib\bin\</OutDir>
     <IntDir>$(SolutionDir)..\obj\parsing\</IntDir>
     <TargetExt>.lib</TargetExt>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <OutDir>$(SolutionDir)..\lib\</OutDir>
+    <OutDir>$(SolutionDir)..\lib\bin\</OutDir>
     <IntDir>$(SolutionDir)..\obj\parsing\</IntDir>
     <TargetExt>.lib</TargetExt>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <OutDir>$(SolutionDir)..\lib\</OutDir>
+    <OutDir>$(SolutionDir)..\lib\bin\</OutDir>
     <IntDir>$(SolutionDir)..\obj\parsing\</IntDir>
     <TargetExt>.lib</TargetExt>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <OutDir>$(SolutionDir)..\lib\</OutDir>
+    <OutDir>$(SolutionDir)..\lib\bin\</OutDir>
     <IntDir>$(SolutionDir)..\obj\parsing\</IntDir>
     <TargetExt>.lib</TargetExt>
   </PropertyGroup>
@@ -165,7 +165,7 @@
   <ItemGroup>
     <ClCompile Include="..\src\ast.c" />
     <ClCompile Include="..\src\bnf.c" />
-    <ClCompile Include="..\src\generic_parser.c" />
+    <ClCompile Include="..\src\parser.c" />
     <ClCompile Include="..\src\symbol.c" />
     <ClCompile Include="..\src\tracked_file.c" />
     <ClCompile Include="..\src\tracked_string.c" />
@@ -173,7 +173,7 @@
   <ItemGroup>
     <ClInclude Include="..\inc\ast.h" />
     <ClInclude Include="..\inc\bnf.h" />
-    <ClInclude Include="..\inc\generic_parser.h" />
+    <ClInclude Include="..\inc\parser.h" />
     <ClInclude Include="..\inc\symbol.h" />
     <ClInclude Include="..\inc\tracked_file.h" />
     <ClInclude Include="..\inc\tracked_string.h" />

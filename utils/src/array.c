@@ -2,6 +2,10 @@
 
 #include <string.h>
 
+#ifdef WIN
+#define long long long
+#endif
+
 Array *newArray(size_t element_size)
 {
   Array *array = malloc(sizeof(Array));

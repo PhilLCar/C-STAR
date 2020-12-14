@@ -5,7 +5,7 @@
 
 char *filenamewoext(char *filename)
 {
-  int   len = strlen(filename);
+  int   len = (int)strlen(filename);
   char *woext = NULL;
   for (int i = len - 1; i >= 0; i--) {
     if (filename[i] == '.') {
@@ -59,7 +59,49 @@ char *filepath(char *filename) {
     if (filename[i] == marker) size = i + 1;
   }
   path = malloc((size + 1) * sizeof(char));
-  memcpy(path, filename, size);
-  path[size] = 0;
+  if (path) {
+    memcpy(path, filename, size);
+    path[size] = 0;
+  }
   return path;
 }
+
+#ifdef WIN
+#include <Windows.h>
+
+int fileexists(char *filename, FilePermission permission) {
+   WIN32_FIND_DATA file;
+   HANDLE handle = FindFirstFile(filename, &file) ;
+   int found = handle != INVALID_HANDLE_VALUE;
+   if(found) 
+   {
+       FindClose(handle);
+   }
+   // For now ignore permission on windows
+   permission;
+   return found;
+}
+#else
+#include <unistd.h>
+
+int fileexists(char *filename, FilePermission permission) {
+  int a = 0;
+
+  switch (permission) {
+  case FILE_EXISTS:
+    a = F_OK;
+    break;
+  case FILE_READ:
+    a = R_OK;
+    break;
+  case FILE_WRITE;
+    a = W_OK;
+    break;
+  case FILE_EXECUTE:
+    a = X_OK;
+    break;
+  }
+
+  return !access(filename, a);
+}
+#endif
