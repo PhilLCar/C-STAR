@@ -8,6 +8,7 @@
 #include <compiler.h>
 #include <assembler.h>
 #include <linker.h>
+#include <version.h>
 
 Options *parseargs(int argc, char *argv[]) {
   Options *options = malloc(sizeof(Options));
@@ -100,8 +101,8 @@ void printversion() {
   #else
   printf("cisor (Linux x64) - C* compiler\n");
   #endif
-  printf("Version: 0.0.0 (2020-12-04)\n");
-  printf("Author: Philippe Caron\n");
+  printf("Version: %d.%d.%d.%d (%s)\n", VERSION_MAJOR, VERSION_MINOR, VERSION_REVISION, VERSION_BUILD, BUILD_DATE);
+  printf("Author:  Philippe Caron\n");
 }
 
 void printhelp(char *name) {

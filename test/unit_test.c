@@ -30,7 +30,7 @@ typedef struct results {
 
 void getVersion(char *version) {
   #ifdef WIN
-  FILE *v   = popen("bin\\CISOR.exe -v", "r");
+  FILE *v   = popen("bin/CISOR.exe -v", "r");
   #else
   FILE *v   = popen("bin/cisor -v", "r");
   #endif
@@ -164,8 +164,8 @@ void executeUT(Coordinate *coord, char *version, Results *results, char *test) {
     char  output[1024]; 
     char  command[1024];
     #ifdef WIN
-    sprintf(output,  "out\\%s.exe", filenamewopath(filename));
-    sprintf(command, "bin\\CISOR.exe %s -o %s >nul 2>&1", test, output);
+    sprintf(output,  "out/%s.exe", filenamewopath(filename));
+    sprintf(command, "bin/CISOR.exe %s -o %s >nul 2>&1", test, output);
     #else
     sprintf(output,  "out/%s.out", filenamewopath(filename));
     sprintf(command, "bin/cisor %s -o %s >/dev/null 2>&1", test, output);

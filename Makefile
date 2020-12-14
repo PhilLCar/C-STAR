@@ -1,7 +1,8 @@
-INCLUDES=-Iparsing/inc -Iutils/inc -Icisor/inc
-OBJECTS =obj
-BINARIES=bin
-C-FLAGS =-Wall
+INCLUDES  =-Iparsing/inc -Iutils/inc -Icisor/inc
+OBJECTS   =obj
+BINARIES  =bin
+LIBRAIRIES=lib
+C-FLAGS   =-Wall
 ifdef mem
 	C-FLAGS += -DMEMORY_WATCH
 endif
@@ -29,6 +30,21 @@ CISOR  =$(OBJECTS)/macro.o        \
 				$(OBJECTS)/compiler.o     \
 				$(OBJECTS)/assembler.o    \
 				$(OBJECTS)/linker.o
+
+major: cisor version
+	@misc/version/version major
+
+minor: cisor version
+	@misc/version/version minor
+
+revision: cisor version
+	@misc/version/version revision
+
+build: cisor version
+	@misc/version/version
+
+version:
+	@gcc $(C-FLAGS) misc/version/version.c -o misc/version/version
 
 cisor: $(BINARIES)/cisor
 
@@ -64,6 +80,9 @@ clean-objects:
 clean-binaries:
 	@rm -f $(BINARIES)/*
 
-clean: clean-objects clean-binaries
+clean-librairies:
+	@rm -f $(LIBRAIRIES)/bin/*
+
+clean: clean-objects clean-binaries clean-librairies
 	@find . -name "*~" -delete
 	@find . -name "#*#" -delete

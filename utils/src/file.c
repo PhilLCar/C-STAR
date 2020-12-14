@@ -94,7 +94,7 @@ int fileexists(char *filename, FilePermission permission) {
   case FILE_READ:
     a = R_OK;
     break;
-  case FILE_WRITE;
+  case FILE_WRITE:
     a = W_OK;
     break;
   case FILE_EXECUTE:
