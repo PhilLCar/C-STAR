@@ -122,6 +122,7 @@ int getDescription(char *version) {
     system("git add .");
     sprintf(command, "git commit -F misc/version/description/%s.ver", version);
     system(command);
+    sprintf(command, "git tag -a %s $(git log --format=\"%H\" -n 1) -m \"Version %s\"", version, version);
     system("git push");
   }
 
