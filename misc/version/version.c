@@ -118,17 +118,19 @@ int getDescription(char *version) {
     }
   }
 
-  if (data) {
-    system("git add .");
-    sprintf(command, "git commit -F misc/version/description/%s.ver", version);
-    system(command);
-    sprintf(command, "git tag -a %s $(git log --format=\"%%H\" -n 1) -m \"Version %s\"", version, version);
-    system(command);
-    system("git push");
-  }
-
   if (ui) free(ui);
   return !data;
+}
+
+void gitUpdate(char *version) {
+  char command[512];
+
+  system("git add .");
+  sprintf(command, "git commit -F misc/version/description/%s.ver", version);
+  system(command);
+  sprintf(command, "git tag -a %s $(git log --format=\"%%H\" -n 1) -m \"Version %s\"", version, version);
+  system(command);
+  system("git push");
 }
 
 void updateVersion(int level) {
@@ -180,6 +182,8 @@ void updateVersion(int level) {
       fprintf(version, "#define BUILD_DATE       \"%s\"\n", date);
 
       fclose(version);
+
+      gitUpdate(vstring);
     }
   }
 }
