@@ -122,6 +122,21 @@ int getDescription(char *version) {
   return !data;
 }
 
+int makeBuild(char *version) {
+  int success = 0;
+  system("make clean");
+  if (!system("make cisor")) {
+    success = !system("make unit-test output=misc/version/description/%s.ver");
+  }
+  if (!success) {
+    char c;
+    printf("The build failed, do you wish to commit/push your changes anyway? [y/N]");
+    c = getchar();
+    if (c == 'Y' || c == 'y') success = 1;
+  }
+  return success;
+}
+
 void gitUpdate(char *version) {
   char command[512];
 
@@ -185,7 +200,7 @@ void updateVersion(int level) {
 
       fclose(version);
 
-      gitUpdate(vstring);
+      if (makeBuild(vstring)) gitUpdate(vstring);
     }
   }
 }

@@ -33,27 +33,15 @@ CISOR  =$(OBJECTS)/macro.o        \
 
 major: version
 	@misc/version/version major
-	@make clean
-	@make cisor
-	@make unit-test
 
 minor: version
 	@misc/version/version minor
-	@make clean
-	@make cisor
-	@make unit-test
 
 revision: version
 	@misc/version/version revision
-	@make clean
-	@make cisor
-	@make unit-test
 
 build: version
 	@misc/version/version
-	@make clean
-	@make cisor
-	@make unit-test
 
 version:
 	@gcc $(C-FLAGS) misc/version/version.c -o misc/version/version
@@ -65,7 +53,7 @@ test: parse-test array-test bnf-test ast-test preprocessor-test
 debug: parse-debug array-debug bnf-debug ast-debug preprocessor-debug
 
 %-test: $(BINARIES)/%_test
-	@./$<
+	@./$< $(output)
 
 %-debug: 
 	@rm -f $(BINARIES)/$*_test

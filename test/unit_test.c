@@ -117,6 +117,24 @@ void printReport(Coordinate *coord, char *version, Results *results) {
   }
 }
 
+void printFileReport(Results *results, FILE *foutput) {
+  fprintf(foutput, "# ");
+  for (int i = 0; i < 128; i++) fprintf(foutput, "*");
+  fprintf(foutput, "\n");
+  fprintf(foutput, "# PASSED:            %3d / %3d (%6.2f)\n", results->pass, results->total, 100.0 * (double)results->pass / (double)results->total);
+  fprintf(foutput, "# UNKNOWN:           %3d / %3d (%6.2f)\n", results->uerr, results->total, 100.0 * (double)results->uerr / (double)results->total);
+  fprintf(foutput, "# COMPILATION ERROR: %3d / %3d (%6.2f)\n", results->cerr, results->total, 100.0 * (double)results->cerr / (double)results->total);
+  fprintf(foutput, "# EXECUTION ERROR:   %3d / %3d (%6.2f)\n", results->uerr, results->total, 100.0 * (double)results->uerr / (double)results->total);
+  fprintf(foutput, "# ");
+  for (int i = 0; i < 128; i++) fprintf(foutput, "=");
+  fprintf(foutput, "\n");
+  if (results->pass == results->total) {
+    fprintf(foutput, "# BUILD: SUCCESS\n");
+  } else {
+    fprintf(foutput, "# BUILD: FAILURE\n");
+  }
+}
+
 void printStatus(Coordinate *coord, char *version, Results *results, char *test, Status status) {
   char *status_name;
   switch (status) {
@@ -150,7 +168,37 @@ void printStatus(Coordinate *coord, char *version, Results *results, char *test,
   printReport(coord, version, results);
 }
 
-void executeUT(Coordinate *coord, char *version, Results *results, char *test) {
+void printFileStatus(char *test, Status status, FILE *foutput) {
+  char *status_name;
+  switch (status) {
+    case STATUS_COMPILING:
+      status_name = " COMPILING ";
+      break;
+    case STATUS_COMPILE_FAILED:
+      status_name = " COMP FAIL ";
+      break;
+    case STATUS_EXECUTING:
+      status_name = " EXECUTING ";
+      break;
+    case STATUS_EXECUTE_FAILED:
+      status_name = " EXEC_FAIL ";
+      break;
+    case STATUS_PASSED:
+      status_name = "  SUCCESS  ";
+      break;
+    default:
+    case STATUS_UNKNOWN:
+      status_name = "  UNKNOWN  ";
+      break;
+  }
+  fprintf(foutput, "# %s ", test);
+  for (int i = 0; i < 128 - strlen(test) - 15; i++) {
+    fprintf(foutput, ".");
+  }
+  fprintf(foutput, " [%s]\n", status_name);
+}
+
+void executeUT(Coordinate *coord, char *version, Results *results, char *test, FILE *foutput) {
   Coordinate tmp    = getTerminalSize();
   Status     status = STATUS_COMPILING;
   if (tmp.x != coord->x || tmp.y != coord->y) {
@@ -212,17 +260,29 @@ void executeUT(Coordinate *coord, char *version, Results *results, char *test) {
     free(filename);
   }
   printStatus(coord, version, results, test, status);
+  if (foutput) printFileStatus(test, status, foutput);
 }
 
-int main(void) {
+int main(int argc, char *argv[]) {
   Array      *tests      = directory("unit-tests/*.c*");
   Coordinate  coord      = getTerminalSize();
   Results     results    = { tests->size, 0, 0, 0, 0 };
   char        version[8] = { '\0' };
+  FILE       *foutput    = NULL;
 
   #ifdef WIN
   SetConsoleOutputCP(CP_UTF8);
   #endif
+
+  if (argc == 2) {
+    foutput = fopen(argv[1], "a");
+    if (foutput) {
+      fprintf(foutput, "# Unit-tests results:\n");
+      fprintf(foutput, "# ");
+      for (int i = 0; i < 128; i++) fprintf(foutput, "=");
+      fprintf(foutput, "\n");
+    }
+  }
 
   getVersion(version);
   printReport(&coord, version, &results);
@@ -230,8 +290,13 @@ int main(void) {
   for (int i = 0; i < tests->size; i++) {
     DirectoryItem *di = at(tests, i);
     if (di->type == DIRITEM_FILE) {
-      executeUT(&coord, version, &results, di->name);
+      executeUT(&coord, version, &results, di->name, foutput);
     }
+  }
+
+  if (foutput) {
+    printFileReport(&results, foutput);
+    fclose(foutput);
   }
 
   while (tests->size) popobj(tests, (F)freedi);
@@ -239,5 +304,6 @@ int main(void) {
 
   CHECK_MEMORY;
   STOP_WATCHING;
-  return 0;
+
+  return !(results.pass == results.total);
 }
