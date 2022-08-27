@@ -145,6 +145,8 @@ BNFNode *parsebnfname(SymbolStream *ss, BNFNode *basenode, Array *trace, BNFDef 
             node->content = (void*)SYMBOL_NEWLINE;
           } else if (!strcmp(s->text, "constant")) {
             node->content = (void*)SYMBOL_CONSTANT;
+          } else if (!strcmp(s->text, "operator")) {
+            node->content = (void*)SYMBOL_OPERATOR;
           } else if (!strcmp(s->text, "new-type")) {
             node->content = NULL;
           }
@@ -176,6 +178,14 @@ BNFNode *parsebnfname(SymbolStream *ss, BNFNode *basenode, Array *trace, BNFDef 
         }
       } else {
         printsymbolmessage(ERRLVL_ERROR, trace, s, "Invalid anonymous node!");
+      }
+    }
+  } else if (!strcmp(s->text, "new")) {
+    if (expect(ss, trace, ":")) {
+      s = ssgets(ss);
+      node = getnode(basenode, basenode, s->text);
+      if (!node) {
+        node = newBNFNode(basenode, s->text, NODE_NEW);
       }
     }
   } else if (!strcmp(s->text, "contiguous")) {

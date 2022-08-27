@@ -1,6 +1,7 @@
 <forward: loop-block>
 <forward: statement>
 <forward: type>
+<forward: op-func>
 
 // PRIORITY 19 RL
 <func-assoc> ::= <sequence> [ <contiguous> <func-assoc> ]
@@ -34,7 +35,9 @@
 <pairing> ::= <ternary> [ "::" <pairing> ]
 
 // PRIORITY 15 RL
-<ternary> ::= <log-or> [ "?" <ternary> ":" <ternary> ]
+<ternary> ::= <log-or> [ "?" <ternary> ":" <ternary>       |
+                         [ "=>" <ternary> ] ".." <ternary> |
+                         <raw[0]: ternary-operator> <ternary> <raw[1]: ternary-operator> <ternary> ]
 
 // PRIORITY 14 LR
 <log-or>  ::= [ <log-or> "||" ] <log-xor>
@@ -64,7 +67,7 @@
 <shift> ::= [ <shift> ( "<<<" | "<<" | ">>" | ">>>" | "|>" | "<|" ) ] <additive>
 
 // PRIORITY 5 LR
-<additive> ::= [ <additive> ( "+" | "-" ) ] <multiplicative>
+<additive> ::= [ <additive> ( "+" | "-" | <raw: binary-operator> ) ] <multiplicative>
 
 // PRIORITY 4 LR
 <multiplicative> ::= [ <multiplicative> ( "*" | "/" | "%" ) ] <power>
@@ -73,22 +76,28 @@
 <power> ::= [ <power> ( "*^" | "/^" ) ] <p2>
 
 // PRIORITY 2 RL
-<p2> ::= <prefix> | <type-op> | <unary> | <not> | <cast> | <deref> | <ref> | <p1>
-<prefix>  ::= ( "++" | "--" | "+^" | "-^" | "<:" ) <p2>
-<type-op> ::= ( "sizeof" | "typeof" ) ( "(" <type> | <func-assoc> ")" | <type> | <p2> )
-<unary>   ::= ( "+" | "-" ) <p2>
-<not>     ::= ( "!" | "~" ) <p2>
-<cast>    ::= "(" <type> ")" <p2>
-<deref>   ::= "*" <p2>
-<ref>     ::= "&" <p2>
+<p2> ::= <prefix> | <stack> | <op-new> | <op-redim> | <op-delete> | <type-op> | <unary> | <not> | <cast> | <deref> | <ref> | <p1>
+<prefix>    ::= ( "++" | "--" | "+^" | "-^" | "<:" ) <p2>
+<stack>     ::= "push" <p2>
+<op-new>    ::= "new" [ "(" <sequence> ")" | "[" <sequence> "]" ] <type> [ "{" [ <sequence> ] "}" ]
+<op-redim>  ::= "redim" ( "(" <sequence> ")" | "[" <sequence> "]" ) <p2> [ "{" [ <sequence> ] "}" ]
+<op-delete> ::= "delete" [ "(" ")" | "[" "]" ] <p2>
+<type-op>   ::= ( "sizeof" | "typeof" ) ( "(" <type> | <func-assoc> ")" | <type> | <p2> )
+<unary>     ::= ( "+" | "-" | <raw: unary-operator> ) <p2>
+<not>       ::= ( "!" | "~" ) <p2>
+<cast>      ::= "(" <type> ")" <p2>
+<deref>     ::= "*" <p2>
+<ref>       ::= "&" <p2>
 
 // PRIORITY 1 LR
-<p1> ::= <postfix> | <call> | <index> | <access> | <p-access> | <structure> | <value>
-<postfix>  ::= <p1> ( "++" | "--" | "!*" | "!/" | "!" | ":>" )
-<call>     ::= <p1> "(" [ <sequence> ] ")" ! "{"
-<index>    ::= <p1> "[" <sequence> "]"
-<access>   ::= <p1> "."  <raw: variable>
-<p-access> ::= <p1> "->" <raw: variable>
+<p1> ::= <postfix> | <call> | <index> | <specialisation> | <access> | <p-access> | <kv-access> | <structure> | <value>
+<postfix>        ::= <p1> ( "++" | "--" | "!*" | "!/" | "!" | ":>" )
+<call>           ::= <p1> "(" [ <sequence> ] ")" ! "{"
+<index>          ::= <p1> "[" <sequence> "]"
+<specialisation> ::= <p1> "<" <type> { "," <type> } ">"
+<access>         ::= <p1> "."  <raw: variable>
+<p-access>       ::= <p1> "->" <raw: variable>
+<kv-access>      ::= <p1> "[" [ <sequence> ] ":" [ <sequence> ] "]"
 
 // STRUCTURES
 <structure> ::= <list> | <array> | <lambda> | <parent>
@@ -99,4 +108,4 @@
 <parent>    ::= "(" <func-assoc> ")"
 
 // BASE VALUE
-<value> ::= <raw: variable> | <raw: string> | <raw: integer> | <raw: decimal> | <raw: constant>
+<value> ::= <raw: variable> | <raw: string> | <raw: integer> | <raw: decimal> | <raw: constant> | <op-func>

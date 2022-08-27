@@ -1,0 +1,21 @@
+<opdef> ::= ( "unarydef"   <new: unary-operator>  | 
+              "binarydef"  <new: binary-operator> |
+              "ternarydef" <new[0]: ternary-operator> <new[1]: ternary-operator> ) [ ";" ]
+
+<op> ::= <raw: unary-operator>                                 |
+         <raw: binary-operator>                                |
+         <raw[0]: ternary-operator> <raw[1]: ternary-operator> |
+         <raw: operator> - "?" - ":" - "=>" - ".."             |
+         "?" ":"                                               |
+         "=>" ".."                                             |
+         "(" ")"                                               |
+         "[" "]"                                               |
+         "typeof"                                              |
+         "sizeof"                                              |
+         "new" [ "(" ")" | "[" "]" ]                           |
+         "redim" ( "(" ")" | "[" "]" )                         |
+         "delete" [ "(" ")" | "[" "]" ]                        |
+         "push"                                                |
+         "pop"
+
+<op-func> ::= "operator" [ <op> ]

@@ -1,0 +1,19 @@
+<forward: op-assoc>
+<forward: func-assoc>
+<forward: type>
+<forward: class-type>
+
+<class-type> ::= [ <access-modifier> ] <type> | <access-modifier>
+
+<namespace> ::= "namespace" <new: namespace> "{" <program> "}"
+
+<typedef> ::= "typedef" ( <type> | <class-definition> | <class-declaration> ) <new: new-type> [ ";" ]
+
+<class-declaration> ::= ( "struct" | "class" | "enum" | "union" ) <new: classname> 
+<class-definition>  ::= ( "struct" | "class" ) [ [ <new: classname> [ ":"  <raw: classname> { ","  <raw: classname> } ] <class-body> ] | <enum> | <union>
+<class-body> ::= "{" { [ <class-type> ] <raw: variable> [ "=" ] <func-assoc> [ ":" <raw: integer> ] [ ";" ] } "}"
+
+<enum> ::= "enum" <new: new-type> [ ":" <type> ] "{" [ <enum-member> { "," <enum-member> } ] "}"
+<enum-member> ::= <raw: variable> [ "=" ] <func-assoc> 
+
+<union> ::= "union" <new: new-type> [ ":" <type> ] <class-body>

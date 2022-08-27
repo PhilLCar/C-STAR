@@ -50,6 +50,7 @@ variable
 newline
 constant
 new-type
+operator
 
 == Constants ==
 raw

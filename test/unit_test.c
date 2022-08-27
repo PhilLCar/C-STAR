@@ -121,10 +121,10 @@ void printFileReport(Results *results, FILE *foutput) {
   fprintf(foutput, "# ");
   for (int i = 0; i < 128; i++) fprintf(foutput, "*");
   fprintf(foutput, "\n");
-  fprintf(foutput, "# PASSED:            %3d / %3d (%6.2f)\n", results->pass, results->total, 100.0 * (double)results->pass / (double)results->total);
-  fprintf(foutput, "# UNKNOWN:           %3d / %3d (%6.2f)\n", results->uerr, results->total, 100.0 * (double)results->uerr / (double)results->total);
-  fprintf(foutput, "# COMPILATION ERROR: %3d / %3d (%6.2f)\n", results->cerr, results->total, 100.0 * (double)results->cerr / (double)results->total);
-  fprintf(foutput, "# EXECUTION ERROR:   %3d / %3d (%6.2f)\n", results->uerr, results->total, 100.0 * (double)results->uerr / (double)results->total);
+  fprintf(foutput, "# PASSED:            %3d / %3d (%6.2f%%)\n", results->pass, results->total, 100.0 * (double)results->pass / (double)results->total);
+  fprintf(foutput, "# UNKNOWN:           %3d / %3d (%6.2f%%)\n", results->uerr, results->total, 100.0 * (double)results->uerr / (double)results->total);
+  fprintf(foutput, "# COMPILATION ERROR: %3d / %3d (%6.2f%%)\n", results->cerr, results->total, 100.0 * (double)results->cerr / (double)results->total);
+  fprintf(foutput, "# EXECUTION ERROR:   %3d / %3d (%6.2f%%)\n", results->uerr, results->total, 100.0 * (double)results->uerr / (double)results->total);
   fprintf(foutput, "# ");
   for (int i = 0; i < 128; i++) fprintf(foutput, "=");
   fprintf(foutput, "\n");

@@ -83,7 +83,7 @@
 		},
 		"nodes": {
 			"patterns": [{
-				"match": "^\\s*(<)\\s*((raw|anon|forward)\\s*(:))?\\s*(.*?)\\s*(>)\\s*(::=)",
+				"match": "^\\s*(<)\\s*((raw|anon|forward|new)\\s*(:))?\\s*(.*?)\\s*(>)\\s*(::=)",
 				"captures": {
 					"1": { "name": "keyword.operator.bnf" },
 					"3": { "name": "constant.language.bnf" },
@@ -94,13 +94,15 @@
 				}
 			},
 			{
-				"match": "(<)\\s*((contiguous|raw|anon|forward)\\s*(:)?)?\\s*(.*?)\\s*(>)",
+				"match": "(<)\\s*((contiguous|raw|anon|forward|new)(\\[(.*?)\\])?\\s*(:)?)?\\s*(.*?)\\s*(>)",
 				"captures": {
 					"1": { "name": "keyword.operator.bnf" },
 					"3": { "name": "constant.language.bnf" },
 					"4": { "name": "keyword.operator.bnf" },
-					"5": { "name": "storage.type.class.bnf" },
-					"6": { "name": "keyword.operator.bnf" }
+					"5": { "name": "constant.language.bnf" },
+					"6": { "name": "keyword.operator.bnf" },
+					"7": { "name": "storage.type.class.bnf" },
+					"8": { "name": "keyword.operator.bnf" }
 				}
 			}]
 		}

@@ -38,7 +38,6 @@
 <
 >
 ,
-\
 &&
 ||
 ^^
@@ -73,13 +72,16 @@
 <|
 |>
 .
+..
+=>
 ->
 ?
 :
 ::
-,
 <:
 :>
+-:
+:-
 
 == Delimiters ==
 (
@@ -104,6 +106,10 @@ of
 from
 switch
 const
+static
+volatile
+virtual
+extern
 var
 unsigned
 byte
@@ -117,15 +123,14 @@ double
 decimal
 bool
 char
-utf16
-utf32
+letter
+symbol
 string
-string16
-string32
+phrase
+chain
 file
 class
 operator
-file
 dir
 pair
 void
@@ -134,14 +139,31 @@ break
 continue
 finish
 push
-pop
 sizeof
 typeof
+class
+struct
+private
+public
+protected
+operator
+typedef
+opdef
+with
+new
+delete
+redim
+namespace
+template
+try
+catch
+except
 
 == Constants ==
 true
 false
 null
+pop
 
 
 == EOF ==

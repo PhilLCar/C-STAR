@@ -1,23 +1,24 @@
 <forward: sequence>
 
-<type> ::= [ <storage-modifier> ] ( "var" | "void" | <integer-type>   | 
-                                                     <decimal-type>   | 
-                                                     <character-type> | 
-                                                     <string-type>    | 
-                                                     <boolean-type>   |
-                                                     <file-type>      |
-                                                     <pair-type>      |
-                                                     <raw: new-type> ) [ <dimension> ]
-<storage-modifier> ::= "const" | "extern" | "volatile"
+<type> ::= { <storage-modifier> }+ [ <typename> ] | <typename>
+<typename> ::= ( "var" | "void" | <integer-type>   | 
+                                  <decimal-type>   | 
+                                  <character-type> | 
+                                  <string-type>    | 
+                                  <boolean-type>   |
+                                  <file-type>      |
+                                  <pair-type>      |
+                                  <raw: new-type> ) [ <dimension> ]
+<storage-modifier> ::= "const" | "extern" | "volatile" | "static" | "virtual" | "override"
+<access-modifier> ::= "private" | "protected" | "public"
 <integer-type> ::= ([ "unsigned" ] ( "byte" | "short" | "int" | "long" )) | "integer"
 <decimal-type> ::= "half" | "float" | "double" | "decimal"
 <boolean-type> ::= "bool"
-<character-type> ::= "char" | "utf16" | "utf32"
-<string-type> ::= "string" | "string16" | "string32"
+<character-type> ::= "char" | "letter" | "symbol"
+<string-type> ::= "string" | "phrase" | "chain"
 <file-type> ::= "file" | "dir"
 <pair-type> ::= "pair" [ <pair-dimension> ]
 <dimension> ::= ( "*" | "&" | <array-type> | <list-type> | <dict-type>) [ <dimension> ]
 <list-type> ::= "(" [ <sequence> ] ")"
 <array-type> ::= "[" [ <sequence> ] "]"
-<dict-type> ::= "{" [ <sequence> ] "}"
 <pair-dimension> ::= "[" <type> ":" <type> "]"
