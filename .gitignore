@@ -5,4 +5,9 @@ lib/bin
 *.ipch
 win/.vs
 out
-
+*.aux
+*.fdb_latexmk
+*.fls
+*.log
+*.synctex.gz
+*.toc
