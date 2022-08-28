@@ -86,6 +86,7 @@
   Linker & The program or set of functions responsible to adjust address references inbetween compiled binaries.\\
   Macro & A macro in the compiling context is a piece of code destined to be executed at compile-time (vs the rest of the code that will be executed at run-time).\\
   Mnemonic & A mnemonic is a human readable token that represents a machine readable byte (or set of bytes). For instance, consider the follwing mnemonics : \texttt{ADD=0x1282}, \texttt{R1=0x01}, \texttt{R3=0x03}, and the following mnemonic instruction (assembly): \texttt{ADD R1 R3}. A simple assembler would easily translate this to \texttt{0x12820103}, and although the conversion is trivial, a human will find the former much easier to read.\\
+  OSAL & Operating System Abstraction Layer. The code responsible to shield the project from OS dependent library functions.\\
   Preprocessor & The program or set of functions responsible for pretreating the code prior to intermediate compilation. The preprocessor takes a \csr{} file and outputs a \csr{} file, only in the output all macros have been expanded.\\
   Symbol & A token with its location in the document or string it was read from.\\
   Token & An indivisible language unit (word) and type (ex: variable, reserved, punctuation, etc.).\\
@@ -99,10 +100,62 @@
 The CISOR compiler aims to be a self-compilable compiler for the \csr{} language. Although the objectives of \csr{} are clear, the language is bound to evolve over the process of its creation, thus the first version of the compiler should be able to quickly adapt to unforeseen changes. The easiest way to achieve this adaptability is to have the grammar as an input the the CISOR compiler. This will undoubtably significantly impact performance, but I believe the advantages are too great to overlook. A version of the grammar description language (E)BNF was chosen for this purpose. It is the most common and appropriate notation for this use-case. The slight modifications in syntax to the official form are discussed further in the parsing section, but are generally present for the sole purpose of facilitating parsing and readability.
 
 \section{Architecture}
-The overall architecture of the compiler rests on three major groups, the general utilities group (\texttt{utils}), the parsing API group (\texttt{parsing}), and the compiler group (\texttt{cisor}). Since the compiler is designed to be self-compilable, third party library use should be reduced to a minimum (read none). The purpose of the general utilies group is to provide those functions that are going to be frequently used in compilable form, even if those utilies are already implemented in a third party library. The parsing API is meant to provide an intuitive set of functions in order to render extremely complex code \textbf{easy to use} and \textbf{safe}. Through a robust and thoroughly tested parsing API, the risks of memory leaks are significantly reduced, as well the mental charge required to understand and edit the compiler code. It should contain the (E)BNF parser and tokenizer for the program, as well as provide an API for an eventual editor through informative syntax error detection. Finally the compiler group is comprised of the traditionnal compiler pipeline (preprocessor > IR compiler > compiler > assembler > linker), as well as an API for an eventual editor for semantic error detection.
+The overall architecture of the compiler rests on three major groups, the general utilities group (\texttt{utils}), the parsing API group (\texttt{parsing}), and the compiler group (\texttt{cisor}). Since the compiler is designed to be self-compilable, third party library use should be reduced to a minimum (read none). The purpose of the general utilies group is to provide those functions that are going to be frequently used in compilable form, even if those utilies are already implemented in a third party library, as well as to provide OSAL functions. The parsing API is meant to provide an intuitive set of functions in order to render extremely complex code \textbf{easy to use} and \textbf{safe}. Through a robust and thoroughly tested parsing API, the risks of memory leaks are significantly reduced, as well the mental charge required to understand and edit the compiler code. It should contain the (E)BNF parser and tokenizer for the program, as well as provide an API for an eventual editor through informative syntax error detection. Finally the compiler group is comprised of the traditionnal compiler pipeline (preprocessor > IR compiler > compiler > assembler > linker), as well as an API for an eventual editor for semantic error detection.
 
-\begin{tikzpicture}
-  
-\end{tikzpicture}
+\begin{figure}[htp]
+  \centering
+  \begin{tikzpicture}
+    \node (utils) at (0, 0) [draw=black, rectangle, label=General Utilities] {
+      \begin{tabular}{ccc}
+        \textbf{Structure} & \textbf{OSAL} & \textbf{Miscellaneous}\\
+        array.h & dir.h & diagnostic.h\\
+        strings.h & file.h & error.h\\
+        & & raw.h\\
+        & & terminal.h
+      \end{tabular}
+    };
+    \node (parsing) at (8, -2) [draw=black, rectangle, label=Parsing API] {
+      \begin{tabular}{cc}
+        ast.h & symbol.h\\
+        bnf.h & tracked\_file.h\\
+        parser.h & tracked\_string.h
+      \end{tabular}
+    };
+    \node (cisor) at (3, -5) [draw=black, rectangle, label=south:CISOR Compiler Pipeline] {
+      \begin{tikzpicture}
+        \node (cisor) at (0, 0) [draw=black, rectangle] {cisor.h};
+        \node (version) at (-3, 0) [draw=black, rectangle] {version.h};
+        \node (preproc) at (-5, -1) [draw=black, rectangle] {preprocessor.h};
+        \node (inter) at (-2.1, -1) [draw=black, rectangle] {intermediate.h};
+        \node (compiler) at (0.4, -1) [draw=black, rectangle] {compiler.h};
+        \node (assembler) at (2.8, -1) [draw=black, rectangle] {assembler.h};
+        \node (linker) at (2.8, 0) [draw=black, rectangle] {linker.h};
+        \node (macro) at (-5, -0) [draw=black, rectangle] {macro.h};
+
+        \draw [->] (macro) -- (preproc);
+        \draw [->] (preproc) -- (inter);
+        \draw [->] (preproc) -- (cisor);
+        \draw [->] (inter) -- (compiler);
+        \draw [->] (inter) -- (cisor);
+        \draw [->] (compiler) -- (assembler);
+        \draw [->] (compiler) -- (cisor);
+        \draw [->] (assembler) -- (linker);
+        \draw [->] (assembler) -- (cisor);
+        \draw [->] (linker) -- (cisor);
+        \draw [->] (version) -- (cisor);
+      \end{tikzpicture}
+    };
+
+    \draw [->] (utils) -- (cisor);
+    \draw [->] (utils) -- (parsing);
+    \draw [->] (parsing) -- (cisor);
+  \end{tikzpicture}
+  \caption{Dependency chart of the CISOR compiler}
+\end{figure}
+
+\section{Code description}
+\subsection{General Utilities}
+\subsubsection{Array}
+
 
 \end{document}
