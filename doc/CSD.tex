@@ -4,6 +4,8 @@
 \usepackage[margin=1in]{geometry}
 \usepackage[inkscapearea=nocrop]{svg}
 \usepackage{listings}
+\usepackage{array}
+\usepackage{longtable}
 
 \definecolor{darkgreen}{rgb}{0,0.5,0}
 \definecolor{darkgray}{rgb}{0.5,0.5,0.5}
@@ -46,6 +48,7 @@
 \setlength\parindent{1cm}
 
 \begin{document}
+\pagenumbering{gobble}
 
 \begin{center}
   \vspace*{0.5in}
@@ -61,21 +64,26 @@
   \vspace{2em}
   This document contains the coding standard for the CISOR compiler and its components.
 \end{center}
+
 \pagebreak
+\pagenumbering{roman}
 
 \tableofcontents
 
 \pagebreak
 
-\section{Definitions}
-\paragraph{Line context} When programming, we often need to look in the immediate vacinity of the line being written for contextual cues on its impact. The code that is logically tied to the line being written will be referred to as "context". The size of the context is a measure of how many lines are in that code.
+\section*{Definitions}
+\renewcommand{\arraystretch}{1.5}
+\begin{longtable}{>{\bfseries}p{0.25\linewidth}p{0.65\linewidth}}
+Line context & When programming, we often need to look in the immediate vacinity of the line being written for contextual cues on its impact. The code that is logically tied to the line being written will be referred to as "context". The size of the context is a measure of how many lines are in that code.\\
+Stack context & The code that will be executed with the same stack pointer, generally indicated by accolades ({\fontfamily{cmsy}\{\}}) in C.\\
+Fragmentation & The number of stack contexts (\textit{not line context}) required to executed the code. For instance, a long list of sequential instructions would be completly whole, splitting that list into multiple functions would be fragmented. The ultimate fragmenation would be if each instruction was executed in a different stack context (i.e. a function for each instruction), that would obviously be very exagerated.\\
+Banner & A banner is a comment structure to catch the eye and delimit subdivisions in the code. A few common ones are: //******//, //======//, //////////, etc.
+\end{longtable}
 
-\paragraph{Stack context} The code that will be executed with the same stack pointer, generally indicated by accolades ({\fontfamily{cmsy}\{\}}) in C.
-
-\paragraph{Fragmentation} The number of stack contexts (\textit{not line context}) required to executed the code. For instance, a long list of sequential instructions would be completly whole, splitting that list into multiple functions would be fragmented. The ultimate fragmenation would be if each instruction was executed in a different stack context (i.e. a function for each instruction), that would obviously be very exagerated.
-
-\paragraph{Banner} A banner is a comment structure to catch the eye and delimit subdivisions in the code. A few common ones are: //******//, //======//, //////////, etc.
 \pagebreak
+
+\pagenumbering{arabic}
 \section{Foreword}
 \subsection{Aim}
 The aim of this coding standard is to maximize quick information absorption by the programmer as well as to minimize the strain on the programmer's mental state. There are a couple dimensions across which those objectives can be evaluated. For each dimension, the aim will be specified: all the way to one end (factor), all the way to the other (not a factor), or a balance of both.
@@ -251,7 +259,7 @@ Function standards don't change.
     if (argc == 2  && (myObject = newMyObject(0, argv[1]))) {
       printf("%s\n", myObject->name);
     }
-    
+
     return 0;
   }
 

@@ -1,0 +1,108 @@
+\documentclass{article}
+\usepackage{bera}
+\usepackage{tgheros}
+\usepackage[margin=1in]{geometry}
+\usepackage[inkscapearea=nocrop]{svg}
+\usepackage{listings}
+\usepackage{tikz}
+\usepackage{array}
+\usepackage{longtable}
+
+\definecolor{darkgreen}{rgb}{0,0.5,0}
+\definecolor{darkgray}{rgb}{0.5,0.5,0.5}
+\definecolor{darkred}{rgb}{0.5,0,0}
+
+\lstset{ 
+  backgroundcolor=\color{white},   % choose the background color; you must add \usepackage{color} or \usepackage{xcolor}; should come as last argument
+  basicstyle=\footnotesize\ttfamily,        % the size of the fonts that are used for the code
+  breakatwhitespace=false,         % sets if automatic breaks should only happen at whitespace
+  breaklines=true,                 % sets automatic line breaking
+  captionpos=b,                    % sets the caption-position to bottom
+  commentstyle=\color{darkgreen},    % comment style
+  %deletekeywords={...},            % if you want to delete keywords from the given language
+  %escapeinside={\%*}{*)},          % if you want to add LaTeX within your code
+  extendedchars=true,              % lets you use non-ASCII characters; for 8-bits encodings only, does not work with UTF-8
+  firstnumber=0,                % start line enumeration with line 1000
+  frame=single,	                   % adds a frame around the code
+  keepspaces=true,                 % keeps spaces in text, useful for keeping indentation of code (possibly needs columns=flexible)
+  keywordstyle=\color{blue},       % keyword style
+  %identifierstyle=\color{orange},
+  language=C,                 % the language of the code
+  otherkeywords={\#},
+  morekeywords={include, define},            % if you want to add more keywords to the set
+  numbers=left,                    % where to put the line-numbers; possible values are (none, left, right)
+  numbersep=5pt,                   % how far the line-numbers are from the code
+  numberstyle=\tiny\color{darkgray}, % the style that is used for the line-numbers
+  rulecolor=\color{black},         % if not set, the frame-color may be changed on line-breaks within not-black text (e.g. comments (green here))
+  showspaces=false,                % show spaces everywhere adding particular underscores; it overrides 'showstringspaces'
+  showstringspaces=false,          % underline spaces within strings only
+  showtabs=false,                  % show tabs within strings adding particular underscores
+  stepnumber=1,                    % the step between two line-numbers. If it's 1, each line will be numbered
+  stringstyle=\color{darkred},     % string literal style
+  tabsize=2,	                   % sets default tabsize to 2 spaces
+  title=\lstname                   % show the filename of files included with \lstinputlisting; also try caption instead of title
+}
+
+\renewcommand{\familydefault}{\sfdefault}
+\renewcommand\ttdefault{fvm}
+\newcommand{\csr}{C\raisebox{0.15em}{\textasteriskcentered}}
+\setlength\parindent{1cm}
+
+\begin{document}
+\pagenumbering{gobble}
+
+\begin{center}
+  \vspace*{0.5in}
+  {\Huge PROGRAMMING GUIDE}\\
+  \vspace{1em}
+  {\Large FOR THE CISOR COMPILER}\\
+  \vspace{10em}
+  \includesvg[width=3in]{../misc/logo.svg}\\
+  \vspace{10em}
+  {\Large Version 1, August 2022}\\
+  \vspace{1em}
+  {\large Author: Philippe Caron}\\
+  \vspace{2em}
+  This document contains information about the overall architecture of the CISOR compiler, as well as specific descriptions of every function in the project.
+\end{center}
+\pagebreak
+
+\pagenumbering{roman}
+
+\tableofcontents
+
+\pagebreak
+
+\section*{Definitions}
+\renewcommand{\arraystretch}{1.5}
+\begin{longtable}{>{\bfseries}p{0.25\linewidth}p{0.65\linewidth}}
+  Assembler & The architecture-specific program or set of functions responsible for translating the machine-code from its mnemonic form to its binary form.\\
+  Assembly & The machine-code in its mnemonic form.\\
+  AST & Abstract Syntax Tree. It's the tree representation of the abstract syntaxic representation of the code (from Wikipedia).\\
+  Compiler & The architecture-specific program or set of functions responsible for translating the IR to assembly.\\
+  (E)BNF & (Extended) Bachus-Naur Form. It's a metasyntax for context-free grammars (from Wikipedia). The "extended" is in parenthesies because the parser contains a switch that will turn the extended syntax on and off.\\
+  Intermediate representation (IR) & The intermediate representation is the code produced by the intermediate compiler. It should be essentialy similar to a virtual machine code.\\
+  IR compiler & The program or set of function that translate the code from human-like language (the programming language) to machine-like language (the IR). This is where the bulk of the compilation occurs. The purpose of separating this step is to allow for easier portability. The IR is the same on every processor architecture, but the compiler has to be different since it's producing architecture-specific mnemonic code (assembly).\\
+  Linker & The program or set of functions responsible to adjust address references inbetween compiled binaries.\\
+  Macro & A macro in the compiling context is a piece of code destined to be executed at compile-time (vs the rest of the code that will be executed at run-time).\\
+  Mnemonic & A mnemonic is a human readable token that represents a machine readable byte (or set of bytes). For instance, consider the follwing mnemonics : \texttt{ADD=0x1282}, \texttt{R1=0x01}, \texttt{R3=0x03}, and the following mnemonic instruction (assembly): \texttt{ADD R1 R3}. A simple assembler would easily translate this to \texttt{0x12820103}, and although the conversion is trivial, a human will find the former much easier to read.\\
+  Preprocessor & The program or set of functions responsible for pretreating the code prior to intermediate compilation. The preprocessor takes a \csr{} file and outputs a \csr{} file, only in the output all macros have been expanded.\\
+  Symbol & A token with its location in the document or string it was read from.\\
+  Token & An indivisible language unit (word) and type (ex: variable, reserved, punctuation, etc.).\\
+  Tokenizer & A program or set of functions responsible to split an input stream into a token stream.
+\end{longtable}
+
+\pagebreak
+\pagenumbering{arabic}
+
+\section{Introduction}
+The CISOR compiler aims to be a self-compilable compiler for the \csr{} language. Although the objectives of \csr{} are clear, the language is bound to evolve over the process of its creation, thus the first version of the compiler should be able to quickly adapt to unforeseen changes. The easiest way to achieve this adaptability is to have the grammar as an input the the CISOR compiler. This will undoubtably significantly impact performance, but I believe the advantages are too great to overlook. A version of the grammar description language (E)BNF was chosen for this purpose. It is the most common and appropriate notation for this use-case. The slight modifications in syntax to the official form are discussed further in the parsing section, but are generally present for the sole purpose of facilitating parsing and readability.
+
+\section{Architecture}
+The overall architecture of the compiler rests on three major groups, the general utilities group (\texttt{utils}), the parsing API group (\texttt{parsing}), and the compiler group (\texttt{cisor}). Since the compiler is designed to be self-compilable, third party library use should be reduced to a minimum (read none). The purpose of the general utilies group is to provide those functions that are going to be frequently used in compilable form, even if those utilies are already implemented in a third party library. The parsing API is meant to provide an intuitive set of functions in order to render extremely complex code \textbf{easy to use} and \textbf{safe}. Through a robust and thoroughly tested parsing API, the risks of memory leaks are significantly reduced, as well the mental charge required to understand and edit the compiler code. It should contain the (E)BNF parser and tokenizer for the program, as well as provide an API for an eventual editor through informative syntax error detection. Finally the compiler group is comprised of the traditionnal compiler pipeline (preprocessor > IR compiler > compiler > assembler > linker), as well as an API for an eventual editor for semantic error detection.
+
+\begin{tikzpicture}
+  
+\end{tikzpicture}
+
+\end{document}
