@@ -21,6 +21,8 @@ TrackedStream *tsopen(Stream *stream, int lookahead)
     ts->position  = -1;
 
     ts->linestack = linestack;
+
+    for (int i = 0; i < ts->lookahead; i++) ts->buffer[i] = sgetc(ts->stream);
   } else {
     deleteArray(&linestack);
     if (buffer    != NULL) free(buffer);
@@ -39,24 +41,15 @@ void tsclose(TrackedStream *ts)
   if (ts            != NULL) free(ts);
 }
 
+// TODO: (low): Optimization: make <buffer> a rolling buffer
 ////////////////////////////////////////////////////////////////////////////////
 char tsgetc(TrackedStream *ts)
 {
   if (ts->line < 0) {
-    for (int i = 0; i < ts->lookahead; i++) {
-      char c;
-      do { c = sgetc(ts->stream); } while (c == '\r');
-      ts->buffer[i] = c;
-    }
     ts->line = 0;
-  }
-  else {
-    char c;
-    for (int i = 0; i < ts->lookahead - 1; i++) {
-      ts->buffer[i] = ts->buffer[i + 1];
-    }
-    do { c = sgetc(ts->stream); } while (c == '\r');
-    ts->buffer[ts->lookahead - 1] = c;
+  }  else {
+    for (int i = 0; i < ts->lookahead - 1; i++) ts->buffer[i] = ts->buffer[i + 1];
+    ts->buffer[ts->lookahead - 1] = sgetc(ts->stream);;
   }
   if (ts->buffer[0] == '\n') {
     ts->line++;

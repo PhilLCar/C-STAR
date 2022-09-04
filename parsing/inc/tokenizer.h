@@ -1,5 +1,5 @@
-#ifndef GENERIC_PARSING
-#define GENERIC_PARSING
+#ifndef TOKENIZER_PARSING
+#define TOKENIZER_PARSING
 
 #include <stdio.h>
 
@@ -7,6 +7,8 @@
 #include <diagnostic.h>
 #include <oop.h>
 #include <stream.h>
+
+#define TOKENIZER_MIN_LOOKAHEAD 2
 
 // The lists of single char symbols to be parsed
 typedef enum single_char {
@@ -17,6 +19,7 @@ typedef enum single_char {
 
 // The lists of multichar symbols to be parsed
 typedef enum multi_char {
+  // Punctuation types
   MULTI_STRING_DELIMITERS,
   MULTI_CHAR_DELIMITERS,
   MULTI_SCOPE_DELIMITERS,
@@ -24,8 +27,10 @@ typedef enum multi_char {
   MULTI_MULTILINE_COMMENTS,
   MULTI_OPERATORS,
   MULTI_LINEBREAKS,
+  // Variable types
   MULTI_RESERVED_KEYWORDS,
   MULTI_RESERVED_CONSTANTS,
+  // Size of enum
   MULTI_SIZE
 } MultiChar;
 

@@ -5,6 +5,7 @@
     { "icon": "csr", "extensions": ["csr"], "format": "svg" }
   ],
   "files.associations": {
-    "string_view": "c"
+    "string_view": "c",
+    "diagnostic.h": "c"
   }
 }

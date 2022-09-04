@@ -8,7 +8,7 @@ int constokenizer(struct tokenizer *ptr, Stream *stream)
 {
 	int success = 1;
 
-	ptr->lookahead = 1;
+	ptr->lookahead = TOKENIZER_MIN_LOOKAHEAD;
 
 	for (int i = 0; success && i < SINGLE_SIZE; i++) {
 		sskipl(stream);
