@@ -3,9 +3,12 @@
 #include <stdio.h>
 
 #ifdef WIN
+
 #include <windows.h>
 
-Coordinate getTerminalSize() {
+////////////////////////////////////////////////////////////////////////////////
+Coordinate gettermsize()
+{
     CONSOLE_SCREEN_BUFFER_INFO csbi;
     int columns, rows;
 
@@ -15,11 +18,15 @@ Coordinate getTerminalSize() {
 
     return (Coordinate){ columns, rows };
 }
+
 #else
+
 #include <sys/ioctl.h>
 #include <unistd.h>
 
-Coordinate getTerminalSize() {
+////////////////////////////////////////////////////////////////////////////////
+Coordinate gettermsize()
+{
   struct winsize w;
   ioctl(STDOUT_FILENO, TIOCGWINSZ, &w);
 
@@ -27,17 +34,23 @@ Coordinate getTerminalSize() {
 }
 #endif
 
-void clearTerminal() {
+////////////////////////////////////////////////////////////////////////////////
+void clearterm()
+{
   printf("\x1b[2J");
   fflush(stdout);
 }
 
-void placeCursor(int x, int y) {
+////////////////////////////////////////////////////////////////////////////////
+void placecursor(int x, int y)
+{
   printf("\x1b[%d;%dH", x, y);
   fflush(stdout);
 }
 
-void moveCursor(int x, int y) {
+////////////////////////////////////////////////////////////////////////////////
+void movecursor(int x, int y)
+{
   if (x > 0)      printf("\x1b[%dC",  x);
   else if (x < 0) printf("\x1b[%dD", -x);
   if (y > 0)      printf("\x1b[%dB",  y);
@@ -45,12 +58,16 @@ void moveCursor(int x, int y) {
   fflush(stdout);
 }
 
-void pushCursor() {
+////////////////////////////////////////////////////////////////////////////////
+void pushcursor()
+{
   printf("\x1b[s");
   fflush(stdout);
 }
 
-void popCursor() {
+////////////////////////////////////////////////////////////////////////////////
+void popcursor()
+{
   printf("\x1b[u");
   fflush(stdout);
 }

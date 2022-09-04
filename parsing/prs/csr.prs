@@ -1,14 +1,22 @@
 == Whitespaces ==
  	
-== Escape chars ==
+== Escape Characters ==
 \
-== Strings ==
+== String Delimiters ==
 "
 "
 
-== Chars ==
+== Character Delimiters ==
 '
 '
+
+== Scope Delimiters ==
+(
+)
+{
+}
+[
+]
 
 == Line comments ==
 //
@@ -83,18 +91,10 @@
 -:
 :-
 
-== Delimiters ==
-(
-)
-{
-}
-[
-]
-
-== BreakSymbols ==
+== Linebreaks ==
 ;
 
-== Reserved ==
+== Reserved Keywords ==
 if
 else
 for
@@ -159,7 +159,7 @@ try
 catch
 except
 
-== Constants ==
+== Reserved Constants ==
 true
 false
 null

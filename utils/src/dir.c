@@ -7,8 +7,10 @@
 #include <file.h>
 
 #ifdef WIN
+
 #include <windows.h>
 
+////////////////////////////////////////////////////////////////////////////////
 Array *directory(char *dirname)
 {
   WIN32_FIND_DATA  file;
@@ -36,12 +38,16 @@ Array *directory(char *dirname)
   free(dirpath);
   return results;
 }
+
 #else
+
 #ifndef __USE_MISC
 #define __USE_MISC
 #endif
+
 #include <dirent.h>
 
+////////////////////////////////////////////////////////////////////////////////
 int match(char *pattern, char *string) {
   int i, j;
   for (i = 0, j = 0; pattern[i] && string[j]; j++) {
@@ -54,6 +60,7 @@ int match(char *pattern, char *string) {
   return !pattern[i];
 }
 
+////////////////////////////////////////////////////////////////////////////////
 Array *directory(char *dirname)
 {
   Array *results  = NULL;

@@ -1,10 +1,12 @@
 == Whitespaces ==
  	
-== Escape chars ==
+== Escape Characters ==
 
-== Strings ==
+== String Delimiters ==
 
-== Chars ==
+== Character Delimiters ==
+
+== Scope Delimiters ==
 
 == Line comments ==
 
@@ -14,14 +16,12 @@
 <-
 :
 
-== Delimiters ==
+== Linebreaks ==
 
-== BreakSymbols ==
-
-== Reserved ==
+== Reserved Keywords ==
 #file
 #pop
 
-== Constants ==
+== Reserved Constants ==
 
 == EOF ==

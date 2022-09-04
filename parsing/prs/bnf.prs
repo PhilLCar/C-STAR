@@ -1,14 +1,24 @@
 == Whitespaces ==
  	
-== Escape chars ==
+== Escape Characters ==
 \
-== Strings ==
+== String Delimiters ==
 "
 "
 '
 '
 
-== Chars ==
+== Character Delimiters ==
+
+== Scope Delimiters ==
+(
+)
+{
+}
+[
+]
+<
+>
 
 == Line comments ==
 //
@@ -28,20 +38,10 @@
 !
 ?
 
-== Delimiters ==
-(
-)
-{
-}
-[
-]
-<
->
-
-== BreakSymbols ==
+== Linebreaks ==
 ;;
 
-== Reserved ==
+== Reserved Keywords ==
 integer
 decimal
 string
@@ -52,7 +52,7 @@ constant
 new-type
 operator
 
-== Constants ==
+== Reserved Constants ==
 raw
 forward
 anon

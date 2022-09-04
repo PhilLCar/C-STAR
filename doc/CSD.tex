@@ -132,6 +132,9 @@ The initilization of variales should ALWAYS take place first in the function. Va
 \subsection{Formatting}
 Logical sections should be separated by a newline. The opening accolade of a function should be after a newline, but other accolades can be inline (unless they are folling a multiline statement). Similar consecutive lines should have their logical components aligned so that they can be read like a table. Unless necessary, functions should return at a single point.
 
+\subsection{Includes}
+Includes should be in alphabetical order and there should be an empty line between native includes and project includes.
+
 \pagebreak
 
 \subsection{Example}
@@ -156,8 +159,10 @@ Logical sections should be separated by a newline. The opening accolade of a fun
 
     // Logic block separated by empty line
     if (tmp) { // Inline bracket
-      new_object->name = name;
-      return strcpy(name, new_object->name);
+      new_object->id   = id;
+      new_object->name = tmp;
+
+      success = strcpy(name, new_object->name);
     }
 
     return success; // Single return point
@@ -225,6 +230,7 @@ Function standards don't change.
 \begin{lstlisting}
   #include <string.h>
   #include <stdio.h>
+
   #include <procedural.h>
 
   // Use of typedef
@@ -236,7 +242,9 @@ Function standards don't change.
   {
     MyObject *myObject = malloc(sizeof(MyObject));
     
-    if (!consmyobject(id, name)) myObject = NULL;
+    if (!consmyobject(id, name)) {
+      free(myObject);
+    }
 
     return myObject;
   }

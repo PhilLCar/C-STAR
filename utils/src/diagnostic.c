@@ -2,12 +2,15 @@
 #define UTILS_DIAGNOSTIC_INC
 #include <diagnostic.h>
 
+// Memory table global variables
 size_t _mem_total_size = 0;
 int    _mem_table_size = 0;
 int    _mem_table_cap  = 2048;
 void **_mem_table      = NULL;
 
-void *__malloc(size_t size, char *file, int line) {
+////////////////////////////////////////////////////////////////////////////////
+void *__malloc(size_t size, char *file, int line)
+{
   if (_mem_table == NULL) {
     _mem_table = (void**)malloc(_mem_table_cap * sizeof(void*));
   }
@@ -36,7 +39,9 @@ void *__malloc(size_t size, char *file, int line) {
   return mem;
 }
 
-void __free(void *mem) {
+////////////////////////////////////////////////////////////////////////////////
+void __free(void *mem)
+{
   size_t size;
   for (int i = 0; i < _mem_table_size; i += 4) {
     if (_mem_table[i] == mem) {
@@ -52,7 +57,9 @@ void __free(void *mem) {
   free(mem);
 }
 
-void *__realloc(void *mem, size_t size, char *file, int line) {
+////////////////////////////////////////////////////////////////////////////////
+void *__realloc(void *mem, size_t size, char *file, int line)
+{
   for (int i = 0; i < _mem_table_size; i += 4) {
     if (_mem_table[i] == mem) {
       _mem_total_size += size - (size_t)_mem_table[i + 1];
@@ -66,11 +73,15 @@ void *__realloc(void *mem, size_t size, char *file, int line) {
   return NULL;
 }
 
-size_t __memuse() {
+////////////////////////////////////////////////////////////////////////////////
+size_t __memuse()
+{
     return _mem_total_size;
 }
 
-void __end() {
+////////////////////////////////////////////////////////////////////////////////
+void __end()
+{
   for (int i = 0; i < _mem_table_size; i += 4) {
     if (_mem_table[i]) {
       fprintf(stderr, "%s(%ld): A block of size %ld was allocated but never recovered!\n",

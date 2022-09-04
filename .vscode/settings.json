@@ -3,5 +3,8 @@
   // note: the format must match the existing one. If not, it will use the extension you provide.
   "vsicons.associations.files": [
     { "icon": "csr", "extensions": ["csr"], "format": "svg" }
-  ]
+  ],
+  "files.associations": {
+    "string_view": "c"
+  }
 }

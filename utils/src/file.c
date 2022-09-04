@@ -2,7 +2,9 @@
 
 #include <stdlib.h>
 #include <string.h>
+#include <stdio.h>
 
+////////////////////////////////////////////////////////////////////////////////
 char *filenamewoext(char *filename)
 {
   int   len = (int)strlen(filename);
@@ -28,13 +30,17 @@ char *filenamewoext(char *filename)
   return woext;
 }
 
-char *fileext(char *filename) {
+////////////////////////////////////////////////////////////////////////////////
+char *fileext(char *filename)
+{
   char *ext = filename;
   while (ext[0] && ext[0] != '.') ext++;
   return ext;
 }
 
-char *filenamewopath(char *filename) {
+////////////////////////////////////////////////////////////////////////////////
+char *filenamewopath(char *filename)
+{
   char *last = filename;
   #ifdef WIN
   char marker = '\\';
@@ -47,7 +53,9 @@ char *filenamewopath(char *filename) {
   return last;
 }
 
-char *filepath(char *filename) {
+////////////////////////////////////////////////////////////////////////////////
+char *filepath(char *filename)
+{
   char *path = NULL;
   int   size = 0;
   #ifdef WIN
@@ -67,8 +75,10 @@ char *filepath(char *filename) {
 }
 
 #ifdef WIN
+
 #include <Windows.h>
 
+////////////////////////////////////////////////////////////////////////////////
 int fileexists(char *filename, FilePermission permission) {
    WIN32_FIND_DATA file;
    HANDLE handle = FindFirstFile(filename, &file) ;
@@ -82,8 +92,10 @@ int fileexists(char *filename, FilePermission permission) {
    return found;
 }
 #else
+
 #include <unistd.h>
 
+////////////////////////////////////////////////////////////////////////////////
 int fileexists(char *filename, FilePermission permission) {
   int a = 0;
 
@@ -105,3 +117,18 @@ int fileexists(char *filename, FilePermission permission) {
   return !access(filename, a);
 }
 #endif
+
+////////////////////////////////////////////////////////////////////////////////
+Stream *fromFileStream(void *stream)
+{
+  Stream *s = malloc(sizeof(Stream));
+
+  if (s) {
+    s->stream = stream;
+    s->getc   = fgetc;
+    s->ungetc = ungetc;
+    s->close  = fclose;
+  }
+
+  return s;
+}

@@ -2,32 +2,56 @@
 #define STRINGS_UTILS
 
 #include <diagnostic.h>
+#include <stream.h>
+#include <oop.h>
 
+// A string of characters, with length
 typedef struct string {
   char *content;
   int   length;
 } String;
 
-typedef struct stringstream {
-  String *str;
-  int     pos;
-} StringStream;
+streamable(String, string);
+buildable(String, string, char *cstr);
 
-String *newString(char *string);
-void    deleteString(String **s);
-void    freestring(String *s);
+// ==== OBJECT FUNCTIONS ==== //
+// Adds string <b> after <a>, (destroys <b>)
 String *concat(String *a, String *b);
+
+// Appends char <c> after string <s>
 String *append(String *s, char c);
+
+// Prepends string <s> with char <c>
 String *prepend(String *s, char c);
+
+// Inserts char <c> at the specified <index> in string <s>
 String *inject(String *s, int index, char c);
+
+// RETURNS the substring of <s> from index <start> of <length> characters
 String *substring(String *s, int start, int length);
+
+// RETURNS a string without leading and trailing whitespaces from <s>
 String *trim(String *s);
+
+// RETURNS 1 if both <a> and <b> are equal, 0 otherwise
 int     equals(String *a, String *b);
+
+// RETURNS 1 if <a> contains <b>, 0 otherwise
 int     contains(String *a, String *b);
 
-StringStream *sopen(String *s);
-void          sclose(StringStream *ss);
-char          sgetc(StringStream *ss);
-void          sungetc(char c, StringStream *ss);
+// ==== STREAM FUNCTIONS ==== //
+fromStream(String);
+
+// RETURNS a StringStream on <s>
+StringStream *ssopen(String *s);
+
+// Closes the StringStream <ss>
+void          ssclose(StringStream *ss);
+
+// Gets the next character on <ss>
+char          ssgetc(StringStream *ss);
+
+// Ungets a character <c> on <ss>
+void          ssungetc(char c, StringStream *ss);
 
 #endif

@@ -4,36 +4,51 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-String *newString(char *content)
+////////////////////////////////////////////////////////////////////////////////
+int consstring(struct string *str, char *cstr)
 {
-  String *s = malloc(sizeof(String));
-  if (s) {
-    s->length = (int)strlen(content);
-    s->content = malloc((s->length + 1) * sizeof(char));
-    if (s->content) {
-      memcpy(s->content, content, s->length + 1);
-    } else {
-      free(s);
-      s = NULL;
-    }
+  int success = 0;
+
+  str->length  = (int)strlen(cstr);
+  str->content = malloc((str->length + 1) * sizeof(char));
+  if (str->content) {
+    memcpy(str->content, cstr, str->length + 1);
+    success = 1;
   }
-  return s;
+
+  return success;
 }
 
-void deleteString(String **s)
+////////////////////////////////////////////////////////////////////////////////
+void freestring(struct string *str)
 {
-  if (*s) {
-    free((*s)->content);
-    free(*s);
+  if (str->content) free(str->content);
+}
+
+////////////////////////////////////////////////////////////////////////////////
+String *newString(char *cstr)
+{
+  String *string = malloc(sizeof(String));
+
+  if (string && !consstring(string, cstr)) {
+    free(string);
+    string = NULL;
   }
-  *s = NULL;
+
+  return string;
 }
 
-void freestring(String *s)
+////////////////////////////////////////////////////////////////////////////////
+void deleteString(String **string)
 {
-  free(s->content);
+  if (*string) {
+    freestring(*string);
+    free(*string);
+    *string = NULL;
+  }
 }
 
+////////////////////////////////////////////////////////////////////////////////
 String *concat(String *a, String *b)
 {
   char *n = realloc(a->content, (a->length + b->length + 1) * sizeof(char));
@@ -48,6 +63,7 @@ String *concat(String *a, String *b)
   return a;
 }
 
+////////////////////////////////////////////////////////////////////////////////
 String *append(String *a, char c)
 {
   char *n = realloc(a->content, (a->length + 2) * sizeof(char));
@@ -61,6 +77,7 @@ String *append(String *a, char c)
   return a;
 }
 
+////////////////////////////////////////////////////////////////////////////////
 String *prepend(String *a, char c)
 {
   char *n = realloc(a->content, (a->length + 2) * sizeof(char));
@@ -74,6 +91,7 @@ String *prepend(String *a, char c)
   return a;
 }
 
+////////////////////////////////////////////////////////////////////////////////
 String *inject(String *a, int index, char c)
 {
   char *n = realloc(a->content, (a->length + 2) * sizeof(char));
@@ -87,6 +105,7 @@ String *inject(String *a, int index, char c)
   return a;
 }
 
+////////////////////////////////////////////////////////////////////////////////
 String *substring(String *a, int start, int length)
 {
   char *s = malloc((length + 1) * sizeof(char));
@@ -105,6 +124,7 @@ String *substring(String *a, int start, int length)
   return a;
 }
 
+////////////////////////////////////////////////////////////////////////////////
 String *trim(String *a) {
   int start, length;
   for (start = 0; start < a->length; start++) {
@@ -118,11 +138,13 @@ String *trim(String *a) {
   return substring(a, start, length);
 }
 
+////////////////////////////////////////////////////////////////////////////////
 int equals(String *a, String *b)
 {
   return !strcmp(a->content, b->content);
 }
 
+////////////////////////////////////////////////////////////////////////////////
 int contains(String *a, String *b)
 {
   char *acon  = a->content;
@@ -139,31 +161,59 @@ int contains(String *a, String *b)
   return match;
 }
 
-StringStream *sopen(String *str)
+////////////////////////////////////////////////////////////////////////////////
+Stream *fromStringStream(void *stream)
 {
-  StringStream *s = malloc(sizeof(StringStream));
+  Stream *s = malloc(sizeof(Stream));
+
   if (s) {
-    s->str = str;
-    s->pos = 0;
+    s->stream = stream;
+    s->getc   = ssgetc;
+    s->ungetc = ssungetc;
+    s->close  = ssclose;
   }
+
   return s;
 }
 
-void sclose(StringStream *s)
+////////////////////////////////////////////////////////////////////////////////
+StringStream *ssopen(String *s)
 {
-  free(s);
+  StringStream *ss = malloc(sizeof(StringStream));
+
+  if (ss) {
+    ss->string = newString(s->content);
+    ss->pos    = 0;
+    ss->eos    = 0;
+  }
+
+  return ss;
 }
 
-char sgetc(StringStream *s)
+////////////////////////////////////////////////////////////////////////////////
+void ssclose(StringStream *ss)
 {
-  char c = s->str->content[s->pos];
-  if (!c) c = EOF;
-  else    s->pos++;
+  deleteString(&ss->string);
+  free(ss);
+}
+
+////////////////////////////////////////////////////////////////////////////////
+char ssgetc(StringStream *ss)
+{
+  char c = ss->string->content[ss->pos];
+
+  if (!c) {
+    c = EOF;
+    ss->eos = 1;
+  } else ss->pos++;
+
   return c;
 }
 
-void sungetc(char c, StringStream *s) {
-  if (s->pos > 0) {
-    s->str->content[--s->pos] = c;
+////////////////////////////////////////////////////////////////////////////////
+void ssungetc(char c, StringStream *ss)
+{
+  if (ss->pos > 0) {
+    ss->string->content[--ss->pos] = c;
   }
 }

@@ -1,40 +1,55 @@
 #include <array.h>
 
 #include <string.h>
+#include <osal.h>
 
-#ifdef WIN
-#define long long long
-#endif
-
-Array *newArray(size_t element_size)
+////////////////////////////////////////////////////////////////////////////////
+int consarray(struct array *array, size_t element_size)
 {
-  Array *array = malloc(sizeof(Array));
-  void  *content = malloc(element_size);
-  if (array != NULL && content != NULL) {
+  void *content = malloc(element_size);
+  int   success = 0;
+
+  if (content) {
     array->content      = content;
     array->element_size = element_size;
     array->size         = 0;
     array->capacity     = 1;
-  } else {
-    if (array   == NULL) free(array);
-    if (content == NULL) free(content);
+    success = 1;
+  }
+
+  return success;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+void freearray(struct array *array)
+{
+  if (array->content) free(array->content);
+}
+
+////////////////////////////////////////////////////////////////////////////////
+Array *newArray(size_t elementSize)
+{
+  Array *array = malloc(sizeof(Array));
+
+  if (array && !consarray(array, elementSize)) {
+    free(array);
     array = NULL;
   }
+
   return array;
 }
 
+////////////////////////////////////////////////////////////////////////////////
 void deleteArray(Array **array)
 {
-  if (*array != NULL) {
-    void *content = (*array)->content;
-    if (content != NULL) {
-      free(content);
-    }
+  if (*array) {
+    freearray(*array);
     free(*array);
     *array = NULL;
   }
 }
 
+////////////////////////////////////////////////////////////////////////////////
 int resize(Array *array, int new_size)
 {
   int success = 0;
@@ -49,6 +64,7 @@ int resize(Array *array, int new_size)
   return success;
 }
 
+////////////////////////////////////////////////////////////////////////////////
 void push(Array *array, void *data)
 {
   if (array->size >= array->capacity) {
@@ -68,11 +84,14 @@ void push(Array *array, void *data)
 	       array->element_size);
 }
 
-void pushobj(Array *array, void *data) {
+////////////////////////////////////////////////////////////////////////////////
+void pushobj(Array *array, void *data)
+{
   push(array, data);
   free(data);
 }
 
+////////////////////////////////////////////////////////////////////////////////
 void *pop(Array *array)
 {
   void *index = NULL;
@@ -87,7 +106,9 @@ void *pop(Array *array)
   return index;
 }
 
-int popobj(Array *array, void(*freefunc)(void*)) {
+////////////////////////////////////////////////////////////////////////////////
+int popobj(Array *array, void(*freefunc)(void*))
+{
   void *index = pop(array);
   if (index != NULL) {
     freefunc(index);
@@ -96,6 +117,7 @@ int popobj(Array *array, void(*freefunc)(void*)) {
   return 0;
 }
 
+////////////////////////////////////////////////////////////////////////////////
 void *at(Array *array, int index)
 {
   if (index >= 0 && index < array->size) {
@@ -104,12 +126,14 @@ void *at(Array *array, int index)
   return NULL;
 }
 
+////////////////////////////////////////////////////////////////////////////////
 void *last(Array *array)
 {
   if (array->size) return (char*)array->content + ((array->size - 1) * array->element_size);
   return NULL;
 }
 
+////////////////////////////////////////////////////////////////////////////////
 void *rem(Array *array, int index)
 {
   void *rem = NULL;
@@ -128,6 +152,7 @@ void *rem(Array *array, int index)
   return rem;
 }
 
+////////////////////////////////////////////////////////////////////////////////
 void set(Array *array, int index, void *value)
 {
   if (index >= 0 && index < array->size) {
@@ -135,11 +160,13 @@ void set(Array *array, int index, void *value)
   }
 }
 
+////////////////////////////////////////////////////////////////////////////////
 void clear(Array *array)
 {
   array->size = 0;
 }
 
+////////////////////////////////////////////////////////////////////////////////
 void combine(Array* a, Array *b)
 {
   void *elem;
@@ -151,6 +178,7 @@ void combine(Array* a, Array *b)
   deleteArray(&b);
 }
 
+////////////////////////////////////////////////////////////////////////////////
 void insert(Array *array, int index, void *data)
 {
   if (array->size >= array->capacity) {
@@ -177,6 +205,7 @@ void insert(Array *array, int index, void *data)
          (char*)data,                          array->element_size);
 }
 
+////////////////////////////////////////////////////////////////////////////////
 void *in(Array *array, void *data)
 {
   void *contains = NULL;
@@ -190,6 +219,7 @@ void *in(Array *array, void *data)
   return contains;
 }
 
+////////////////////////////////////////////////////////////////////////////////
 int indexof(Array *array, void *data)
 {
   int index = -1;

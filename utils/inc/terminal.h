@@ -135,16 +135,28 @@
 #define CROSS_DOUBLE_TB     "╫"
 #define CROSS_DOUBLE        "╬"
 
+// X, Y coordinates for location on screen
 typedef struct coordinate {
   int x;
   int y;
 } Coordinate;
 
-Coordinate getTerminalSize();
-void       clearTerminal();
-void       placeCursor(int x, int y);
-void       moveCursor(int x, int y);
-void       pushCursor();
-void       popCursor();
+// RETURNS the terminal's current size
+Coordinate gettermsize();
+
+// Clears the terminal
+void       clearterm();
+
+// Moves the cursor (absolute) to <x>, <y>
+void       placecursor(int x, int y);
+
+// Moves the cursor (relative) <x>, <y>
+void       movecursor(int x, int y);
+
+// Pushes the current state of the cursor
+void       pushcursor();
+
+// Pops the current satate of the cursor
+void       popcursor();
 
 #endif
