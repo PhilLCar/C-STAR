@@ -1,4 +1,4 @@
-#include <strings.h>
+#include <str.h>
 
 #include <string.h>
 #include <stdlib.h>
@@ -108,7 +108,10 @@ String *inject(String *a, int index, char c)
 ////////////////////////////////////////////////////////////////////////////////
 String *substring(String *a, int start, int length)
 {
-  char *s = malloc((length + 1) * sizeof(char));
+  char *s;
+
+  if (length <= 0) length = a->length - start + length;
+  s = malloc((length + 1) * sizeof(char));
   if (s) {
     for (int i = 0; i < length; i++) {
       s[i] = a->content[start + i];
@@ -156,7 +159,10 @@ int contains(String *a, String *b)
     for (int i = 1; match && i < b->length; i++) {
       match &= acon[i + j] == bcon[i];
     }
-    if (match) break;
+    if (match) {
+      match = j;
+      break;
+    }
   }
   return match;
 }

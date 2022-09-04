@@ -24,12 +24,16 @@ void sclose(Stream *s)
 ////////////////////////////////////////////////////////////////////////////////
 String *sgetl(Stream *s)
 {
-  String *s = newString("");
+  String *str = newString("");
 	char    c;
 
-	while((c = sgetc(s)) != '\n' && c != EOF) append(s, c);
+	while((c = sgetc(s)) != '\n' && c != EOF) append(str, c);
 
-  return s;
+	if (c == EOF && !str->length) {
+		deleteString(&str);
+	}
+
+  return str;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -38,7 +42,14 @@ Array *sgeta(Stream *s)
 	Array  *array = newArray(sizeof(String*));
 	String *line;
 
-	if (array) while ((line = sgetl(s))->length > 0) push(array, line);
+	if (array) while ((line = sgetl(s))) {
+		if (line->length) push(array, &line);
+		else              break;
+	}
+
+	if (!array->size && !line) {
+		deleteArray(&array);
+	}
 
 	return array;
 }

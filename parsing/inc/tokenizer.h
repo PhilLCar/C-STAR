@@ -8,12 +8,9 @@
 #include <oop.h>
 #include <stream.h>
 
-#define TOKENIZER_MIN_LOOKAHEAD 2
-
 // The lists of single char symbols to be parsed
 typedef enum single_char {
   SINGLE_WHITESPACES,
-  SINGLE_ESCAPE_CHARS,
   SINGLE_SIZE
 } SingleChar;
 
@@ -38,6 +35,7 @@ typedef enum multi_char {
 typedef struct tokenizer {
   String *single_list[SINGLE_SIZE];
   Array  *multi_list[MULTI_SIZE];
+  char    escape;
   int     lookahead;
 } Tokenizer;
 

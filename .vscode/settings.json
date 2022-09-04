@@ -6,6 +6,14 @@
   ],
   "files.associations": {
     "string_view": "c",
-    "diagnostic.h": "c"
+    "diagnostic.h": "c",
+    "array": "c",
+    "deque": "c",
+    "string": "c",
+    "unordered_map": "c",
+    "vector": "c",
+    "initializer_list": "c",
+    "str.h": "c",
+    "array.h": "c"
   }
 }

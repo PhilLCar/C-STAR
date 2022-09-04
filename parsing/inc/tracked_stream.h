@@ -29,4 +29,7 @@ char           tsgetc(TrackedStream *ts);
 // Puts back a character <c> on the tracked stream <ts>
 void           tsungetc(char c, TrackedStream *ts);
 
+// RETURNS the character <distance> places ahead, without altering the stream <ts>
+char           tspeek(TrackedStream *ts, int distance);
+
 #endif

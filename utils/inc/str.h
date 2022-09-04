@@ -12,7 +12,7 @@ typedef struct string {
 } String;
 
 streamable(String, string);
-buildable(String, string, char *cstr);
+buildable(String, string, const char *cstr);
 
 // ==== OBJECT FUNCTIONS ==== //
 // Adds string <b> after <a>, (destroys <b>)
@@ -36,7 +36,7 @@ String *trim(String *s);
 // RETURNS 1 if both <a> and <b> are equal, 0 otherwise
 int     equals(String *a, String *b);
 
-// RETURNS 1 if <a> contains <b>, 0 otherwise
+// RETURNS index if <a> contains <b>, -1 otherwise
 int     contains(String *a, String *b);
 
 // ==== STREAM FUNCTIONS ==== //

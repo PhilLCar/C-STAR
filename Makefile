@@ -10,10 +10,8 @@ ifdef debug
 	C-FLAGS += -DDEBUG -g
 endif
 
-UTILS  =$(OBJECTS)/error.o    \
-        $(OBJECTS)/array.o    \
-        $(OBJECTS)/strings.o  \
-				$(OBJECTS)/raw.o      \
+UTILS  =$(OBJECTS)/array.o    \
+        $(OBJECTS)/str.o      \
 				$(OBJECTS)/file.o     \
 				$(OBJECTS)/dir.o      \
 				$(OBJECTS)/terminal.o \
@@ -32,19 +30,23 @@ CISOR  =$(OBJECTS)/macro.o        \
 				$(OBJECTS)/linker.o
 
 major: version
-	@misc/version/version major
+	@$(BINARIES)/version major
 
 minor: version
-	@misc/version/version minor
+	@$(BINARIES)/version minor
 
 revision: version
-	@misc/version/version revision
+	@$(BINARIES)/version revision
 
 build: version
 	@misc/version/version
 
 version:
-	@gcc $(C-FLAGS) misc/version/version.c -o misc/version/version
+	@gcc $(C-FLAGS) misc/version/version.c -o $(BINARIES)/version
+
+todo: $(UTILS)
+	@gcc $(C-FLAGS) $(INCLUDES) misc/todo/todo.c -o $(BINARIES)/todo
+	@$(BINARIES)/todo
 
 cisor: $(BINARIES)/cisor
 

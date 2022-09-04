@@ -75,3 +75,20 @@ void tsungetc(char c, TrackedStream *ts)
   
   ts->buffer[0] = c;
 }
+
+////////////////////////////////////////////////////////////////////////////////
+char tspeek(TrackedStream *ts, int distance)
+{
+  char peek;
+  if (distance < ts->lookahead) peek = ts->buffer[distance];
+  else {
+    String *s = newString("");
+    
+    for (int i = distance - ts->lookahead; i >= 0; i--) append(s, tsgetc(ts));
+    peek = ts->buffer[distance - ts->lookahead];
+    for (int i = distance - ts->lookahead; i >= 0; i--) tsungetc(s->content[i], ts);
+    deleteString(&s);
+  }
+
+  return peek;
+}

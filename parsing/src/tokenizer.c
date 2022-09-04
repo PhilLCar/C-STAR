@@ -8,7 +8,16 @@ int constokenizer(struct tokenizer *ptr, Stream *stream)
 {
 	int success = 1;
 
-	ptr->lookahead = TOKENIZER_MIN_LOOKAHEAD;
+	ptr->lookahead = 1;
+	ptr->escape    = 0;
+
+	sskipl(stream);
+	{
+		String *str = sgetl(stream);
+
+		if (str->length) ptr->escape = str->content[0];
+		deleteString(&str);
+	}
 
 	for (int i = 0; success && i < SINGLE_SIZE; i++) {
 		sskipl(stream);

@@ -33,4 +33,12 @@ typedef struct symbol {
   SymbolType  type;
 } Symbol;
 
+typedef struct symbol_stream {
+  TrackedStream *ts;
+  Tokenizer     *tokenizer;
+  Array         *next;
+} SymbolStream;
+
+buildable(Symbol, symbol, const char *text);
+
 #endif

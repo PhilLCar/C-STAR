@@ -1,7 +1,7 @@
 #ifndef RAW_UTILS
 #define RAW_UTILS
 
-#include <strings.h>
+#include <str.h>
 
 typedef enum rawtype {
   RAW_INVALID = 0,

@@ -1,17 +1,13 @@
 #ifndef STREAM_UTILS
 #define STREAM_UTILS
 
-#include <array.h>
 #include <diagnostic.h>
-#include <strings.h>
 
 #define streamable(TYPE, type) typedef struct type ## _stream {\
   TYPE *type;\
   int   pos;\
   int   eos;\
 } TYPE ## Stream
-
-#define fromStream(TYPE) Stream *from ## TYPE ## Stream(void *stream)
 
 // Abstract stream
 typedef struct stream {
@@ -21,6 +17,8 @@ typedef struct stream {
   void (*close)(void*);
 } Stream;
 
+#define fromStream(TYPE) Stream *from ## TYPE ## Stream(void *stream)
+
 // RETURNS the next char from the stream <s>
 char sgetc(Stream *s);
 
@@ -29,6 +27,11 @@ void sungetc(char c, Stream *s);
 
 // Closes the stream <s>
 void sclose(Stream *s);
+
+// TODO: (medium): This is sketchy, rethink
+// has to include after Stream definitions because String is streamable
+#include <str.h>
+#include <array.h>
 
 // RETURNS a line form the stream <s>
 String *sgetl(Stream *s);
