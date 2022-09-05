@@ -32,7 +32,7 @@ void  *pop(Array *array);
 
 // Uses <freefunc> to free the object just removed from the <array>
 // RETURNS 1 if successful, 0 otherwise
-int    popobj(Array *array, void(*freefunc)(void*));
+int    popobj(Array *array, void *freefunc);
 
 // RETURNS a pointer to the element at the specified <index>
 void  *at(Array *array, int index);

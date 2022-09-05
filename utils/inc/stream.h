@@ -28,18 +28,7 @@ void sungetc(char c, Stream *s);
 // Closes the stream <s>
 void sclose(Stream *s);
 
-// TODO: (medium): This is sketchy, rethink
-// has to include after Stream definitions because String is streamable
-#include <str.h>
-#include <array.h>
-
 // RETURNS a line form the stream <s>
-String *sgetl(Stream *s);
-
-// RETURNS an array from the stream <s>
-Array *sgeta(Stream *s);
-
-// Ignores the next line on the stream <s>
-void sskipl(Stream *s);
+struct string *sgetline(Stream *s);
 
 #endif

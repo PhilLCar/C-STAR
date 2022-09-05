@@ -5,6 +5,7 @@
 
 #include <array.h>
 #include <diagnostic.h>
+#include <str.h>
 #include <stream.h>
 
 // Stream to keep track of line numbers and position on line

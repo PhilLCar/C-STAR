@@ -5,7 +5,7 @@
 #include <stdio.h>
 
 ////////////////////////////////////////////////////////////////////////////////
-int consstring(struct string *str, char *cstr)
+int consstring(struct string *str, const char *cstr)
 {
   int success = 0;
 
@@ -26,7 +26,7 @@ void freestring(struct string *str)
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-String *newString(char *cstr)
+String *newString(const char *cstr)
 {
   String *string = malloc(sizeof(String));
 
@@ -153,6 +153,7 @@ int contains(String *a, String *b)
   char *acon  = a->content;
   char *bcon  = b->content;
   int   match = 0;
+  int   pos   = -1;
 
   for (int j = 0; j <= a->length - b->length; j++) {
     match = acon[j] == bcon[0];
@@ -160,23 +161,27 @@ int contains(String *a, String *b)
       match &= acon[i + j] == bcon[i];
     }
     if (match) {
-      match = j;
+      pos = j;
       break;
     }
   }
-  return match;
+  return pos;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 Stream *fromStringStream(void *stream)
 {
-  Stream *s = malloc(sizeof(Stream));
+  Stream *s = NULL;
+  
+  if (stream) {
+    s = malloc(sizeof(Stream));
 
-  if (s) {
-    s->stream = stream;
-    s->getc   = ssgetc;
-    s->ungetc = ssungetc;
-    s->close  = ssclose;
+    if (s) {
+      s->stream = stream;
+      s->getc   = (char( *)(void*))ssgetc;
+      s->ungetc = (void (*)(char, void*))ssungetc;
+      s->close  = (void (*)(void*))ssclose;
+    }
   }
 
   return s;

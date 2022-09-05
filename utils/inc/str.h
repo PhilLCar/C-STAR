@@ -1,5 +1,5 @@
-#ifndef STRINGS_UTILS
-#define STRINGS_UTILS
+#ifndef STR_UTILS
+#define STR_UTILS
 
 #include <diagnostic.h>
 #include <stream.h>

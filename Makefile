@@ -10,11 +10,14 @@ ifdef debug
 	C-FLAGS += -DDEBUG -g
 endif
 
+# TODO: (low): Refactor: Find a better way to organize the Makefile
+
 UTILS  =$(OBJECTS)/array.o    \
         $(OBJECTS)/str.o      \
 				$(OBJECTS)/file.o     \
 				$(OBJECTS)/dir.o      \
 				$(OBJECTS)/terminal.o \
+				$(OBJECTS)/stream.o   \
         $(OBJECTS)/diagnostic.o
 PARSING=$(OBJECTS)/symbol.o         \
         $(OBJECTS)/parser.o         \
@@ -39,13 +42,13 @@ revision: version
 	@$(BINARIES)/version revision
 
 build: version
-	@misc/version/version
+	@$(BINARIES)/version
 
 version:
 	@gcc $(C-FLAGS) misc/version/version.c -o $(BINARIES)/version
 
 todo: $(UTILS)
-	@gcc $(C-FLAGS) $(INCLUDES) misc/todo/todo.c -o $(BINARIES)/todo
+	@gcc $(C-FLAGS) $(INCLUDES) $^ misc/todo/todo.c -o $(BINARIES)/todo
 	@$(BINARIES)/todo
 
 cisor: $(BINARIES)/cisor

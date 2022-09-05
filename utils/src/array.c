@@ -107,11 +107,11 @@ void *pop(Array *array)
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-int popobj(Array *array, void(*freefunc)(void*))
+int popobj(Array *array, void *freefunc)
 {
   void *index = pop(array);
   if (index != NULL) {
-    freefunc(index);
+    ((void(*)(void*))freefunc)(index);
     return 1;
   }
   return 0;

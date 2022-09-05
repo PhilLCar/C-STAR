@@ -6,6 +6,7 @@
 #include <array.h>
 #include <diagnostic.h>
 #include <oop.h>
+#include <str.h>
 #include <stream.h>
 
 // The lists of single char symbols to be parsed

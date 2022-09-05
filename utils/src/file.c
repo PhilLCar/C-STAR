@@ -4,6 +4,8 @@
 #include <string.h>
 #include <stdio.h>
 
+#include <osal.h>
+
 ////////////////////////////////////////////////////////////////////////////////
 char *filenamewoext(char *filename)
 {
@@ -42,13 +44,9 @@ char *fileext(char *filename)
 char *filenamewopath(char *filename)
 {
   char *last = filename;
-  #ifdef WIN
-  char marker = '\\';
-  #else
-  char marker = '/';
-  #endif
+  
   for (int i = 0; filename[i]; i++) {
-    if (filename[i] == marker) last = &filename[i + 1];
+    if (filename[i] == PATH_MARKER) last = &filename[i + 1];
   }
   return last;
 }
@@ -58,13 +56,9 @@ char *filepath(char *filename)
 {
   char *path = NULL;
   int   size = 0;
-  #ifdef WIN
-  char marker = '\\';
-  #else
-  char marker = '/';
-  #endif
+  
   for (int i = 0; filename[i]; i++) {
-    if (filename[i] == marker) size = i + 1;
+    if (filename[i] == PATH_MARKER) size = i + 1;
   }
   path = malloc((size + 1) * sizeof(char));
   if (path) {
@@ -121,13 +115,16 @@ int fileexists(char *filename, FilePermission permission) {
 ////////////////////////////////////////////////////////////////////////////////
 Stream *fromFileStream(void *stream)
 {
-  Stream *s = malloc(sizeof(Stream));
-
-  if (s) {
-    s->stream = stream;
-    s->getc   = fgetc;
-    s->ungetc = ungetc;
-    s->close  = fclose;
+  Stream *s = NULL;
+  
+  if (stream) {
+    s = malloc(sizeof(Stream));
+    if (s) {
+      s->stream = stream;
+      s->getc   = (char (*)(void*))fgetc;
+      s->ungetc = (void (*)(char, void*))ungetc;
+      s->close  = (void (*)(void*))fclose;
+    }
   }
 
   return s;

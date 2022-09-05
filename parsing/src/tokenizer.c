@@ -3,6 +3,33 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include <array.h>
+
+// Skips a line on the stream
+/******************************************************************************/
+void _skipline(Stream *s) 
+{
+	while (sgetc(s) != '\n');
+}
+
+// Skips a line on the stream
+/******************************************************************************/
+Array *_getarray(Stream *s) 
+{
+	Array  *list = newArray(sizeof(String*));
+	String *line;
+	
+	while (1) {
+		line = sgetline(s);
+		if (line && line->length) push(list, &line);
+		else break;
+	}
+	
+	if (!line) deleteArray(&list);
+
+	return list;
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 int constokenizer(struct tokenizer *ptr, Stream *stream)
 {
@@ -11,17 +38,17 @@ int constokenizer(struct tokenizer *ptr, Stream *stream)
 	ptr->lookahead = 1;
 	ptr->escape    = 0;
 
-	sskipl(stream);
+	_skipline(stream);
 	{
-		String *str = sgetl(stream);
+		String *str = sgetline(stream);
 
 		if (str->length) ptr->escape = str->content[0];
 		deleteString(&str);
 	}
 
 	for (int i = 0; success && i < SINGLE_SIZE; i++) {
-		sskipl(stream);
-		ptr->single_list[i] = sgetl(stream);
+		_skipline(stream);
+		ptr->single_list[i] = sgetline(stream);
 		
 		if (!ptr->single_list[i]) {
 			success = 0;
@@ -31,8 +58,8 @@ int constokenizer(struct tokenizer *ptr, Stream *stream)
 
 	for (int i = 0; success && i < MULTI_SIZE; i++) {
 		Array *array;
-		sskipl(stream);
-		array = sgeta(stream);
+		_skipline(stream);
+		array = _getarray(stream);
 
 		if (array) {
 			for (int j = 0; j < array->size; j++) {

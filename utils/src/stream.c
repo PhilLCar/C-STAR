@@ -1,5 +1,9 @@
 #include <stream.h>
+
 #include <stdio.h>
+#include <stdlib.h>
+
+#include <str.h>
 
 ////////////////////////////////////////////////////////////////////////////////
 char sgetc(Stream *s)
@@ -22,40 +26,16 @@ void sclose(Stream *s)
 
 
 ////////////////////////////////////////////////////////////////////////////////
-String *sgetl(Stream *s)
+String *sgetline(Stream *s)
 {
-  String *str = newString("");
-	char    c;
+	String *line = newString("");
+	char c;
 
-	while((c = sgetc(s)) != '\n' && c != EOF) append(str, c);
+	while((c = sgetc(s)) != '\n' && c != EOF) append(line, c);
 
-	if (c == EOF && !str->length) {
-		deleteString(&str);
+	if (c == EOF && !line->length) {
+		deleteString(&line);
 	}
 
-  return str;
-}
-
-////////////////////////////////////////////////////////////////////////////////
-Array *sgeta(Stream *s)
-{
-	Array  *array = newArray(sizeof(String*));
-	String *line;
-
-	if (array) while ((line = sgetl(s))) {
-		if (line->length) push(array, &line);
-		else              break;
-	}
-
-	if (!array->size && !line) {
-		deleteArray(&array);
-	}
-
-	return array;
-}
-
-////////////////////////////////////////////////////////////////////////////////
-void sskipl(Stream *s)
-{
-	while (sgetc(s) != '\n');
+  return line;
 }
