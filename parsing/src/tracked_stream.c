@@ -38,7 +38,7 @@ void tsclose(TrackedStream *ts)
   deleteArray(&ts->linestack);
   if (ts->stream    != NULL) sclose(ts->stream);
   if (ts->buffer    != NULL) free(ts->buffer);
-  if (ts            != NULL) free(ts);
+  free(ts);
 }
 
 // TODO: (low): Optimization: make <buffer> a rolling buffer

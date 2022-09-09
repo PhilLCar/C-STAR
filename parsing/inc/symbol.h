@@ -41,4 +41,16 @@ typedef struct symbol_stream {
 
 buildable(Symbol, symbol, const char *text);
 
+// RETURNS a symbol stream from the generic stream <s>
+SymbolStream *ssopen(Stream *s, Tokenizer *t);
+
+// Closes the symbol stream <ss>
+void          ssclose(SymbolStream *ss);
+
+// RETURNS the next symbol in the tracked stream
+Symbol       *ssgets(SymbolStream *ss);
+
+// Ungets the symbol <s> on the symbol stream <ss>
+void          ssungets(Symbol *s, SymbolStream *ss);
+
 #endif
